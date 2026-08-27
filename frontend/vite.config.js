@@ -1,0 +1,23 @@
+import { fileURLToPath, URL } from 'node:url'
+
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'vite'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+
+  resolve: {
+    // '@' ko src/ par point karta hai -> import x from '@/features/jobs'
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.js',
+    css: true,
+  },
+})
