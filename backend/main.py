@@ -6,45 +6,16 @@ Run locally:
     uv run uvicorn main:app --reload
 """
 
-from functools import lru_cache
+from typing import Annotated
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
 
-
-class Settings(BaseSettings):
-    """Settings read from environment variables, falling back to `.env`.
-
-    Names are matched case-insensitively, so `APP_NAME` in `.env` fills
-    `app_name` here.
-    """
-
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-
-    app_name: str = "Patron API"
-    app_env: str = "development"
-    debug: bool = False
-
-    api_v1_prefix: str = "/api/v1"
-
-    # Comma-separated in .env; read it through `cors_origin_list`.
-    cors_origins: str = "http://localhost:5173"
-
-    # Deliberately has no default: the app should refuse to start rather than
-    # silently sign tokens with a well-known key.
-    secret_key: str
-
-    @property
-    def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
-
-
-@lru_cache
-def get_settings() -> Settings:
-    """Cached so `.env` is parsed once per process."""
-    return Settings()
-
+from config import get_settings
+from db import get_session
 
 settings = get_settings()
 
@@ -62,8 +33,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+SessionDep = Annotated[AsyncSession, Depends(get_session)]
+
 
 @app.get("/health", tags=["system"])
-async def health() -> dict[str, str]:
-    """Liveness check - used by the frontend and by deployment health probes."""
-    return {"status": "ok", "env": settings.app_env}
+async def health(session: SessionDep) -> dict[str, str]:
+    """Liveness check - used by the frontend and by deployment health probes.
+
+    Reports the database separately so a reachable API with an unreachable
+    database is not mistaken for a healthy system.
+    """
+    try:
+        await session.execute(text("SELECT 1"))
+        database = "ok"
+    except SQLAlchemyError:
+        database = "unreachable"
+
+    return {"status": "ok", "env": settings.app_env, "database": database}
