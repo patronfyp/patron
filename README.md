@@ -17,10 +17,16 @@ that company (Employee Referral), or a verified alumnus of their university
 patron/
 ├── frontend/     React 19 + Vite 8 (JavaScript) + Ant Design
 ├── backend/      FastAPI on Python 3.13, managed by uv
+│   ├── main.py       app, CORS, /health
+│   ├── config.py     settings loaded from .env
+│   ├── db.py         engine, session factory, ORM Base
+│   └── migrations/   Alembic migration scripts
 ├── .editorconfig
 ├── .gitignore
 └── README.md
 ```
+
+Folders are added when a feature needs them, not upfront.
 
 ## Tech stack
 
@@ -39,7 +45,9 @@ patron/
 | Lint + format (JS) | ESLint 9 + Prettier | ESLint pinned to 9.x — see note below |
 | Lint + format (Py) | ruff | replaces flake8 + black + isort + pylint |
 | Tests | Vitest + Testing Library / pytest + httpx | |
-| Database | PostgreSQL | *not wired up yet* |
+| Database | PostgreSQL 18 | |
+| ORM | SQLAlchemy 2.0 (async) + asyncpg | typed models instead of hand-written SQL |
+| Migrations | Alembic | schema changes become committed files, so every machine and production stay in sync |
 
 > **Why ESLint 9 and not 10:** `eslint-plugin-jsx-a11y` and
 > `eslint-plugin-import` do not support ESLint 10 yet. ESLint 10 removed
@@ -58,18 +66,53 @@ patron/
 | Git | <https://git-scm.com/downloads> | `git --version` |
 | Node.js LTS (20+) | <https://nodejs.org> | `node -v` |
 | uv | command below | `uv --version` |
+| PostgreSQL 18 | <https://www.postgresql.org/download/windows/> | `psql --version` |
 
-Install uv (PowerShell):
+#### Installing uv
 
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-Then **close VS Code completely and reopen it**, or `uv` will not be on your
-PATH yet.
-
 You do **not** need to install Python yourself — uv downloads the version
 pinned in `backend/.python-version` (3.13).
+
+#### Installing PostgreSQL
+
+In the installer:
+
+- keep both **PostgreSQL Server** and **Command Line Tools** ticked
+- **write down the password** you set for the `postgres` user — it is not
+  shown again, and you need it for `DATABASE_URL`
+- leave the port at `5432`
+- click **Cancel** if Stack Builder opens at the end; it is not needed
+
+The installer does **not** put `psql` on your PATH. Add it yourself:
+
+```powershell
+$pgBin = "C:\Program Files\PostgreSQL\18\bin"
+$userPath = [Environment]::GetEnvironmentVariable("Path","User")
+[Environment]::SetEnvironmentVariable("Path", $userPath.TrimEnd(';') + ";" + $pgBin, "User")
+```
+
+Adjust `18` if you installed a different major version — check which folders
+exist under `C:\Program Files\PostgreSQL\`.
+
+#### Then restart VS Code
+
+After installing uv and PostgreSQL, **close VS Code completely and reopen it** —
+not just the terminal. A PATH change only reaches newly started processes, and
+VS Code copies its environment once at launch, so a new terminal inside the old
+window still sees the old PATH.
+
+Verify all four:
+
+```powershell
+git --version
+node -v
+uv --version
+psql --version
+```
 
 ### 2. Clone and identify yourself
 
@@ -95,7 +138,30 @@ npm run dev
 
 Open <http://localhost:5173>.
 
-### 4. Backend
+### 4. Database
+
+Create the database (it will ask for the `postgres` password you set during
+installation):
+
+```powershell
+psql -U postgres -c "CREATE DATABASE patron;"
+```
+
+Verify it exists:
+
+```powershell
+psql -U postgres -l
+```
+
+`patron` should appear in the list.
+
+> If you forgot the password, reset it — this asks for the old one, so if that
+> is also gone you will need to reinstall PostgreSQL:
+> ```powershell
+> psql -U postgres -c "ALTER USER postgres WITH PASSWORD 'NewPassword123';"
+> ```
+
+### 5. Backend
 
 ```powershell
 cd ..\backend
@@ -111,11 +177,30 @@ uv run python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 Paste the output as the value of `SECRET_KEY` in `backend/.env`.
 
-> The app **will not start** without it. `SECRET_KEY` has no default on
-> purpose — a well-known signing key must never be able to reach production by
-> accident.
+Then set `DATABASE_URL` in the same file, using the `postgres` password from the
+installation step:
 
-Then run:
+```
+DATABASE_URL=postgresql+asyncpg://postgres:YOUR_PASSWORD@localhost:5432/patron
+```
+
+> `SECRET_KEY` and `DATABASE_URL` have **no defaults** on purpose — the app
+> refuses to start without them, rather than silently signing tokens with a
+> well-known key or pointing at the wrong database.
+>
+> Note the `+asyncpg` in the URL. GUI tools like Navicat and pgAdmin give you a
+> plain `postgresql://` string; SQLAlchemy needs the async driver named
+> explicitly, so you always add that part by hand.
+>
+> If your password contains `@ : / #`, URL-encode it (`@` → `%40`).
+
+Apply any pending database migrations:
+
+```powershell
+uv run alembic upgrade head
+```
+
+Then run the server:
 
 ```powershell
 uv run uvicorn main:app --reload
@@ -123,10 +208,14 @@ uv run uvicorn main:app --reload
 
 | URL | What it is |
 |---|---|
-| <http://localhost:8000/health> | liveness check → `{"status":"ok"}` |
+| <http://localhost:8000/health> | liveness check → `{"status":"ok","env":"development","database":"ok"}` |
 | <http://localhost:8000/docs> | auto-generated interactive API docs (Swagger UI) |
 
-### 5. Recommended VS Code extensions
+If `"database"` says `unreachable`, the API is up but Postgres is not — check
+that the `postgresql-x64-18` service is running and that `DATABASE_URL` is
+correct.
+
+### 6. Recommended VS Code extensions
 
 ```powershell
 code --install-extension EditorConfig.EditorConfig
@@ -171,6 +260,32 @@ EditorConfig is the important one — without it VS Code ignores
 Never run `pip install` here. It bypasses `uv.lock` and your environment will
 silently drift from everyone else's.
 
+**Database migrations** — run inside `backend/`:
+
+| Command | What it does |
+|---|---|
+| `uv run alembic upgrade head` | apply all pending migrations |
+| `uv run alembic revision --autogenerate -m "add jobs table"` | generate a migration from your model changes |
+| `uv run alembic current` | which revision this database is on |
+| `uv run alembic history` | list all migrations |
+| `uv run alembic downgrade -1` | undo the last migration |
+
+Rules:
+
+1. **Never create or alter a table by hand** — not in Navicat, not in pgAdmin,
+   not with raw SQL. A change made that way exists only on your machine, and
+   nobody else's database (or production) will have it. Change the model, then
+   generate a migration.
+2. **Always read the generated migration before applying it.** Autogenerate is
+   good, not perfect — it misses renames, and it will happily write a column
+   drop you did not intend.
+3. **Commit the migration file** along with the model change, in the same PR.
+4. After pulling, run `uv run alembic upgrade head` — the same habit as running
+   `npm install` / `uv sync` after a dependency change.
+
+Use Navicat, pgAdmin or DBeaver freely for *reading* data. Just never let them
+change the schema.
+
 ---
 
 ## Environment files
@@ -180,7 +295,7 @@ silently drift from everyone else's.
 | `frontend/.env.example` | yes | template |
 | `frontend/.env.local` | **no** | your local values |
 | `backend/.env.example` | yes | template |
-| `backend/.env` | **no** | your local values, including `SECRET_KEY` |
+| `backend/.env` | **no** | your local values, including `SECRET_KEY` and `DATABASE_URL` |
 
 Rule: templates are committed, real values never are. If you add a new setting,
 add it to the `.env.example` too — otherwise the next person's app breaks with
@@ -265,8 +380,8 @@ becomes a single readable commit.
 | Repo, branching, branch rules | done |
 | Frontend scaffold + tooling | done |
 | Backend scaffold + tooling | done |
-| Frontend ↔ backend integration | not started |
-| PostgreSQL + migrations | not started |
+| Frontend ↔ backend integration | done |
+| PostgreSQL + SQLAlchemy + Alembic | done — configured, no models yet |
 | Feature modules | not started |
 
 Phase 1 (MVP) scope is Modules 1–8 and 11 from the feature specification.
