@@ -11,6 +11,16 @@ that company (Employee Referral), or a verified alumnus of their university
 
 ---
 
+## Documentation
+
+| Document | Read it when |
+|---|---|
+| this README | setting the project up, or looking for a command |
+| [docs/STANDARDS.md](docs/STANDARDS.md) | before writing your first feature — architecture, naming, API design, security, accessibility, Definition of Done |
+| [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) | before your first branch — branching, commits, PRs, reviews, and fixes for common Git errors |
+
+---
+
 ## Repository layout
 
 ```
