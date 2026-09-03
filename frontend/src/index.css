@@ -1,0 +1,19 @@
+/* Global baseline only.
+   antd's ConfigProvider owns component styling - keeping this file minimal
+   stops the two from fighting over fonts, colours and sizes. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
