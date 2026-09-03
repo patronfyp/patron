@@ -301,6 +301,45 @@ Rule: templates are committed, real values never are. If you add a new setting,
 add it to the `.env.example` too — otherwise the next person's app breaks with
 no explanation.
 
+### After every `git pull` — check your `.env`
+
+`git pull` updates `.env.example`. It does **not** touch your `.env`, because
+that file is yours and is not tracked. So a setting someone else added is
+missing on your machine until you add it by hand.
+
+Symptom — the app or Alembic crashes on startup with a Pydantic error like:
+
+```
+pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+database_url
+  Field required [type=missing, ...]
+```
+
+`Field required [type=missing]` means the setting is absent from your `.env`.
+It is **not** a wrong password — a bad password fails later, with
+`password authentication failed`.
+
+Compare the two files and copy across anything missing:
+
+```powershell
+cd backend
+Compare-Object (Get-Content .env.example) (Get-Content .env)
+```
+
+Lines marked `<=` exist in `.env.example` but not in your `.env`. Add them with
+your own values, then save. Same command works in `frontend/` with
+`.env.example` and `.env.local`.
+
+Make this a habit alongside the other post-pull steps:
+
+```powershell
+git pull
+npm install                        # in frontend/ - if package.json changed
+uv sync                            # in backend/  - if pyproject.toml changed
+uv run alembic upgrade head        # in backend/  - if migrations were added
+# and check .env against .env.example
+```
+
 > Every `VITE_*` variable is bundled into the browser build and is publicly
 > readable. Secrets belong in `backend/.env` only.
 
