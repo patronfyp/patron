@@ -347,6 +347,11 @@ uv run alembic upgrade head        # in backend/  - if migrations were added
 
 ## Branching and workflow
 
+> **Full guide: [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md)** — every step as
+> both a terminal command and its SourceTree equivalent, plus PR and review
+> instructions and fixes for the errors you will actually hit. Read that once
+> before your first branch; the summary below is just the shape of it.
+
 ```
 feature/<name>  →  PR  →  develop  →  PR  →  main
 ```
