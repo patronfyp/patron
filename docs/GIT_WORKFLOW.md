@@ -9,6 +9,83 @@ PR for it. That is faster than asking the same question twice.
 
 ---
 
+## Start here
+
+The whole workflow in one block. Copy it, change the branch name, done.
+
+```powershell
+# 1. start from the latest develop
+git checkout develop
+git pull
+
+# 2. branch off it
+git checkout -b feature/job-detail-page
+
+# 3. ...do the work, then check it
+npm run lint            # in frontend/
+uv run ruff check .     # in backend/
+
+# 4. commit
+git status              # look at this. no .env, no node_modules
+git add .
+git commit -m "feat(jobs): add job detail page"
+
+# 5. push
+git push -u origin feature/job-detail-page
+
+# 6. open a PR on GitHub:  base = develop,  compare = your branch
+# 7. get one approval, then Squash and merge
+
+# 8. clean up
+git checkout develop
+git pull
+git branch -d feature/job-detail-page
+```
+
+### The 7 rules
+
+| # | Rule |
+|---|---|
+| 1 | Never push directly to `main` or `develop` — GitHub will reject it. |
+| 2 | Always `git pull` on `develop` before branching. Skipping this causes conflicts. |
+| 3 | Branch names: `feature/` · `fix/` · `docs/` · `chore/` · `refactor/` |
+| 4 | Commits: `type(scope): what changed` — e.g. `feat(auth): add login form` |
+| 5 | PR base is **`develop`** (only `main` when releasing). |
+| 6 | One approval from someone else. Never approve your own PR. |
+| 7 | Merge with **Squash and merge**, then delete the branch. |
+
+### After every pull, check what else changed
+
+| If the pull touched | Run this |
+|---|---|
+| `frontend/package.json` | `npm install` |
+| `backend/pyproject.toml` or `uv.lock` | `uv sync` |
+| `backend/migrations/versions/` | `uv run alembic upgrade head` |
+| `.env.example` | add the new keys to your own `.env` |
+
+`git pull` never updates your `.env`. To see what you are missing:
+
+```powershell
+Compare-Object (Get-Content .env.example) (Get-Content .env)
+```
+
+### Something broke?
+
+| Situation | Where to look |
+|---|---|
+| "branch is not fully merged" | section 6 |
+| merge conflicts | section 6 |
+| committed on the wrong branch | section 6 |
+| committed a secret | section 6 |
+| PR pointing at the wrong base | section 6 |
+| need to switch branches mid-work | section 6 |
+| Git keeps asking which account | section 2 |
+
+Prefer SourceTree over the terminal? Every step below is given both ways, and
+**section 7** is a side-by-side table of all of them.
+
+---
+
 ## 1. The branch model
 
 ```

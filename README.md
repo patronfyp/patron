@@ -19,6 +19,68 @@ that company (Employee Referral), or a verified alumnus of their university
 | [docs/STANDARDS.md](docs/STANDARDS.md) | before writing your first feature — architecture, naming, API design, security, accessibility, Definition of Done |
 | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) | before your first branch — branching, commits, PRs, reviews, and fixes for common Git errors |
 
+Both start with a **"Start here"** page — the short version. Read that first;
+the detail underneath is reference material for when you need it.
+
+---
+
+## Quick start
+
+Already have Git, Node 20+, uv and PostgreSQL 18 installed, with `psql` on your
+PATH? Then:
+
+```powershell
+git clone https://github.com/patronfyp/patron.git
+cd patron
+git checkout develop
+
+# database
+psql -U postgres -c "CREATE DATABASE patron;"
+
+# frontend
+cd frontend
+npm install
+Copy-Item .env.example .env.local
+cd ..
+
+# backend
+cd backend
+uv sync
+Copy-Item .env.example .env
+```
+
+Then open `backend/.env` and fill in two values:
+
+| Key | Value |
+|---|---|
+| `SECRET_KEY` | run `uv run python -c "import secrets; print(secrets.token_urlsafe(32))"` and paste the output |
+| `DATABASE_URL` | replace `YOUR_PASSWORD` with your postgres password |
+
+Run it — **two terminals**:
+
+```powershell
+cd backend  ; uv run uvicorn main:app --reload    # → http://localhost:8000/docs
+cd frontend ; npm run dev                          # → http://localhost:5173
+```
+
+You should see a green **"Backend connected"** box at `localhost:5173`.
+
+Missing a tool, or something broke? Full walkthrough in
+**[First-time setup](#first-time-setup)** below.
+
+### Everyday commands
+
+| Where | Command | What |
+|---|---|---|
+| `frontend/` | `npm run dev` | dev server |
+| `frontend/` | `npm run lint` | find problems |
+| `frontend/` | `npm run format` | format code |
+| `backend/` | `uv run uvicorn main:app --reload` | dev server |
+| `backend/` | `uv run ruff check .` | find problems |
+| `backend/` | `uv run alembic upgrade head` | apply migrations |
+
+Full list in [Everyday commands](#everyday-commands).
+
 ---
 
 ## Repository layout

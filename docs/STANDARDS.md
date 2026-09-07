@@ -14,6 +14,88 @@ understand is a rule you will break.
 
 ---
 
+## Start here
+
+If you read nothing else, read this page. Everything below it is the detail
+behind these rules — go there when you need it, not before.
+
+### The 12 rules
+
+| # | Rule |
+|---|---|
+| 1 | `router.py` = URL + validation only. **No business logic, no SQL.** |
+| 2 | `service.py` = business rules. **No SQL, no HTTP status codes.** |
+| 3 | `repository.py` = database queries. **The only place SQL lives.** |
+| 4 | Never return an ORM model from an endpoint — use a `Read` schema. |
+| 5 | Validate every input with a Pydantic schema. Client validation is UX only. |
+| 6 | Check authorisation on **every** endpoint. Hiding a button is not security. |
+| 7 | Never change the database by hand. Write a migration, commit it with the model. |
+| 8 | Server data → **React Query**. UI-only state → `useState` / zustand. Never mix. |
+| 9 | Every screen handles four states: **loading, error, empty, success.** |
+| 10 | Cross-feature imports go through `features/<name>/index.js`, never internals. |
+| 11 | Secrets never in code, never in git, never in a `VITE_*` variable. |
+| 12 | Every input has a label; everything works with the keyboard. |
+
+### Where does my code go?
+
+| I'm building… | Backend | Frontend |
+|---|---|---|
+| a new API endpoint | `app/modules/<domain>/router.py` | — |
+| a business rule ("who may refer?") | `app/modules/<domain>/service.py` | — |
+| a database query | `app/modules/<domain>/repository.py` | — |
+| a database table | `app/modules/<domain>/models.py` | — |
+| request/response shape | `app/modules/<domain>/schemas.py` | — |
+| a full screen (a route) | — | `features/<domain>/pages/` |
+| a piece of UI used in one feature | — | `features/<domain>/components/` |
+| a piece of UI used in two+ features | — | `shared/components/` |
+| an HTTP call | — | `features/<domain>/api/<domain>.api.js` |
+| data fetching + caching | — | `features/<domain>/hooks/use<Domain>.js` |
+| a date formatter, a validator | `app/core/` | `shared/lib/` |
+
+Use the same domain name on both sides: `modules/jobs/` ↔ `features/jobs/`.
+
+### Naming, in one table
+
+| Thing | Casing | Example |
+|---|---|---|
+| Python file, function, variable | `snake_case` | `create_job` |
+| Python class | `PascalCase` | `JobCreate` |
+| JS function, variable | `camelCase` | `createJob` |
+| React component + its file | `PascalCase` | `JobCard.jsx` |
+| Folder | `kebab-case` | `cv-builder/` |
+| DB table (plural), column | `snake_case` | `alumni_referrals`, `created_at` |
+| API path | `lower-kebab`, plural | `/api/v1/alumni-referrals` |
+| Boolean | `is_` / `has_` prefix | `is_verified` |
+| Timestamp | `_at` suffix | `created_at` |
+
+### Before you open a PR
+
+```powershell
+# frontend/
+npm run lint ; npm run format ; npm run build
+
+# backend/
+uv run ruff check . ; uv run ruff format . ; uv run pytest
+```
+
+Then walk the **[Definition of Done](#11-definition-of-done)** checklist.
+
+### Where to look for what
+
+| I want to know… | Section |
+|---|---|
+| where a file goes, and why the layers exist | [2. Architecture](#2-architecture) |
+| how to write an endpoint / schema / model / migration | [3. Backend](#3-backend-standards) |
+| React Query vs zustand, forms, antd rules | [4. Frontend](#4-frontend-standards) |
+| naming and comment rules | [5. Shared conventions](#5-shared-conventions) |
+| security rules | [6. Security](#6-security) |
+| accessibility rules | [7. Accessibility](#7-accessibility) |
+| what to test | [8. Testing](#8-testing) |
+| is my feature finished? | [11. Definition of Done](#11-definition-of-done) |
+| I'm reviewing someone's PR | [12. Review checklist](#12-code-review-checklist) |
+
+---
+
 ## How to use this document
 
 - Read sections 1–5 once before you write your first feature.
