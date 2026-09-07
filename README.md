@@ -19,6 +19,7 @@ that company (Employee Referral), or a verified alumnus of their university
 | [docs/STANDARDS.md](docs/STANDARDS.md) | before writing your first feature — architecture, naming, API design, security, accessibility, Definition of Done |
 | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) | before your first branch — branching, commits, PRs, reviews, and fixes for common Git errors |
 | [docs/AGILE_PLAN.md](docs/AGILE_PLAN.md) | who does what, the sprint calendar to May 2027, and how work is tracked on GitHub |
+| [docs/DOCUMENTATION_GUIDE.md](docs/DOCUMENTATION_GUIDE.md) | what to write and when — SRS, ADRs, API descriptions, user manual, sprint reports |
 
 Each starts with a **"Start here"** page — the short version. Read that first;
 the detail underneath is reference material for when you need it.
