@@ -1,0 +1,124 @@
+name: CI
+
+# Runs on every pull request, and on every push to the long-lived branches.
+# Paths filters keep a docs-only change from spending two minutes on a build.
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+# If you push twice in a row, cancel the first run - only the latest commit
+# matters, and it keeps the queue short.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          # Caches ~/.npm between runs, keyed on the lockfile.
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # `npm ci` installs exactly what package-lock.json says and fails if the
+      # lockfile is out of sync with package.json. `npm install` would quietly
+      # "fix" it, which is the opposite of what CI is for.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Check formatting
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm run test:run
+
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    # Settings the app needs at import time. These are throwaway CI values,
+    # not secrets - the real ones live in each developer's .env.
+    env:
+      APP_ENV: test
+      DEBUG: "false"
+      SECRET_KEY: ci-only-key-not-used-anywhere-else
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/patron_test
+
+    # A throwaway PostgreSQL for the tests to talk to. Same major version as
+    # local development, so a query that works here works there.
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: patron_test
+        ports:
+          - 5432:5432
+        # Without this, the job can start before Postgres accepts connections.
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+
+      # --frozen fails if uv.lock does not match pyproject.toml, rather than
+      # silently resolving new versions.
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Check formatting
+        run: uv run ruff format --check .
+
+      - name: Run migrations
+        run: uv run alembic upgrade head
+
+      # pytest exits 5 when it collects no tests at all, which would fail the
+      # job. We have none yet - Sprint 1 writes the first ones. Delete this
+      # tolerance as soon as a real test exists, so an accidentally empty test
+      # suite starts failing again.
+      - name: Test
+        run: |
+          set +e
+          uv run pytest
+          code=$?
+          set -e
+          if [ "$code" -eq 5 ]; then
+            echo "::warning::No tests collected. Remove this tolerance in ci.yml once tests exist."
+            exit 0
+          fi
+          exit "$code"
