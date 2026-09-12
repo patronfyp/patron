@@ -107,18 +107,5 @@ jobs:
       - name: Run migrations
         run: uv run alembic upgrade head
 
-      # pytest exits 5 when it collects no tests at all, which would fail the
-      # job. We have none yet - Sprint 1 writes the first ones. Delete this
-      # tolerance as soon as a real test exists, so an accidentally empty test
-      # suite starts failing again.
       - name: Test
-        run: |
-          set +e
-          uv run pytest
-          code=$?
-          set -e
-          if [ "$code" -eq 5 ]; then
-            echo "::warning::No tests collected. Remove this tolerance in ci.yml once tests exist."
-            exit 0
-          fi
-          exit "$code"
+        run: uv run pytest

@@ -74,5 +74,9 @@ indent-style = "space"
 # Pytest
 # -----------------------------------------------------------------------------
 [tool.pytest.ini_options]
+# `auto` means async test functions run without needing a marker on each one.
 asyncio_mode = "auto"
 addopts = "-q --strict-markers"
+testpaths = ["tests"]
+# Lets tests do `from main import app` while living in tests/.
+pythonpath = ["."]

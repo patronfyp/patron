@@ -1184,6 +1184,11 @@ lint time. Do not disable its rules to make a build pass.
 We are not chasing a coverage number. We are testing the things that would be
 embarrassing to get wrong.
 
+> **How to actually write them: [TESTING_GUIDE.md](TESTING_GUIDE.md)** —
+> fixtures, mocking, `getBy` vs `findBy`, and the async gotchas, with working
+> examples from this repository. This section decides *what* to test; that one
+> is *how*.
+
 | Priority | Test | Why |
 |---|---|---|
 | **High** | service-layer business rules | the three endorsement types are the product |

@@ -20,6 +20,7 @@ that company (Employee Referral), or a verified alumnus of their university
 | [docs/GIT_WORKFLOW.md](docs/GIT_WORKFLOW.md) | before your first branch — branching, commits, PRs, reviews, and fixes for common Git errors |
 | [docs/AGILE_PLAN.md](docs/AGILE_PLAN.md) | who does what, the sprint calendar to May 2027, and how work is tracked on GitHub |
 | [docs/DOCUMENTATION_GUIDE.md](docs/DOCUMENTATION_GUIDE.md) | what to write and when — SRS, ADRs, API descriptions, user manual, sprint reports |
+| [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) | before writing your first test — how fixtures, mocking and queries work, with examples from this repo |
 
 Each starts with a **"Start here"** page — the short version. Read that first;
 the detail underneath is reference material for when you need it.
@@ -94,7 +95,11 @@ patron/
 │   ├── main.py       app, CORS, /health
 │   ├── config.py     settings loaded from .env
 │   ├── db.py         engine, session factory, ORM Base
-│   └── migrations/   Alembic migration scripts
+│   ├── migrations/   Alembic migration scripts
+│   └── tests/        pytest suite
+├── docs/         standards, git workflow, agile plan, documentation, testing
+├── .github/
+│   └── workflows/ci.yml   runs lint, build, migrations and tests on every PR
 ├── .editorconfig
 ├── .gitignore
 └── README.md
