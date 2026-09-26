@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Card, Descriptions, Flex, Spin, Typography } from 'antd'
 
-import { api } from './lib/api'
+import { api } from './shared/api/client'
 
 const { Title, Paragraph, Text } = Typography
 
