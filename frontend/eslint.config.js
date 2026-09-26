@@ -67,6 +67,43 @@ export default defineConfig([
       'import/no-named-as-default-member': 'off',
 
       // -----------------------------------------------------------------------
+      // Architecture boundaries — STANDARDS.md §2.6
+      // -----------------------------------------------------------------------
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/features/*/*'],
+              message: "Import from '@/features/<name>' (its index.js), not its internals.",
+            },
+          ],
+        },
+      ],
+      'import/no-restricted-paths': [
+        'error',
+        {
+          zones: [
+            {
+              target: './src/shared',
+              from: './src/features',
+              message: 'shared/ must not depend on features/.',
+            },
+            {
+              target: './src/shared',
+              from: './src/app',
+              message: 'shared/ must not depend on app/.',
+            },
+            {
+              target: './src/features',
+              from: './src/app',
+              message: 'features/ must not depend on app/.',
+            },
+          ],
+        },
+      ],
+
+      // -----------------------------------------------------------------------
       // General code quality
       // -----------------------------------------------------------------------
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
