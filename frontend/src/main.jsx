@@ -8,6 +8,7 @@ import { RouterProvider } from 'react-router-dom'
 
 import './index.css'
 import { router } from './app/router/routes'
+import { theme } from './config/theme'
 
 // One client for the whole app: it owns the cache of everything fetched from
 // the backend, so two components asking for the same data share one request.
@@ -24,7 +25,7 @@ const queryClient = new QueryClient({
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <ConfigProvider>
+      <ConfigProvider theme={theme}>
         <AntApp>
           <RouterProvider router={router} />
         </AntApp>
