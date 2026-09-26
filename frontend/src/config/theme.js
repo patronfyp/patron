@@ -25,7 +25,6 @@ export const theme = {
 
     borderRadius: 8,
 
-    fontFamily:
-      "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+    fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
   },
 }
