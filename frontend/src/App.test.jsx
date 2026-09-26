@@ -18,12 +18,12 @@ import { render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
-import { api } from './lib/api'
+import { api } from './shared/api/client'
 
 // Replace the real axios client with a fake one. Tests must never hit the
 // network: a test that needs the backend running is not a unit test, it is a
 // second way for the suite to fail.
-vi.mock('./lib/api', () => ({
+vi.mock('./shared/api/client', () => ({
   api: { get: vi.fn() },
 }))
 
