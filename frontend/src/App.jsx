@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Card, Descriptions, Flex, Spin, Typography } from 'antd'
 
+import { API_BASE_URL } from './config/env'
 import { api } from './shared/api/client'
 
 const { Title, Paragraph, Text } = Typography
@@ -67,7 +68,7 @@ function App() {
                 {
                   key: 'baseUrl',
                   label: 'API base URL',
-                  children: <Text code>{import.meta.env.VITE_API_BASE_URL}</Text>,
+                  children: <Text code>{API_BASE_URL}</Text>,
                 },
               ]}
             />
