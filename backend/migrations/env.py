@@ -6,6 +6,10 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+# Alembic only sees models that have been imported by the time it reads
+# Base.metadata. Every new model module must be imported here, or
+# `--autogenerate` silently produces an empty migration.
+from app.modules.auth import models as auth_models  # noqa: F401
 from config import get_settings
 from db import Base
 
