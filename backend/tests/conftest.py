@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import text
 
 from db import engine
 from main import app
@@ -29,6 +30,20 @@ async def _close_database_connections() -> AsyncIterator[None]:
     """
     yield
     await engine.dispose()
+
+
+@pytest.fixture
+async def clean_users_table() -> AsyncIterator[None]:
+    """Empties users (and, via cascade, user_identities) before the test runs.
+
+    Tests hit the real configured database - there is no separate test DB yet
+    locally, only in CI. Without this, a test asserting "this email is free"
+    can fail because a previous manual run or test left a row behind, and
+    tests would stop being independent of each other and of run order.
+    """
+    async with engine.begin() as conn:
+        await conn.execute(text("TRUNCATE TABLE users, user_identities RESTART IDENTITY CASCADE"))
+    yield
 
 
 @pytest.fixture

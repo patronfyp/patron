@@ -8,12 +8,15 @@ Run locally:
 
 from typing import Annotated
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AppError
+from app.modules.auth.router import router as auth_router
 from config import get_settings
 from db import get_session
 
@@ -32,6 +35,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
+    """Turns every AppError subclass into the same response shape.
+
+    No route builds an error response by hand - see STANDARDS.md §3.7.
+    """
+    return JSONResponse(
+        status_code=exc.status_code, content={"detail": exc.detail, "code": exc.code}
+    )
+
+
+app.include_router(auth_router, prefix=settings.api_v1_prefix)
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
