@@ -16,3 +16,9 @@ export async function login({ email, password }) {
   const response = await api.post('/api/v1/auth/login', { email, password })
   return response.data
 }
+
+/** POST /api/v1/auth/refresh - exchanges the refresh token for a new access token. */
+export async function refreshAccessToken(refreshToken) {
+  const response = await api.post('/api/v1/auth/refresh', { refresh_token: refreshToken })
+  return response.data
+}

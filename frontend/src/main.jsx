@@ -7,6 +7,7 @@ import { App as AntApp, ConfigProvider } from 'antd'
 import { RouterProvider } from 'react-router-dom'
 
 import './index.css'
+import AuthProvider from './app/providers/AuthProvider'
 import { router } from './app/router/routes'
 import { theme } from './config/theme'
 
@@ -27,7 +28,9 @@ createRoot(document.getElementById('root')).render(
     <QueryClientProvider client={queryClient}>
       <ConfigProvider theme={theme}>
         <AntApp>
-          <RouterProvider router={router} />
+          <AuthProvider>
+            <RouterProvider router={router} />
+          </AuthProvider>
         </AntApp>
       </ConfigProvider>
     </QueryClientProvider>

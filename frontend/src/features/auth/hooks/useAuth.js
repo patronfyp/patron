@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react'
+
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-import { login } from '../api/auth.api'
+import { login, refreshAccessToken } from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
 
 /**
@@ -29,4 +31,29 @@ export function useLogout() {
     clearSession()
     navigate('/login', { replace: true })
   }
+}
+
+/**
+ * Runs once on app load. The access token never survives a refresh (ADR 0009),
+ * so if a refresh token was persisted, silently exchange it for a new access
+ * token before any protected route renders. Returns false while that check is
+ * still in flight.
+ */
+export function useSessionBootstrap() {
+  // No refresh token at all means there is nothing to wait for - decide that
+  // synchronously so the effect below only ever runs for the async case.
+  const [isReady, setIsReady] = useState(() => !useAuthStore.getState().refreshToken)
+
+  useEffect(() => {
+    if (isReady) return
+
+    const { refreshToken, setAccessToken, clearSession } = useAuthStore.getState()
+
+    refreshAccessToken(refreshToken)
+      .then(({ access_token: accessToken }) => setAccessToken(accessToken))
+      .catch(() => clearSession())
+      .finally(() => setIsReady(true))
+  }, [isReady])
+
+  return isReady
 }
