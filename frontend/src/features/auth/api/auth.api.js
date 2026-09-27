@@ -22,3 +22,15 @@ export async function refreshAccessToken(refreshToken) {
   const response = await api.post('/api/v1/auth/refresh', { refresh_token: refreshToken })
   return response.data
 }
+
+/**
+ * GET /api/v1/auth/me - the signed-in user, identified by the access token.
+ * The Authorization header is set explicitly here because the shared client
+ * doesn't attach it automatically yet - that lands in #20.
+ */
+export async function getCurrentUser(accessToken) {
+  const response = await api.get('/api/v1/auth/me', {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+  return response.data
+}

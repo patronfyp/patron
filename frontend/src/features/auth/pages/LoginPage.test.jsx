@@ -5,12 +5,13 @@ import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { login } from '../api/auth.api'
+import { getCurrentUser, login } from '../api/auth.api'
 
 import LoginPage from './LoginPage'
 
 vi.mock('../api/auth.api', () => ({
   login: vi.fn(),
+  getCurrentUser: vi.fn(),
 }))
 
 function renderPage() {
@@ -45,6 +46,7 @@ describe('LoginPage', () => {
   it('logs in successfully and redirects to the protected home page', async () => {
     const user = userEvent.setup()
     login.mockResolvedValue({ access_token: 'access-1', refresh_token: 'refresh-1' })
+    getCurrentUser.mockResolvedValue({ id: 1, email: 'jane@example.com' })
     renderPage()
 
     await user.type(screen.getByLabelText(/email/i), 'jane@example.com')

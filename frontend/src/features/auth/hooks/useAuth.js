@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-import { login, refreshAccessToken, register } from '../api/auth.api'
+import { getCurrentUser, login, refreshAccessToken, register } from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
 
 /**
@@ -27,18 +27,15 @@ export function useRegister() {
   })
 }
 
-/**
- * /auth/login only returns tokens, not the user's profile, so `user` stays
- * null here. Fetching it would mean an extra /auth/me call - not done yet,
- * see the note left for the team on this PR.
- */
+// /auth/login only returns tokens, so the user's profile is fetched separately.
 export function useLogin() {
   const setSession = useAuthStore((state) => state.setSession)
 
   return useMutation({
     mutationFn: async (payload) => {
       const { access_token: accessToken, refresh_token: refreshToken } = await login(payload)
-      setSession({ user: null, accessToken, refreshToken })
+      const user = await getCurrentUser(accessToken)
+      setSession({ user, accessToken, refreshToken })
     },
   })
 }
