@@ -17,3 +17,13 @@ if (!window.matchMedia) {
     dispatchEvent: () => false,
   })
 }
+
+// jsdom does not implement ResizeObserver either, and antd's Select/dropdown
+// components use it to position themselves. Without this stub they throw.
+if (!window.ResizeObserver) {
+  window.ResizeObserver = class ResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+}
