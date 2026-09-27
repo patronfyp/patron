@@ -98,9 +98,7 @@ describe('RegisterPage', () => {
     await fillValidForm(user)
     await user.click(screen.getByRole('button', { name: /create account/i }))
 
-    expect(
-      await screen.findByText('An account with this email already exists'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('An account with this email already exists')).toBeInTheDocument()
     expect(login).not.toHaveBeenCalled()
   })
 })
