@@ -1023,7 +1023,22 @@ export function JobForm() {
 | Use `App.useApp()` for `message` / `notification` / `modal` | the static `message.x()` imports ignore your theme |
 | `Flex` and `Space` instead of hand-rolled flexbox | consistent spacing across the app |
 
-### 4.9 Frontend naming
+### 4.9 Visual design
+
+See ADR 0012. Anywhere a screen has a hero/marketing moment (today: the auth
+pages), a plain `Flex` + `Title` + form is not enough — apply these rules,
+checkable in review, not left to taste:
+
+| Rule | Why |
+|---|---|
+| Use `theme.fontDisplay` (Fraunces) only for real headline text, never for labels, body copy, or buttons | a display face used everywhere stops meaning anything |
+| Every form lives inside an antd `Card` (or equivalent elevation), never bare on the page background | a floating form with no edge reads as unfinished |
+| A hero/brand panel states something specific to Patron (e.g. the three trust tiers), not generic copy any SaaS auth screen could carry | copy is content, not decoration — same rule STANDARDS.md already applies to comments |
+| Extend `brand.*` tokens for a hero panel's own colours; never feed them into antd's `ConfigProvider` | keeps antd's derived component states from silently inheriting a colour meant for one panel |
+| Interactive elements show a real hover/focus state and a loading state on submit, beyond the bare minimum in §4.6 | "does it handle the state" is necessary but not sufficient for a first-impression screen |
+| Do not add Tailwind, styled-components, or another styling system to achieve any of this | §4.8 still applies — solve it with antd + `theme.js`, not a second library |
+
+### 4.10 Frontend naming
 
 | Thing | Convention | Example |
 |---|---|---|

@@ -1,15 +1,35 @@
-import { useEffect, useState } from 'react'
-
 import { useMutation } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { login, refreshAccessToken } from '../api/auth.api'
+import { login, refreshAccessToken, register } from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
 
 /**
- * /auth/login only returns tokens, not the user's profile (there is no "me"
- * endpoint yet), so `user` stays null here. Register's flow can do better
- * because /auth/register itself returns the created user.
+ * Registers the account, then immediately logs in with the same credentials
+ * so the user lands signed in - /register returns no tokens, only /login does.
+ * /register does return the created user, so that's used directly instead of
+ * an extra /auth/me call.
+ */
+export function useRegister() {
+  const setSession = useAuthStore((state) => state.setSession)
+
+  return useMutation({
+    mutationFn: async (payload) => {
+      const user = await register(payload)
+      const { access_token: accessToken, refresh_token: refreshToken } = await login({
+        email: payload.email,
+        password: payload.password,
+      })
+      setSession({ user, accessToken, refreshToken })
+    },
+  })
+}
+
+/**
+ * /auth/login only returns tokens, not the user's profile, so `user` stays
+ * null here. Fetching it would mean an extra /auth/me call - not done yet,
+ * see the note left for the team on this PR.
  */
 export function useLogin() {
   const setSession = useAuthStore((state) => state.setSession)
