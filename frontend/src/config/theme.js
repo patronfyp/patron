@@ -28,3 +28,21 @@ export const theme = {
     fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
   },
 }
+
+/**
+ * Supplementary tokens for pages with a hero/marketing moment (the auth
+ * screens today - STANDARDS.md §4.9). Not fed into antd's ConfigProvider:
+ * these are decorative colours for a specific panel, not colours antd derives
+ * component states from, and mixing the two would make every antd component
+ * quietly inherit a colour meant for one hero panel.
+ */
+export const brand = {
+  deep: '#0e5c3c',
+  deeper: '#0a3324',
+  onBrand: '#eef6f0',
+  onBrandSoft: 'rgba(238, 246, 240, 0.72)',
+}
+
+// Headline/display face - pair with theme.token.fontFamily (Inter) for
+// everything else. Loaded in index.html alongside Inter.
+export const fontDisplay = "'Fraunces', Georgia, 'Times New Roman', serif"
