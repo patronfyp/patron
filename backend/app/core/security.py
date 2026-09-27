@@ -11,13 +11,22 @@ that release removed) and passlib itself has had no release since 2020 - so
 build on. Direct use of `bcrypt` is what current guidance recommends instead.
 """
 
+from datetime import UTC, datetime, timedelta
+from enum import StrEnum
+from typing import Any
+
 import bcrypt
+import jwt
+
+from config import get_settings
 
 # bcrypt silently truncates any input past 72 bytes - a password entered past
 # that point would be ignored rather than rejected, which is worse than just
 # refusing it. Enforced in RegisterRequest (schemas.py) as `max_length=72` on
 # the ASCII case; comfortably above what any real password needs.
 _BCRYPT_MAX_BYTES = 72
+
+_JWT_ALGORITHM = "HS256"
 
 
 def hash_password(plain_password: str) -> str:
@@ -31,3 +40,54 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Check a plain password against a stored hash."""
     password_bytes = plain_password.encode("utf-8")[:_BCRYPT_MAX_BYTES]
     return bcrypt.checkpw(password_bytes, hashed_password.encode("utf-8"))
+
+
+class TokenType(StrEnum):
+    """The `type` claim inside our JWTs.
+
+    Both token kinds are signed with the same secret and would otherwise be
+    interchangeable, which would let a stolen access token (short-lived, but
+    handled by far more code paths) be replayed against /auth/refresh to mint
+    fresh access tokens indefinitely. Checking this claim is what stops that.
+    """
+
+    ACCESS = "access"
+    REFRESH = "refresh"
+
+
+def _create_token(user_id: int, token_type: TokenType, expires_delta: timedelta) -> str:
+    settings = get_settings()
+    now = datetime.now(UTC)
+    payload = {
+        "sub": str(user_id),  # JWT spec requires `sub` to be a string
+        "type": token_type.value,
+        "iat": now,
+        "exp": now + expires_delta,
+    }
+    return jwt.encode(payload, settings.secret_key, algorithm=_JWT_ALGORITHM)
+
+
+def create_access_token(user_id: int) -> str:
+    settings = get_settings()
+    delta = timedelta(minutes=settings.access_token_expire_minutes)
+    return _create_token(user_id, TokenType.ACCESS, delta)
+
+
+def create_refresh_token(user_id: int) -> str:
+    settings = get_settings()
+    delta = timedelta(days=settings.refresh_token_expire_days)
+    return _create_token(user_id, TokenType.REFRESH, delta)
+
+
+def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
+    """Decode and validate a token, including that it is the expected kind.
+
+    Raises `jwt.PyJWTError` (or a subclass) on anything wrong - expired,
+    tampered signature, or wrong token type. Callers turn that into a 401;
+    nothing here talks HTTP.
+    """
+    settings = get_settings()
+    payload = jwt.decode(token, settings.secret_key, algorithms=[_JWT_ALGORITHM])
+    if payload.get("type") != expected_type.value:
+        raise jwt.InvalidTokenError(f"Expected a {expected_type.value} token")
+    return payload

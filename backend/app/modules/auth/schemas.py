@@ -29,6 +29,36 @@ class RegisterRequest(BaseModel):
         return value.strip()
 
 
+class LoginRequest(BaseModel):
+    """What a client sends to POST /api/v1/auth/login."""
+
+    email: EmailStr
+    password: str = Field(min_length=1, max_length=72)
+
+
+class TokenPair(BaseModel):
+    """Returned by /login: both tokens for a fresh session."""
+
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"  # noqa: S105 -- the OAuth2 token type literal, not a secret
+
+
+class RefreshRequest(BaseModel):
+    """What a client sends to POST /api/v1/auth/refresh."""
+
+    refresh_token: str
+
+
+class AccessTokenResponse(BaseModel):
+    """Returned by /refresh: a new access token only. The refresh token the
+    client already holds keeps working until it expires or is rotated by a
+    later change - not reissued here."""
+
+    access_token: str
+    token_type: str = "bearer"  # noqa: S105 -- the OAuth2 token type literal, not a secret
+
+
 class UserRead(BaseModel):
     """What we send back. No password field exists on this schema at all -
     there is nothing here to accidentally leak."""
