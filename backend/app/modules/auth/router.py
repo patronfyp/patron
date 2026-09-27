@@ -6,6 +6,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import CurrentUser
 from db import get_session
 
 from . import service
@@ -78,3 +79,21 @@ async def refresh(payload: RefreshRequest, session: SessionDep) -> AccessTokenRe
     long-lived credentials.
     """
     return await service.refresh_access_token(session, payload.refresh_token)
+
+
+@router.get(
+    "/me",
+    response_model=UserRead,
+    summary="Get the currently signed-in user",
+    responses={
+        401: {"description": "Missing, invalid or expired token"},
+    },
+)
+async def me(current_user: CurrentUser) -> UserRead:
+    """Returns the user identified by the Authorization: Bearer token.
+
+    Exists mainly as the proof that `CurrentUser` (app/api/deps.py) works -
+    every future protected endpoint in every module depends on the same
+    function this one does.
+    """
+    return UserRead.model_validate(current_user)
