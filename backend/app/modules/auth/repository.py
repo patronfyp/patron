@@ -19,6 +19,10 @@ async def get_by_email(session: AsyncSession, email: str) -> User | None:
     return await session.scalar(stmt)
 
 
+async def get_by_id(session: AsyncSession, user_id: int) -> User | None:
+    return await session.get(User, user_id)
+
+
 async def create_user(session: AsyncSession, payload: RegisterRequest, password_hash: str) -> User:
     """Insert a new user row. Assumes the duplicate-email check already ran -
     that decision belongs to the service, not here."""

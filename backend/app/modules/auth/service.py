@@ -4,14 +4,27 @@ Routes call these functions and nothing else - no SQL and no HTTP status codes
 belong here, only decisions. STANDARDS.md §2.3.
 """
 
+import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError
-from app.core.security import hash_password
+from app.core.exceptions import ConflictError, UnauthorizedError
+from app.core.security import (
+    TokenType,
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    hash_password,
+    verify_password,
+)
 
 from . import repository
 from .models import User
-from .schemas import RegisterRequest
+from .schemas import AccessTokenResponse, RegisterRequest, TokenPair
+
+# Same message for every login failure - see STANDARDS.md §6, rule 10.
+# Confirming *which* part was wrong tells an attacker whether an account
+# exists for a given email.
+_INVALID_CREDENTIALS = "Invalid email or password"
 
 
 async def register_user(session: AsyncSession, payload: RegisterRequest) -> User:
@@ -34,3 +47,54 @@ async def register_user(session: AsyncSession, payload: RegisterRequest) -> User
 
     password_hash = hash_password(payload.password)
     return await repository.create_user(session, payload, password_hash)
+
+
+def create_session(user: User) -> TokenPair:
+    """Issue a fresh access + refresh token pair for an already-authenticated
+    user.
+
+    Deliberately takes just a `User`, not credentials - this is what LinkedIn
+    sign-in (#25) will call too, once a user has been found or created via a
+    provider identity rather than a password. Nothing here assumes a password
+    was involved.
+    """
+    return TokenPair(
+        access_token=create_access_token(user.id),
+        refresh_token=create_refresh_token(user.id),
+    )
+
+
+async def authenticate_user(session: AsyncSession, email: str, password: str) -> User:
+    """Verify credentials and return the matching user, or raise.
+
+    A user with no password set (a future LinkedIn-only account, Module 1.1)
+    fails this the same way a wrong password does - `verify_password` never
+    runs, and either way the caller gets a plain 401, not a crash or a hint
+    about which case applies.
+    """
+    user = await repository.get_by_email(session, email.strip().lower())
+
+    if user is None or user.password is None or not verify_password(password, user.password):
+        raise UnauthorizedError(_INVALID_CREDENTIALS)
+
+    return user
+
+
+async def refresh_access_token(session: AsyncSession, refresh_token: str) -> AccessTokenResponse:
+    """Exchange a valid, unexpired refresh token for a new access token.
+
+    Re-checks the user against the database rather than trusting the token's
+    `sub` claim alone - otherwise a banned or deleted account (Module 13.2)
+    keeps minting fresh access tokens for as long as its refresh token has
+    left to live, up to 7 days.
+    """
+    try:
+        payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
+    except jwt.PyJWTError as exc:
+        raise UnauthorizedError("Invalid or expired refresh token") from exc
+
+    user = await repository.get_by_id(session, int(payload["sub"]))
+    if user is None or not user.is_active:
+        raise UnauthorizedError("Invalid or expired refresh token")
+
+    return AccessTokenResponse(access_token=create_access_token(user.id))
