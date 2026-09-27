@@ -14,8 +14,7 @@ export const useAuthStore = create(
       accessToken: null,
       refreshToken: null,
 
-      setSession: ({ user, accessToken, refreshToken }) =>
-        set({ user, accessToken, refreshToken }),
+      setSession: ({ user, accessToken, refreshToken }) => set({ user, accessToken, refreshToken }),
       // Used after a silent refresh, where only a new access token comes back.
       setAccessToken: (accessToken) => set({ accessToken }),
       clearSession: () => set({ user: null, accessToken: null, refreshToken: null }),

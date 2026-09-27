@@ -1,5 +1,6 @@
-import { useMutation } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+
+import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
 import { login, refreshAccessToken, register } from '../api/auth.api'
