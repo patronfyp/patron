@@ -1,9 +1,8 @@
-import { App, Button, Flex, Form, Input, Select, Typography } from 'antd'
+import { App, Button, Form, Input, Select } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
+import AuthLayout from '../components/AuthLayout'
 import { useRegister } from '../hooks/useAuth'
-
-const { Title, Paragraph } = Typography
 
 const ROLE_OPTIONS = [
   { value: 'candidate', label: 'Candidate' },
@@ -44,77 +43,70 @@ function RegisterPage() {
   }
 
   return (
-    <Flex vertical align="center" style={{ minHeight: '100%', padding: 24 }}>
-      <div style={{ width: '100%', maxWidth: 420, marginTop: 48 }}>
-        <Title level={3} style={{ marginTop: 0, marginBottom: 4 }}>
-          Register
-        </Title>
-        <Paragraph type="secondary">Create your Patron account.</Paragraph>
+    <AuthLayout title="Create your account" subtitle="Join Patron in a couple of minutes.">
+      <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
+        <Form.Item
+          name="fullName"
+          label="Full name"
+          rules={[{ required: true, message: 'Full name is required' }]}
+        >
+          <Input placeholder="Jane Doe" />
+        </Form.Item>
 
-        <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
-          <Form.Item
-            name="fullName"
-            label="Full name"
-            rules={[{ required: true, message: 'Full name is required' }]}
-          >
-            <Input placeholder="Jane Doe" />
-          </Form.Item>
+        <Form.Item
+          name="email"
+          label="Email"
+          rules={[
+            { required: true, message: 'Email is required' },
+            { type: 'email', message: 'Enter a valid email address' },
+          ]}
+        >
+          <Input placeholder="jane@example.com" />
+        </Form.Item>
 
-          <Form.Item
-            name="email"
-            label="Email"
-            rules={[
-              { required: true, message: 'Email is required' },
-              { type: 'email', message: 'Enter a valid email address' },
-            ]}
-          >
-            <Input placeholder="jane@example.com" />
-          </Form.Item>
+        <Form.Item
+          name="password"
+          label="Password"
+          rules={[
+            { required: true, message: 'Password is required' },
+            { min: 8, message: 'At least 8 characters' },
+          ]}
+        >
+          <Input.Password placeholder="At least 8 characters" />
+        </Form.Item>
 
-          <Form.Item
-            name="password"
-            label="Password"
-            rules={[
-              { required: true, message: 'Password is required' },
-              { min: 8, message: 'At least 8 characters' },
-            ]}
-          >
-            <Input.Password placeholder="At least 8 characters" />
-          </Form.Item>
+        <Form.Item
+          name="confirmPassword"
+          label="Confirm password"
+          dependencies={['password']}
+          rules={[
+            { required: true, message: 'Please confirm your password' },
+            ({ getFieldValue }) => ({
+              validator(_rule, value) {
+                if (!value || getFieldValue('password') === value) {
+                  return Promise.resolve()
+                }
+                return Promise.reject(new Error('Passwords do not match'))
+              },
+            }),
+          ]}
+        >
+          <Input.Password placeholder="Re-enter your password" />
+        </Form.Item>
 
-          <Form.Item
-            name="confirmPassword"
-            label="Confirm password"
-            dependencies={['password']}
-            rules={[
-              { required: true, message: 'Please confirm your password' },
-              ({ getFieldValue }) => ({
-                validator(_rule, value) {
-                  if (!value || getFieldValue('password') === value) {
-                    return Promise.resolve()
-                  }
-                  return Promise.reject(new Error('Passwords do not match'))
-                },
-              }),
-            ]}
-          >
-            <Input.Password placeholder="Re-enter your password" />
-          </Form.Item>
+        <Form.Item
+          name="role"
+          label="I am a"
+          rules={[{ required: true, message: 'Please select a role' }]}
+        >
+          <Select placeholder="Select a role" options={ROLE_OPTIONS} />
+        </Form.Item>
 
-          <Form.Item
-            name="role"
-            label="I am a"
-            rules={[{ required: true, message: 'Please select a role' }]}
-          >
-            <Select placeholder="Select a role" options={ROLE_OPTIONS} />
-          </Form.Item>
-
-          <Button type="primary" htmlType="submit" loading={isPending} block>
-            Create account
-          </Button>
-        </Form>
-      </div>
-    </Flex>
+        <Button type="primary" htmlType="submit" loading={isPending} block>
+          Create account
+        </Button>
+      </Form>
+    </AuthLayout>
   )
 }
 
