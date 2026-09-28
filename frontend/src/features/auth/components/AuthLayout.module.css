@@ -1,0 +1,235 @@
+/* Bespoke hero-screen styling (STANDARDS.md §4.9 / ADR 0012) - a CSS module
+   because this layout's gradient, glow and rotating-tier animation don't map
+   onto antd's ConfigProvider tokens. Colour values are bridged in as CSS
+   custom properties (see AuthLayout.jsx), not duplicated here, so
+   config/theme.js stays the single source of truth. */
+
+.screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  min-height: 100%;
+}
+
+.pane {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 40px;
+  padding: clamp(28px, 6vw, 64px);
+  background:
+    radial-gradient(120% 140% at 15% 8%, var(--pane-deep) 0%, var(--pane-deeper) 62%),
+    var(--pane-deeper);
+  color: var(--pane-on-brand);
+}
+
+.pane::after {
+  content: '';
+  position: absolute;
+  inset: -20% -10% auto auto;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, var(--pane-glow), transparent 68%);
+  pointer-events: none;
+}
+
+.wordmark {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--pane-font-display);
+  font-size: 20px;
+}
+
+.wordmarkBadge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--pane-accent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--pane-deeper);
+}
+
+.copy {
+  position: relative;
+  max-width: 460px;
+}
+
+.eyebrow {
+  margin: 0 0 16px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pane-on-brand-soft);
+}
+
+.thesis {
+  margin: 0 0 22px;
+  font-family: var(--pane-font-display);
+  font-weight: 500;
+  font-size: clamp(28px, 3.4vw, 40px);
+  line-height: 1.14;
+  text-wrap: balance;
+  color: #fff;
+}
+
+.thesis em {
+  font-style: italic;
+}
+
+.sub {
+  margin: 0;
+  max-width: 38ch;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--pane-on-brand-soft);
+}
+
+.tiers {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.tier {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  opacity: 0.38;
+  transition: opacity 0.45s ease;
+}
+
+.tierActive {
+  opacity: 1;
+}
+
+.badge {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: rgba(238, 246, 240, 0.12);
+  border: 1px solid rgba(238, 246, 240, 0.28);
+  display: grid;
+  place-items: center;
+  transition: background 0.45s ease, border-color 0.45s ease;
+}
+
+.tierActive .badge {
+  background: var(--pane-accent);
+  border-color: var(--pane-accent);
+}
+
+.tierName {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.tierDetail {
+  font-size: 13px;
+  color: var(--pane-on-brand-soft);
+}
+
+.quote {
+  position: relative;
+  margin: 0;
+  max-width: 40ch;
+  padding-top: 22px;
+  border-top: 1px solid rgba(238, 246, 240, 0.18);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--pane-on-brand-soft);
+}
+
+.quote b {
+  color: #fff;
+  font-weight: 600;
+}
+
+.formPane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(20px, 5vw, 56px);
+}
+
+.card {
+  width: 100%;
+  max-width: 408px;
+  box-shadow:
+    0 1px 2px rgba(26, 32, 38, 0.04),
+    0 18px 40px -20px rgba(10, 51, 36, 0.28);
+}
+
+.tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  background: var(--pane-tab-track);
+  border-radius: 999px;
+  padding: 4px;
+  margin-bottom: 22px;
+}
+
+.tab {
+  text-align: center;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pane-tab-inactive);
+  border-radius: 999px;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.tab:hover {
+  color: var(--pane-tab-active);
+}
+
+.tabActive,
+.tabActive:hover {
+  color: var(--pane-tab-active);
+  background: var(--pane-tab-active-bg);
+  box-shadow: 0 1px 2px rgba(26, 32, 38, 0.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tier {
+    transition: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .screen {
+    grid-template-columns: 1fr;
+  }
+
+  .pane {
+    padding: 28px 24px;
+    gap: 24px;
+  }
+
+  .thesis {
+    font-size: 26px;
+  }
+
+  .tiers,
+  .quote {
+    display: none;
+  }
+
+  .formPane {
+    padding: 8px 16px 40px;
+  }
+}
