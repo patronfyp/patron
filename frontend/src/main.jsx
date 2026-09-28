@@ -10,6 +10,10 @@ import './index.css'
 import AuthProvider from './app/providers/AuthProvider'
 import { router } from './app/router/routes'
 import { theme } from './config/theme'
+import { setupAuthClient } from './features/auth'
+
+// Lets the shared API client read the session's access token (see setupAuthClient).
+setupAuthClient()
 
 // One client for the whole app: it owns the cache of everything fetched from
 // the backend, so two components asking for the same data share one request.
