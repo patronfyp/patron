@@ -78,8 +78,8 @@ function BrandPane() {
           Vouched, <em>verified</em>, hired.
         </h1>
         <p className={styles.sub}>
-          No cold applications. Every candidate on Patron reaches a company through someone who
-          can actually speak for them.
+          No cold applications. Every candidate on Patron reaches a company through someone who can
+          actually speak for them.
         </p>
 
         <div className={styles.tiers}>
