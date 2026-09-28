@@ -113,6 +113,40 @@ describe('api client', () => {
     })
   })
 
+  describe('when the session cannot be refreshed', () => {
+    it('reports the auth failure once, however many requests were waiting', async () => {
+      const refresh = vi.fn(
+        () => new Promise((_, reject) => setTimeout(() => reject(new Error('refused')), 0)),
+      )
+      const onAuthFailure = vi.fn()
+      configureAuthClient({ getAccessToken: () => 'old-token', refresh, onAuthFailure })
+      alwaysUnauthorized()
+
+      const results = await Promise.allSettled([api.get('/a'), api.get('/b'), api.get('/c')])
+
+      expect(results.map((result) => result.reason.response.status)).toEqual([401, 401, 401])
+      expect(refresh).toHaveBeenCalledTimes(1)
+      expect(onAuthFailure).toHaveBeenCalledTimes(1)
+    })
+
+    it('does not report a failure when the refresh works', async () => {
+      const onAuthFailure = vi.fn()
+      configureAuthClient({
+        getAccessToken: () => 'old-token',
+        refresh: vi.fn().mockResolvedValue('new-token'),
+        onAuthFailure,
+      })
+      fakeNetwork((config, callNumber) => {
+        if (callNumber === 1) throw unauthorized(config)
+        return ok(config)
+      })
+
+      await api.get('/data')
+
+      expect(onAuthFailure).not.toHaveBeenCalled()
+    })
+  })
+
   describe('concurrent requests', () => {
     it('shares one refresh between requests that expire together', async () => {
       let currentToken = 'old-token'

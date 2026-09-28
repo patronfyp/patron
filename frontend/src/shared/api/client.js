@@ -25,9 +25,16 @@ let authHandlers = { getAccessToken: () => null }
 let refreshInFlight = null
 
 function refreshOnce() {
-  refreshInFlight ??= authHandlers.refresh().finally(() => {
-    refreshInFlight = null
-  })
+  refreshInFlight ??= authHandlers
+    .refresh()
+    .catch((refreshError) => {
+      // Here rather than per request, so five waiting requests report it once.
+      authHandlers.onAuthFailure?.()
+      throw refreshError
+    })
+    .finally(() => {
+      refreshInFlight = null
+    })
   return refreshInFlight
 }
 
@@ -36,6 +43,8 @@ function refreshOnce() {
  * @param {() => string | null} handlers.getAccessToken - the current access token, if any
  * @param {() => Promise<string>} [handlers.refresh] - gets (and stores) a new
  *   access token; rejects if the session cannot be refreshed
+ * @param {() => void} [handlers.onAuthFailure] - called once when a refresh
+ *   fails, i.e. the session is over and the user has to log in again
  */
 export function configureAuthClient(handlers) {
   authHandlers = handlers

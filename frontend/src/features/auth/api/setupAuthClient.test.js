@@ -54,5 +54,25 @@ describe('setupAuthClient', () => {
     await expect(api.get('/api/v1/jobs')).rejects.toMatchObject({ response: { status: 401 } })
 
     expect(requests).toHaveLength(1)
+    expect(useAuthStore.getState().accessToken).toBeNull()
+  })
+
+  it('clears the session when the refresh token is rejected', async () => {
+    useAuthStore.setState({
+      user: { id: 1 },
+      accessToken: 'stale',
+      refreshToken: 'expired-refresh',
+    })
+    fakeNetwork((config) => {
+      throw unauthorized(config)
+    })
+
+    await expect(api.get('/api/v1/jobs')).rejects.toMatchObject({ response: { status: 401 } })
+
+    expect(useAuthStore.getState()).toMatchObject({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+    })
   })
 })

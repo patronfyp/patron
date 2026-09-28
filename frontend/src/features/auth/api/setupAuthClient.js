@@ -17,5 +17,8 @@ export function setupAuthClient() {
       setAccessToken(accessToken)
       return accessToken
     },
+
+    // ProtectedRoute watches the store, so clearing it is what sends the user to /login.
+    onAuthFailure: () => useAuthStore.getState().clearSession(),
   })
 }
