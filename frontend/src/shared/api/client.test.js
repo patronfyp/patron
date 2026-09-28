@@ -112,4 +112,74 @@ describe('api client', () => {
       expect(requests).toHaveLength(1)
     })
   })
+
+  describe('concurrent requests', () => {
+    it('shares one refresh between requests that expire together', async () => {
+      let currentToken = 'old-token'
+      let finishRefresh
+      const refresh = vi.fn(
+        () =>
+          new Promise((resolve) => {
+            finishRefresh = () => {
+              currentToken = 'new-token'
+              resolve('new-token')
+            }
+          }),
+      )
+      configureAuthClient({ getAccessToken: () => currentToken, refresh })
+      const requests = fakeNetwork((config) => {
+        if (config.headers.get('Authorization') === 'Bearer new-token') return ok(config)
+        throw unauthorized(config)
+      })
+
+      const calls = Array.from({ length: 5 }, (_, index) => api.get(`/data/${index}`))
+      await vi.waitFor(() => expect(refresh).toHaveBeenCalledTimes(1))
+      // Let the other four 401s reach the interceptor while the refresh is still pending.
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      finishRefresh()
+      const responses = await Promise.all(calls)
+
+      expect(responses).toHaveLength(5)
+      expect(refresh).toHaveBeenCalledTimes(1)
+      expect(requests).toHaveLength(10)
+    })
+
+    it('reuses a token that was refreshed while the request was in flight', async () => {
+      const refresh = vi.fn()
+      configureAuthClient({ getAccessToken: () => 'new-token', refresh })
+      const requests = fakeNetwork((config) => {
+        if (config.headers.get('Authorization') === 'Bearer new-token') return ok(config)
+        throw unauthorized(config)
+      })
+
+      // Sent with the old token, before another request had refreshed.
+      await api.get('/late', { headers: { Authorization: 'Bearer old-token' } })
+
+      expect(refresh).not.toHaveBeenCalled()
+      expect(requests.map((request) => request.authorization)).toEqual([
+        'Bearer old-token',
+        'Bearer new-token',
+      ])
+    })
+
+    it('refreshes again when a later token expires', async () => {
+      let currentToken = 'token-1'
+      let acceptedToken = 'token-2'
+      const refresh = vi.fn(async () => {
+        currentToken = acceptedToken
+        return currentToken
+      })
+      configureAuthClient({ getAccessToken: () => currentToken, refresh })
+      fakeNetwork((config) => {
+        if (config.headers.get('Authorization') === `Bearer ${acceptedToken}`) return ok(config)
+        throw unauthorized(config)
+      })
+
+      await api.get('/first')
+      acceptedToken = 'token-3'
+      await api.get('/second')
+
+      expect(refresh).toHaveBeenCalledTimes(2)
+    })
+  })
 })

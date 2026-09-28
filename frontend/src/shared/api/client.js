@@ -20,6 +20,17 @@ export const api = axios.create({
 // reaching into the auth store.
 let authHandlers = { getAccessToken: () => null }
 
+// The refresh currently running, if any. Requests that expire together (a page
+// firing five at once) all wait on this one call instead of starting five.
+let refreshInFlight = null
+
+function refreshOnce() {
+  refreshInFlight ??= authHandlers.refresh().finally(() => {
+    refreshInFlight = null
+  })
+  return refreshInFlight
+}
+
 /**
  * @param {object} handlers
  * @param {() => string | null} handlers.getAccessToken - the current access token, if any
@@ -28,6 +39,7 @@ let authHandlers = { getAccessToken: () => null }
  */
 export function configureAuthClient(handlers) {
   authHandlers = handlers
+  refreshInFlight = null
 }
 
 api.interceptors.request.use((config) => {
@@ -60,11 +72,16 @@ api.interceptors.response.use(undefined, async (error) => {
   // One retry per request: a second 401 means the new token was refused too.
   config._retried = true
 
-  let accessToken
-  try {
-    accessToken = await authHandlers.refresh()
-  } catch {
-    throw error
+  // If the store already holds a different token than this request was sent
+  // with, another request refreshed while this one was in flight - use that
+  // token rather than refreshing a second time.
+  let accessToken = authHandlers.getAccessToken()
+  if (!accessToken || `Bearer ${accessToken}` === config.headers.Authorization) {
+    try {
+      accessToken = await refreshOnce()
+    } catch {
+      throw error
+    }
   }
 
   // Set explicitly: the failed request's config still carries the old token,
