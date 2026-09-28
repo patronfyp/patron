@@ -15,9 +15,12 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from './App'
+import { useAuthStore } from './features/auth'
 import { api } from './shared/api/client'
 
 // Replace the real axios client with a fake one. Tests must never hit the
@@ -41,7 +44,9 @@ function renderApp() {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <App />
+      <MemoryRouter>
+        <App />
+      </MemoryRouter>
     </QueryClientProvider>,
   )
 }
@@ -49,6 +54,7 @@ function renderApp() {
 describe('App', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useAuthStore.setState({ user: null, accessToken: null, refreshToken: null })
   })
 
   it('shows the backend details once the health check succeeds', async () => {
@@ -87,5 +93,21 @@ describe('App', () => {
 
     // Assert
     expect(screen.getByText(/checking backend/i)).toBeVisible()
+  })
+
+  it('logs out and clears the session', async () => {
+    const user = userEvent.setup()
+    useAuthStore.setState({ user: { id: 1 }, accessToken: 'access-1', refreshToken: 'refresh-1' })
+    api.get.mockResolvedValue({ data: { status: 'ok', env: 'test', database: 'ok' } })
+    renderApp()
+    await screen.findByText('Backend connected')
+
+    await user.click(screen.getByRole('button', { name: /log out/i }))
+
+    expect(useAuthStore.getState()).toMatchObject({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+    })
   })
 })

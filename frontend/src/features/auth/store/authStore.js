@@ -1,12 +1,27 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 /**
- * Minimal session store — enough for ProtectedRoute to know whether a user is
- * signed in. #19 (Login page and auth store) extends this with `user` and the
- * real login/logout flow.
+ * Session store - see docs/adr/0009-access-token-in-memory-refresh-token-in-localstorage.md
+ * for why the split is this way: `accessToken` never leaves memory (not even
+ * this middleware persists it); `user` and `refreshToken` are persisted so a
+ * page refresh doesn't sign the user out.
  */
-export const useAuthStore = create((set) => ({
-  accessToken: null,
-  setSession: (accessToken) => set({ accessToken }),
-  clearSession: () => set({ accessToken: null }),
-}))
+export const useAuthStore = create(
+  persist(
+    (set) => ({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+
+      setSession: ({ user, accessToken, refreshToken }) => set({ user, accessToken, refreshToken }),
+      // Used after a silent refresh, where only a new access token comes back.
+      setAccessToken: (accessToken) => set({ accessToken }),
+      clearSession: () => set({ user: null, accessToken: null, refreshToken: null }),
+    }),
+    {
+      name: 'patron-auth',
+      partialize: (state) => ({ user: state.user, refreshToken: state.refreshToken }),
+    },
+  ),
+)

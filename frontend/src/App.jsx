@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { Alert, Card, Descriptions, Flex, Spin, Typography } from 'antd'
+import { Alert, Button, Card, Descriptions, Flex, Spin, Typography } from 'antd'
 
 import { API_BASE_URL } from './config/env'
+import { useLogout } from './features/auth'
 import { api } from './shared/api/client'
 
 const { Title, Paragraph, Text } = Typography
@@ -11,6 +12,7 @@ const { Title, Paragraph, Text } = Typography
  * This will be replaced by the real landing page and router.
  */
 function App() {
+  const logout = useLogout()
   const { data, isPending, isError, error } = useQuery({
     queryKey: ['health'],
     queryFn: async () => {
@@ -22,10 +24,15 @@ function App() {
   return (
     <Flex justify="center" align="center" style={{ minHeight: '100%', padding: 24 }}>
       <Card style={{ width: '100%', maxWidth: 520 }}>
-        <Title level={3} style={{ marginTop: 0, marginBottom: 4 }}>
-          Patron
-        </Title>
-        <Paragraph type="secondary">Vouched, Verified, Hired.</Paragraph>
+        <Flex justify="space-between" align="start">
+          <div>
+            <Title level={3} style={{ marginTop: 0, marginBottom: 4 }}>
+              Patron
+            </Title>
+            <Paragraph type="secondary">Vouched, Verified, Hired.</Paragraph>
+          </div>
+          <Button onClick={logout}>Log out</Button>
+        </Flex>
 
         {isPending && (
           <Flex gap={8} align="center">

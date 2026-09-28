@@ -66,6 +66,11 @@ export default defineConfig([
       'import/no-named-as-default': 'off',
       'import/no-named-as-default-member': 'off',
 
+      // We are on JS, not TS - props are documented with JSDoc, not PropTypes
+      // (STANDARDS.md §4.9). Enforcing PropTypes on top would mean writing
+      // prop shapes twice.
+      'react/prop-types': 'off',
+
       // -----------------------------------------------------------------------
       // Architecture boundaries — STANDARDS.md §2.6
       // -----------------------------------------------------------------------
