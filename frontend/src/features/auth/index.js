@@ -1,3 +1,4 @@
+export { setupAuthClient } from './api/setupAuthClient'
 export { useLogout, useSessionBootstrap } from './hooks/useAuth'
 export { default as LoginPage } from './pages/LoginPage'
 export { default as RegisterPage } from './pages/RegisterPage'
