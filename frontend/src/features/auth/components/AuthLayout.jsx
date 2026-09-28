@@ -142,6 +142,10 @@ function AuthLayout({ title, subtitle, children }) {
           </nav>
 
           {children}
+
+          <p className={styles.fineprint}>
+            By continuing you agree to Patron&rsquo;s Terms and Privacy Policy.
+          </p>
         </Card>
       </main>
     </div>

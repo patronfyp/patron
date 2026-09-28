@@ -7,7 +7,13 @@
 .screen {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
-  min-height: 100%;
+  /* A viewport unit, not min-height: 100%, on purpose: percentage heights
+     need every ancestor back to #root to have an explicit height, and antd's
+     <App> wrapper div in between doesn't, so 100% silently collapsed to the
+     content's own height - the login pane fell short of the screen. vh
+     doesn't depend on that chain. */
+  height: 100vh;
+  overflow: hidden;
 }
 
 .pane {
@@ -15,7 +21,7 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: center;
   gap: 40px;
   padding: clamp(28px, 6vw, 64px);
   background:
@@ -162,6 +168,8 @@
   align-items: center;
   justify-content: center;
   padding: clamp(20px, 5vw, 56px);
+  height: 100%;
+  overflow-y: auto;
 }
 
 .card {
@@ -204,6 +212,13 @@
   box-shadow: 0 1px 2px rgba(26, 32, 38, 0.08);
 }
 
+.fineprint {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--pane-tab-inactive);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .tier {
     transition: none;
@@ -213,6 +228,9 @@
 @media (max-width: 860px) {
   .screen {
     grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .pane {
@@ -230,6 +248,14 @@
   }
 
   .formPane {
+    height: auto;
+    overflow: visible;
     padding: 8px 16px 40px;
+  }
+
+  /* Without the brand pane, a card still capped at 408px floats in a lot of
+     empty page on a tablet-width screen - let it fill more of the column. */
+  .card {
+    max-width: min(92vw, 480px);
   }
 }
