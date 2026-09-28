@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
@@ -62,8 +62,15 @@ export function useSessionBootstrap() {
   // synchronously so the effect below only ever runs for the async case.
   const [isReady, setIsReady] = useState(() => !useAuthStore.getState().refreshToken)
 
+  // StrictMode runs effects twice in development, but a refresh token is worth
+  // exchanging once: with rotating refresh tokens the second call would be
+  // refused and log the user out. A ref changes instantly, whereas state would
+  // still read the old value when the effect runs the second time.
+  const hasStarted = useRef(false)
+
   useEffect(() => {
-    if (isReady) return
+    if (isReady || hasStarted.current) return
+    hasStarted.current = true
 
     const { refreshToken, setAccessToken, clearSession } = useAuthStore.getState()
 
