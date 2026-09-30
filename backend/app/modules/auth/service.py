@@ -135,6 +135,12 @@ async def login_with_linkedin(session: AsyncSession, account: LinkedInAccount) -
     return existing_user
 
 
+async def set_user_role(session: AsyncSession, user: User, role: str) -> User:
+    """POST /auth/role - the step a LinkedIn sign-up needs that email/password
+    registration doesn't, since LinkedIn never tells us candidate vs company."""
+    return await repository.update_role(session, user, role)
+
+
 async def refresh_access_token(session: AsyncSession, refresh_token: str) -> AccessTokenResponse:
     """Exchange a valid, unexpired refresh token for a new access token.
 

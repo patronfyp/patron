@@ -117,3 +117,12 @@ async def attach_identity(
     )
     session.add(identity)
     await session.commit()
+
+
+async def update_role(session: AsyncSession, user: User, role: str) -> User:
+    """Set a user's role - the one field a LinkedIn sign-up (models.py) starts
+    without, asked for once through POST /auth/role."""
+    user.role = role
+    await session.commit()
+    await session.refresh(user)
+    return user
