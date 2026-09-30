@@ -36,6 +36,18 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
 
+    # Module 1.1 - LinkedIn OAuth (#25). Empty defaults rather than no
+    # default: unlike secret_key/database_url, every other route works fine
+    # without these, so a dev not touching this feature shouldn't have their
+    # whole API refuse to start over it.
+    linkedin_client_id: str = ""
+    linkedin_client_secret: str = ""
+    linkedin_redirect_uri: str = ""
+
+    # Where the browser is sent after /auth/linkedin/callback finishes - the
+    # frontend's own origin, not this API's.
+    frontend_url: str = "http://localhost:5173"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
