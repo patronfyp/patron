@@ -18,7 +18,8 @@ from app.core.security import (
 )
 
 from . import repository
-from .models import User
+from .linkedin import LinkedInAccount
+from .models import AuthProvider, User
 from .schemas import AccessTokenResponse, RegisterRequest, TokenPair
 
 # Same message for every login failure - see STANDARDS.md §6, rule 10.
@@ -78,6 +79,60 @@ async def authenticate_user(session: AsyncSession, email: str, password: str) ->
         raise UnauthorizedError(_INVALID_CREDENTIALS)
 
     return user
+
+
+async def login_with_linkedin(session: AsyncSession, account: LinkedInAccount) -> User:
+    """The account-linking rule (#25, ADR - account-linking).
+
+        identity exists for (linkedin, sub)? -> yes -> log in
+        no -> user exists with this email?
+            no  -> create user + identity, log in
+            yes -> LinkedIn reported email_verified?
+                yes -> attach identity to that user, log in
+                no  -> refuse
+
+    The refusal case matters: trusting an unverified provider email would let
+    anyone create a LinkedIn account claiming a victim's address and take
+    over their existing Patron account.
+    """
+    identity = await repository.get_identity(
+        session, AuthProvider.LINKEDIN.value, account.provider_user_id
+    )
+    if identity is not None:
+        await repository.touch_identity_login(session, identity)
+        return identity.user
+
+    if not account.email:
+        raise UnauthorizedError("LinkedIn did not provide an email address for this account")
+
+    normalised_email = account.email.strip().lower()
+    existing_user = await repository.get_by_email(session, normalised_email)
+
+    if existing_user is None:
+        return await repository.create_user_with_identity(
+            session,
+            email=normalised_email,
+            full_name=account.full_name or normalised_email,
+            avatar_url=account.avatar_url,
+            is_email_verified=account.email_verified,
+            provider=AuthProvider.LINKEDIN.value,
+            provider_user_id=account.provider_user_id,
+            provider_email=account.email,
+        )
+
+    if not account.email_verified:
+        raise ConflictError(
+            "An account with this email already exists. Sign in with your password instead."
+        )
+
+    await repository.attach_identity(
+        session,
+        existing_user,
+        provider=AuthProvider.LINKEDIN.value,
+        provider_user_id=account.provider_user_id,
+        provider_email=account.email,
+    )
+    return existing_user
 
 
 async def refresh_access_token(session: AsyncSession, refresh_token: str) -> AccessTokenResponse:
