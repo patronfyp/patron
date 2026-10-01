@@ -143,7 +143,12 @@ async def linkedin_authorize(response: Response) -> LinkedInAuthorizeResponse:
         max_age=int(linkedin.STATE_TOKEN_TTL.total_seconds()),
         httponly=True,
         samesite="lax",
-        secure=settings.app_env != "development",
+        # An allowlist, not `!= "development"`: a Secure cookie is dropped by
+        # any client talking plain HTTP, which is also true of CI (APP_ENV=
+        # test, served over http://test) - this broke every LinkedIn test
+        # there despite passing locally, since the state cookie never made
+        # it back on the callback request.
+        secure=settings.app_env == "production",
     )
     authorize_url = linkedin.build_authorize_url(state=state)
     return LinkedInAuthorizeResponse(authorize_url=authorize_url)
