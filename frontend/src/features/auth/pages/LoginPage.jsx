@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react'
+
 import { App, Button, Form, Input } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import AuthLayout from '../components/AuthLayout'
 import { useLogin } from '../hooks/useAuth'
@@ -17,6 +19,23 @@ function LoginPage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
   const { mutate, isPending } = useLogin()
+  const [searchParams, setSearchParams] = useSearchParams()
+  // StrictMode double-invokes this effect in development; clearing the query
+  // param doesn't take effect before the second run reads it again, which
+  // would show the message twice - see LinkedInCallbackPage for the same
+  // pattern.
+  const hasShownLinkedinError = useRef(false)
+
+  // /auth/linkedin/callback (the backend route) redirects failures here as
+  // ?linkedin_error=<message> rather than a raw JSON page - see router.py.
+  useEffect(() => {
+    const linkedinError = searchParams.get('linkedin_error')
+    if (!linkedinError || hasShownLinkedinError.current) return
+    hasShownLinkedinError.current = true
+
+    message.error(linkedinError)
+    setSearchParams({}, { replace: true })
+  }, [searchParams, setSearchParams, message])
 
   const onFinish = (values) => {
     mutate(

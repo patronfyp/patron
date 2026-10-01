@@ -17,6 +17,8 @@ export const useAuthStore = create(
       setSession: ({ user, accessToken, refreshToken }) => set({ user, accessToken, refreshToken }),
       // Used after a silent refresh, where only a new access token comes back.
       setAccessToken: (accessToken) => set({ accessToken }),
+      // Used after POST /auth/role - only the user record changed, not the tokens.
+      setUser: (user) => set({ user }),
       clearSession: () => set({ user: null, accessToken: null, refreshToken: null }),
     }),
     {

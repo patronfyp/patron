@@ -1,5 +1,7 @@
 export { setupAuthClient } from './api/setupAuthClient'
 export { useLogout, useSessionBootstrap } from './hooks/useAuth'
+export { default as LinkedInCallbackPage } from './pages/LinkedInCallbackPage'
 export { default as LoginPage } from './pages/LoginPage'
 export { default as RegisterPage } from './pages/RegisterPage'
+export { default as SelectRolePage } from './pages/SelectRolePage'
 export { useAuthStore } from './store/authStore'
