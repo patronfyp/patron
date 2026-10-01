@@ -3,7 +3,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
-import { getCurrentUser, login, refreshAccessToken, register } from '../api/auth.api'
+import {
+  getCurrentUser,
+  linkedinAuthorize,
+  login,
+  refreshAccessToken,
+  register,
+  setRole,
+} from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
 
 /**
@@ -37,6 +44,29 @@ export function useLogin() {
       const user = await getCurrentUser(accessToken)
       setSession({ user, accessToken, refreshToken })
     },
+  })
+}
+
+// Fetches the consent URL, then hands the browser off to LinkedIn entirely -
+// there is nothing left to render once this resolves.
+export function useLinkedInAuthorize() {
+  return useMutation({
+    mutationFn: async () => {
+      const { authorize_url: authorizeUrl } = await linkedinAuthorize()
+      window.location.href = authorizeUrl
+    },
+  })
+}
+
+// POST /auth/role - the step a LinkedIn sign-up needs before reaching the
+// app (#25). Only the user record changes; the tokens already in the store
+// are untouched.
+export function useSetRole() {
+  const setUser = useAuthStore((state) => state.setUser)
+
+  return useMutation({
+    mutationFn: (role) => setRole(role),
+    onSuccess: (user) => setUser(user),
   })
 }
 

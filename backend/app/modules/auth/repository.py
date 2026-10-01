@@ -4,10 +4,13 @@ Functions here just fetch and store rows - no decisions about whether
 something is allowed. That belongs in service.py.
 """
 
+from datetime import UTC, datetime
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from .models import User
+from .models import User, UserIdentity
 from .schemas import RegisterRequest
 
 
@@ -33,6 +36,93 @@ async def create_user(session: AsyncSession, payload: RegisterRequest, password_
         password=password_hash,
     )
     session.add(user)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def get_identity(
+    session: AsyncSession, provider: str, provider_user_id: str
+) -> UserIdentity | None:
+    """Look up a provider identity - the only way a returning provider sign-in
+    is matched (never by email, which a person can change at the provider)."""
+    stmt = (
+        select(UserIdentity)
+        .where(
+            UserIdentity.provider == provider,
+            UserIdentity.provider_user_id == provider_user_id,
+        )
+        .options(selectinload(UserIdentity.user))
+    )
+    return await session.scalar(stmt)
+
+
+async def touch_identity_login(session: AsyncSession, identity: UserIdentity) -> None:
+    """Record that this identity was just used to sign in."""
+    identity.last_login_at = datetime.now(UTC)
+    await session.commit()
+
+
+async def create_user_with_identity(
+    session: AsyncSession,
+    *,
+    email: str,
+    full_name: str,
+    avatar_url: str | None,
+    is_email_verified: bool,
+    provider: str,
+    provider_user_id: str,
+    provider_email: str | None,
+) -> User:
+    """First-time sign-in through a provider: no password, no role yet - both
+    are nullable on User for exactly this case (see models.py)."""
+    user = User(
+        email=email,
+        full_name=full_name,
+        avatar_url=avatar_url,
+        is_email_verified=is_email_verified,
+        role=None,
+        password=None,
+    )
+    session.add(user)
+    await session.flush()  # assigns user.id, needed for the identity row below
+
+    identity = UserIdentity(
+        user_id=user.id,
+        provider=provider,
+        provider_user_id=provider_user_id,
+        provider_email=provider_email,
+    )
+    session.add(identity)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def attach_identity(
+    session: AsyncSession,
+    user: User,
+    *,
+    provider: str,
+    provider_user_id: str,
+    provider_email: str | None,
+) -> None:
+    """Link a new provider identity to an existing account - the verified-
+    email-match case in the account-linking rule (service.py)."""
+    identity = UserIdentity(
+        user_id=user.id,
+        provider=provider,
+        provider_user_id=provider_user_id,
+        provider_email=provider_email,
+    )
+    session.add(identity)
+    await session.commit()
+
+
+async def update_role(session: AsyncSession, user: User, role: str) -> User:
+    """Set a user's role - the one field a LinkedIn sign-up (models.py) starts
+    without, asked for once through POST /auth/role."""
+    user.role = role
     await session.commit()
     await session.refresh(user)
     return user

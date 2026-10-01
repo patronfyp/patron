@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 
-import { Card, Typography } from 'antd'
+import { Button, Card, Typography } from 'antd'
 import { Link, useLocation } from 'react-router-dom'
 
 import { brand, fontDisplay, theme } from '../../../config/theme'
+import { useLinkedInAuthorize } from '../hooks/useAuth'
 
 import styles from './AuthLayout.module.css'
 
@@ -37,6 +38,17 @@ const paneVars = {
   '--pane-tab-inactive': theme.token.colorTextSecondary,
   '--pane-tab-active': theme.token.colorText,
   '--pane-tab-active-bg': theme.token.colorBgContainer,
+  '--pane-ink': theme.token.colorText,
+  '--pane-ink-soft': theme.token.colorTextTertiary,
+  '--pane-border': theme.token.colorBorderSecondary,
+}
+
+function LinkedInIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="#fff" width="16" height="16" aria-hidden="true">
+      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z" />
+    </svg>
+  )
 }
 
 function CheckBadge() {
@@ -115,6 +127,7 @@ function BrandPane() {
  */
 function AuthLayout({ title, subtitle, children }) {
   const location = useLocation()
+  const { mutate: startLinkedIn, isPending: isLinkedInPending } = useLinkedInAuthorize()
 
   return (
     <div className={styles.screen} style={paneVars}>
@@ -140,6 +153,20 @@ function AuthLayout({ title, subtitle, children }) {
               </Link>
             ))}
           </nav>
+
+          <Button
+            block
+            className={styles.linkedinButton}
+            icon={<LinkedInIcon />}
+            loading={isLinkedInPending}
+            onClick={() => startLinkedIn()}
+          >
+            Continue with LinkedIn
+          </Button>
+
+          <div className={styles.divider}>
+            <span>or continue with email</span>
+          </div>
 
           {children}
 

@@ -13,6 +13,12 @@ export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
+  // The frontend and backend are different origins in dev (5173 vs 8000).
+  // Without this, the browser silently drops the Set-Cookie response from
+  // GET /auth/linkedin/authorize (#25) - the li_oauth_state cookie never
+  // gets stored, so /callback always sees it missing. The backend already
+  // allows this (CORSMiddleware's allow_credentials=True in main.py).
+  withCredentials: true,
 })
 
 // shared/ may not import from features/ (STANDARDS.md §2.6), so the auth

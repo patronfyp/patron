@@ -59,6 +59,20 @@ class AccessTokenResponse(BaseModel):
     token_type: str = "bearer"  # noqa: S105 -- the OAuth2 token type literal, not a secret
 
 
+class LinkedInAuthorizeResponse(BaseModel):
+    """Returned by GET /auth/linkedin/authorize: the URL the frontend sends
+    the browser to for LinkedIn's consent screen."""
+
+    authorize_url: str
+
+
+class SetRoleRequest(BaseModel):
+    """What a client sends to POST /auth/role - the one thing a LinkedIn
+    sign-up doesn't supply that email/password registration does."""
+
+    role: UserRole
+
+
 class UserRead(BaseModel):
     """What we send back. No password field exists on this schema at all -
     there is nothing here to accidentally leak."""

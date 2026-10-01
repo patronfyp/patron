@@ -34,3 +34,15 @@ export async function getCurrentUser(accessToken) {
   })
   return response.data
 }
+
+/** GET /api/v1/auth/linkedin/authorize - the LinkedIn consent URL (#25). */
+export async function linkedinAuthorize() {
+  const response = await api.get('/api/v1/auth/linkedin/authorize')
+  return response.data
+}
+
+/** POST /api/v1/auth/role - the one field a LinkedIn sign-up starts without (#25). */
+export async function setRole(role) {
+  const response = await api.post('/api/v1/auth/role', { role })
+  return response.data
+}
