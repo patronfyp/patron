@@ -1,7 +1,7 @@
 """LinkedIn OAuth (#25) - CSRF-state helpers and the LinkedIn API client.
 
 No PKCE here - see ADR 0014. LinkedIn's "Sign In with LinkedIn using OpenID
-Connect" product (the one this project can self-serve, ADR 0011) rejects a
+Connect" product (the one this project can self-serve, ADR 0013) rejects a
 token exchange that includes code_verifier: the token endpoint returns
 invalid_client/"Client authentication failed", which is LinkedIn's generic
 auth-failure error, not a PKCE-specific one - this took directly testing
@@ -112,7 +112,7 @@ class LinkedInAccount:
 async def _exchange_code_for_access_token(client: httpx.AsyncClient, *, code: str) -> str:
     """POST the authorization code, get LinkedIn's own access token back.
     That token is used once, right below, to fetch the profile - it is
-    never stored (see ADR 0011: acceptance criteria say LinkedIn's tokens
+    never stored (see ADR 0013: acceptance criteria say LinkedIn's tokens
     are used once and discarded). No PKCE - see ADR 0014."""
     settings = get_settings()
     response = await client.post(
