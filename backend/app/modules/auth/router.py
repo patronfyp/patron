@@ -126,16 +126,16 @@ def _linkedin_error_redirect(message: str) -> RedirectResponse:
     summary="Get the LinkedIn consent URL",
 )
 async def linkedin_authorize(response: Response) -> LinkedInAuthorizeResponse:
-    """Start a LinkedIn sign-in: generates this attempt's PKCE pair and a
-    signed state token, sets the state as an httpOnly cookie, and returns the
-    URL the frontend should send the browser to.
+    """Start a LinkedIn sign-in: generates this attempt's signed state token,
+    sets it as an httpOnly cookie, and returns the URL the frontend should
+    send the browser to.
 
     The cookie is what makes the state check on /callback an actual CSRF
-    defence rather than just a signature check - see linkedin.py.
+    defence rather than just a signature check - see linkedin.py. No PKCE -
+    see ADR 0014.
     """
     settings = get_settings()
-    code_verifier, code_challenge = linkedin.generate_pkce_pair()
-    state = linkedin.create_state_token(code_verifier)
+    state = linkedin.create_state_token()
 
     response.set_cookie(
         key=linkedin.STATE_COOKIE_NAME,
@@ -145,7 +145,7 @@ async def linkedin_authorize(response: Response) -> LinkedInAuthorizeResponse:
         samesite="lax",
         secure=settings.app_env != "development",
     )
-    authorize_url = linkedin.build_authorize_url(state=state, code_challenge=code_challenge)
+    authorize_url = linkedin.build_authorize_url(state=state)
     return LinkedInAuthorizeResponse(authorize_url=authorize_url)
 
 
@@ -171,14 +171,12 @@ async def linkedin_callback(
         return _linkedin_error_redirect(_STATE_INVALID)
 
     try:
-        payload = linkedin.decode_state_token(state)
+        linkedin.decode_state_token(state)
     except jwt.PyJWTError:
         return _linkedin_error_redirect(_STATE_INVALID)
 
     try:
-        account = await linkedin.get_linkedin_account(
-            code=code, code_verifier=payload["code_verifier"]
-        )
+        account = await linkedin.get_linkedin_account(code=code)
         user = await service.login_with_linkedin(session, account)
     except AppError as exc:
         return _linkedin_error_redirect(exc.detail)

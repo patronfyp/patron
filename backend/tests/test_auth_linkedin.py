@@ -38,7 +38,7 @@ def _account(
 
 
 def _patch_account(monkeypatch: pytest.MonkeyPatch, account: LinkedInAccount | Exception) -> None:
-    async def _fake(*, code: str, code_verifier: str) -> LinkedInAccount:
+    async def _fake(*, code: str) -> LinkedInAccount:
         if isinstance(account, Exception):
             raise account
         return account
@@ -68,7 +68,7 @@ async def test_authorize_returns_a_consent_url_and_sets_the_state_cookie(
     assert response.status_code == 200
     authorize_url = response.json()["authorize_url"]
     assert authorize_url.startswith("https://www.linkedin.com/oauth/v2/authorization?")
-    assert "code_challenge=" in authorize_url
+    assert "state=" in authorize_url
     assert response.cookies.get("li_oauth_state") is not None
 
 

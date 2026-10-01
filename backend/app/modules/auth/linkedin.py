@@ -1,4 +1,11 @@
-"""LinkedIn OAuth (#25) - PKCE and CSRF-state helpers.
+"""LinkedIn OAuth (#25) - CSRF-state helpers and the LinkedIn API client.
+
+No PKCE here - see ADR 0014. LinkedIn's "Sign In with LinkedIn using OpenID
+Connect" product (the one this project can self-serve, ADR 0011) rejects a
+token exchange that includes code_verifier: the token endpoint returns
+invalid_client/"Client authentication failed", which is LinkedIn's generic
+auth-failure error, not a PKCE-specific one - this took directly testing
+against the real endpoint to find, since nothing says so in LinkedIn's docs.
 
 Kept separate from app/core/security.py: that module signs tokens for an
 already-identified user (the `sub` claim is a user id). The state token here
@@ -7,8 +14,7 @@ trip to LinkedIn and back, so it gets its own small, self-contained helpers
 instead of overloading the session-token functions with a second shape.
 """
 
-import base64
-import hashlib
+import logging
 import secrets
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -22,6 +28,8 @@ from app.core.exceptions import UnauthorizedError
 from config import get_settings
 
 _GENERIC_FAILURE = "Could not sign in with LinkedIn"
+
+logger = logging.getLogger(__name__)
 
 _JWT_ALGORITHM = "HS256"
 
@@ -44,31 +52,17 @@ _SCOPES = "openid profile email"
 _REQUEST_TIMEOUT = 10.0
 
 
-def generate_pkce_pair() -> tuple[str, str]:
-    """Return (code_verifier, code_challenge) for the S256 PKCE method.
-
-    The verifier is the secret half - kept server-side in the state token,
-    never sent to LinkedIn until the callback's token exchange. The challenge
-    is its SHA-256 hash, sent up front, so a stolen authorization code is
-    useless to anyone who didn't generate the matching verifier.
-    """
-    code_verifier = secrets.token_urlsafe(64)
-    digest = hashlib.sha256(code_verifier.encode("ascii")).digest()
-    code_challenge = base64.urlsafe_b64encode(digest).rstrip(b"=").decode("ascii")
-    return code_verifier, code_challenge
-
-
-def create_state_token(code_verifier: str) -> str:
-    """Bundle the PKCE verifier into a signed, short-lived token.
-
-    This same string is sent to LinkedIn as `state` *and* stored in the
+def create_state_token() -> str:
+    """A signed, short-lived, single-use-in-spirit token with no meaningful
+    payload of its own - its value just needs to be unguessable and provably
+    ours. This same string is sent to LinkedIn as `state` *and* stored in the
     `li_oauth_state` cookie - both trips end at decode_state_token, which
     checks they still match.
     """
     settings = get_settings()
     now = datetime.now(UTC)
     payload = {
-        "code_verifier": code_verifier,
+        "nonce": secrets.token_urlsafe(16),
         "iat": now,
         "exp": now + STATE_TOKEN_TTL,
     }
@@ -76,8 +70,8 @@ def create_state_token(code_verifier: str) -> str:
 
 
 def decode_state_token(token: str) -> dict[str, Any]:
-    """Verify and unpack a state token. Raises jwt.PyJWTError if it's
-    expired or has been tampered with.
+    """Verify a state token. Raises jwt.PyJWTError if it's expired or has
+    been tampered with.
 
     This alone is not the CSRF check - a stolen token would still decode
     fine. The router compares this value against the `li_oauth_state`
@@ -89,7 +83,7 @@ def decode_state_token(token: str) -> dict[str, Any]:
     return jwt.decode(token, settings.secret_key, algorithms=[_JWT_ALGORITHM])
 
 
-def build_authorize_url(*, state: str, code_challenge: str) -> str:
+def build_authorize_url(*, state: str) -> str:
     """The URL the frontend redirects the browser to for LinkedIn consent."""
     settings = get_settings()
     params = {
@@ -98,8 +92,6 @@ def build_authorize_url(*, state: str, code_challenge: str) -> str:
         "redirect_uri": settings.linkedin_redirect_uri,
         "scope": _SCOPES,
         "state": state,
-        "code_challenge": code_challenge,
-        "code_challenge_method": "S256",
     }
     return f"{_AUTHORIZE_URL}?{urlencode(params)}"
 
@@ -117,13 +109,11 @@ class LinkedInAccount:
     avatar_url: str | None
 
 
-async def _exchange_code_for_access_token(
-    client: httpx.AsyncClient, *, code: str, code_verifier: str
-) -> str:
-    """POST the authorization code + PKCE verifier, get LinkedIn's own
-    access token back. That token is used once, right below, to fetch the
-    profile - it is never stored (see ADR 0011: acceptance criteria say
-    LinkedIn's tokens are used once and discarded)."""
+async def _exchange_code_for_access_token(client: httpx.AsyncClient, *, code: str) -> str:
+    """POST the authorization code, get LinkedIn's own access token back.
+    That token is used once, right below, to fetch the profile - it is
+    never stored (see ADR 0011: acceptance criteria say LinkedIn's tokens
+    are used once and discarded). No PKCE - see ADR 0014."""
     settings = get_settings()
     response = await client.post(
         _TOKEN_URL,
@@ -133,14 +123,19 @@ async def _exchange_code_for_access_token(
             "redirect_uri": settings.linkedin_redirect_uri,
             "client_id": settings.linkedin_client_id,
             "client_secret": settings.linkedin_client_secret,
-            "code_verifier": code_verifier,
         },
     )
     if response.status_code != httpx.codes.OK:
+        logger.warning(
+            "LinkedIn token exchange failed: status=%s body=%s",
+            response.status_code,
+            response.text,
+        )
         raise UnauthorizedError(_GENERIC_FAILURE)
 
     access_token = response.json().get("access_token")
     if not access_token:
+        logger.warning("LinkedIn token response had no access_token: body=%s", response.text)
         raise UnauthorizedError(_GENERIC_FAILURE)
     return access_token
 
@@ -151,11 +146,17 @@ async def _fetch_userinfo(client: httpx.AsyncClient, *, access_token: str) -> Li
         headers={"Authorization": f"Bearer {access_token}"},
     )
     if response.status_code != httpx.codes.OK:
+        logger.warning(
+            "LinkedIn userinfo request failed: status=%s body=%s",
+            response.status_code,
+            response.text,
+        )
         raise UnauthorizedError(_GENERIC_FAILURE)
 
     data = response.json()
     provider_user_id = data.get("sub")
     if not provider_user_id:
+        logger.warning("LinkedIn userinfo response had no sub claim: body=%s", response.text)
         raise UnauthorizedError(_GENERIC_FAILURE)
 
     return LinkedInAccount(
@@ -167,12 +168,10 @@ async def _fetch_userinfo(client: httpx.AsyncClient, *, access_token: str) -> Li
     )
 
 
-async def get_linkedin_account(*, code: str, code_verifier: str) -> LinkedInAccount:
+async def get_linkedin_account(*, code: str) -> LinkedInAccount:
     """The whole exchange in one call: authorization code -> LinkedIn access
     token -> the profile fields we care about. What service.py calls; it
     never needs to know an intermediate access token existed at all."""
     async with httpx.AsyncClient(timeout=_REQUEST_TIMEOUT) as client:
-        access_token = await _exchange_code_for_access_token(
-            client, code=code, code_verifier=code_verifier
-        )
+        access_token = await _exchange_code_for_access_token(client, code=code)
         return await _fetch_userinfo(client, access_token=access_token)
