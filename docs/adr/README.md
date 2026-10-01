@@ -22,3 +22,4 @@ index has gaps at 0009 and 0012.
 | [0011](0011-account-linking-only-on-verified-email.md) | Account linking only on a provider-verified email | Rafay |
 | [0012](0012-visual-design-language-for-hero-screens.md) | Visual design language for hero screens | Rafay |
 | [0013](0013-linkedin-self-serve-scopes-only.md) | LinkedIn self-serve scopes only — Modules 1.1 and 2.9 rescoped | Rafay |
+| [0014](0014-no-pkce-for-linkedin-oauth.md) | No PKCE for LinkedIn sign-in | Rafay |
