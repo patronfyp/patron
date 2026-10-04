@@ -2,8 +2,8 @@
 
 One file per decision, recording what was decided and why. See
 `docs/DOCUMENTATION_GUIDE.md` §4 for the template and numbering rules.
-Numbers are never reused — see the numbering note on ADR 0010 for why this
-index has gaps at 0009 and 0012.
+Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
+0011 and 0013 are not the numbers originally planned for them in #24.
 
 ## Index
 
