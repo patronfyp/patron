@@ -63,7 +63,7 @@ depended on PKCE.
 
 **Negative**
 - Deviates from issue #25's literal acceptance criteria ("PKCE used"). Flagging
-  this explicitly rather than quietly shipping without it, same as ADR 0011
+  this explicitly rather than quietly shipping without it, same as ADR 0013
   does for the headline-import gap.
 - PKCE's specific protection - defending the authorization code against
   interception between LinkedIn's redirect and the token exchange - is not
