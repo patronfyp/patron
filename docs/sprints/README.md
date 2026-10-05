@@ -5,4 +5,4 @@ written on review day. Format and example in `docs/AGILE_PLAN.md` §7.
 
 ## Index
 
-None written yet — Sprint 1 review has not happened.
+- [Sprint 1 — Auth foundation](sprint-1.md) · 14–27 Sep 2026
