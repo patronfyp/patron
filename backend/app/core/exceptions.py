@@ -32,6 +32,13 @@ class ConflictError(AppError):
     code = "conflict"
 
 
+class UnprocessableError(AppError):
+    """The request was well-formed but breaks a business rule."""
+
+    status_code = 422
+    code = "unprocessable"
+
+
 class UnauthorizedError(AppError):
     status_code = 401
     code = "unauthorized"
