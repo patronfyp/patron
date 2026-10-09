@@ -41,7 +41,7 @@ function LoginPage() {
     mutate(
       { email: values.email, password: values.password },
       {
-        onSuccess: () => navigate('/', { replace: true }),
+        onSuccess: () => navigate('/start', { replace: true }),
         onError: (error) => message.error(getErrorMessage(error)),
       },
     )

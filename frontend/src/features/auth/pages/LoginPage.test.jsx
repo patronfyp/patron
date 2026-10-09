@@ -22,7 +22,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/login']}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
-            <Route path="/" element={<div>Protected home</div>} />
+            <Route path="/start" element={<div>Protected home</div>} />
           </Routes>
         </MemoryRouter>
       </AntApp>
