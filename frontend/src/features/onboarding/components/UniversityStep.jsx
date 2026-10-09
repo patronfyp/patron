@@ -1,5 +1,6 @@
 import { Col, Form, Input, Row, Select } from 'antd'
 
+import EmailCodeVerification from './EmailCodeVerification'
 import OptionCards from './OptionCards'
 
 // Placeholder data: there is no university lookup API yet, so the list is a
@@ -27,8 +28,8 @@ const GRADUATION_YEARS = Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, 
   return { value: year, label: String(year) }
 })
 
-// UI only for now: verifying the degree is #52's work, and the profile has no
-// field for the chosen method, so it is not sent to the backend.
+// The chosen method is UI-only - the profile has no field for it, so it is
+// not sent to the backend.
 const VERIFICATION_METHODS = [
   {
     value: 'university_email',
@@ -44,6 +45,8 @@ const VERIFICATION_METHODS = [
 ]
 
 function UniversityStep() {
+  const verificationMethod = Form.useWatch('verification_method')
+
   return (
     <>
       <Form.Item
@@ -83,6 +86,15 @@ function UniversityStep() {
       >
         <OptionCards name="verification_method" options={VERIFICATION_METHODS} />
       </Form.Item>
+
+      {verificationMethod === 'university_email' ? (
+        <EmailCodeVerification
+          kind="university"
+          label="University email"
+          placeholder="you@university.edu.pk"
+          helpText="Use the email address your university issued you."
+        />
+      ) : null}
     </>
   )
 }
