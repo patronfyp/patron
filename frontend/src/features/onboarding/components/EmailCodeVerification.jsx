@@ -2,7 +2,11 @@ import { useState } from 'react'
 
 import { App, Button, Input } from 'antd'
 
-import { useConfirmVerificationCode, useResendCountdown, useSendVerificationCode } from '@/features/verification'
+import {
+  useConfirmVerificationCode,
+  useResendCountdown,
+  useSendVerificationCode,
+} from '@/features/verification'
 import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import OtpInput from '@/shared/components/OtpInput/OtpInput'
 
@@ -111,11 +115,7 @@ function EmailCodeVerification({ kind, label, placeholder, helpText }) {
           disabled={Boolean(sentTo)}
         />
         {!sentTo && (
-          <Button
-            onClick={handleSend}
-            loading={sendCode.isPending}
-            disabled={!isEmailValid}
-          >
+          <Button onClick={handleSend} loading={sendCode.isPending} disabled={!isEmailValid}>
             Send code
           </Button>
         )}
@@ -132,11 +132,7 @@ function EmailCodeVerification({ kind, label, placeholder, helpText }) {
             disabled={confirmCode.isPending}
             ariaLabel={`${label} verification code`}
           />
-          <Button
-            type="link"
-            onClick={handleSend}
-            disabled={isActive || sendCode.isPending}
-          >
+          <Button type="link" onClick={handleSend} disabled={isActive || sendCode.isPending}>
             {isActive ? `Resend in ${formatCountdown(secondsLeft)}` : "Didn't get it? Resend"}
           </Button>
         </div>

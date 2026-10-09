@@ -29,9 +29,7 @@ function fakeMutation(mutationFn) {
 // The email input is also role "textbox", so OTP boxes must be queried
 // scoped to the OTP group, not screen-wide.
 function otpBoxes() {
-  return within(screen.getByRole('group', { name: /verification code/i })).getAllByRole(
-    'textbox',
-  )
+  return within(screen.getByRole('group', { name: /verification code/i })).getAllByRole('textbox')
 }
 
 function renderComponent(props = {}) {
@@ -130,7 +128,9 @@ describe('EmailCodeVerification', () => {
     await user.type(otpBoxes()[0], '000000')
 
     expect(
-      await screen.findByText('That code is wrong or has expired. Request a new one and try again.'),
+      await screen.findByText(
+        'That code is wrong or has expired. Request a new one and try again.',
+      ),
     ).toBeInTheDocument()
     // Cleared so the user can type a fresh attempt instead of resubmitting the same one.
     await waitFor(() => expect(otpBoxes()[0]).toHaveValue(''))
