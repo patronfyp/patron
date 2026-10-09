@@ -17,6 +17,23 @@ class AppError(Exception):
         super().__init__(detail)
 
 
+class BadRequestError(AppError):
+    status_code = 400
+    code = "bad_request"
+
+
+class TooManyRequestsError(AppError):
+    status_code = 429
+    code = "too_many_requests"
+
+
+class ServiceUnavailableError(AppError):
+    """An outside service we depend on (e.g. the email provider) failed."""
+
+    status_code = 503
+    code = "service_unavailable"
+
+
 class NotFoundError(AppError):
     status_code = 404
     code = "not_found"

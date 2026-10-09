@@ -5,6 +5,7 @@ Single source of truth for settings. Nothing else in the codebase should read
 """
 
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -47,6 +48,17 @@ class Settings(BaseSettings):
     # Where the browser is sent after /auth/linkedin/callback finishes - the
     # frontend's own origin, not this API's.
     frontend_url: str = "http://localhost:5173"
+
+    # Email (#49, #50). "console" logs messages instead of sending them;
+    # "resend" sends for real through Resend. Each value has a class in
+    # app/core/email.py.
+    email_backend: Literal["console", "resend"] = "console"
+    # Resend only accepts onboarding@resend.dev as the sender until our own
+    # domain is verified there.
+    email_from: str = "PATRON <onboarding@resend.dev>"
+    # Empty default for the same reason as the LinkedIn keys: only needed
+    # when email_backend is "resend".
+    resend_api_key: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:

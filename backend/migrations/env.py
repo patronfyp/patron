@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 # `--autogenerate` silently produces an empty migration.
 from app.modules.auth import models as auth_models  # noqa: F401
 from app.modules.profiles import models as profiles_models  # noqa: F401
+from app.modules.verification import models as verification_models  # noqa: F401
 from config import get_settings
 from db import Base
 
