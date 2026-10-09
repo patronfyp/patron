@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 
 import { LinkedInCallbackPage, LoginPage, RegisterPage, SelectRolePage } from '@/features/auth'
+import { OnboardingPage } from '@/features/onboarding'
 
 import App from '../../App'
 
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <App /> },
       { path: 'select-role', element: <SelectRolePage /> },
+      { path: 'onboarding', element: <OnboardingPage /> },
     ],
   },
 ])

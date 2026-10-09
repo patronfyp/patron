@@ -1,0 +1,151 @@
+/* Onboarding wizard frame. Every colour is an antd theme token passed in as a
+   CSS variable by WizardShell.jsx - nothing here is hard-coded. */
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ob-bg-layout);
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 32px;
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ob-text);
+}
+
+.wordmarkBadge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  background: var(--ob-primary);
+  color: var(--ob-on-primary);
+}
+
+.stepLabel {
+  font-size: 13px;
+  color: var(--ob-text-secondary);
+}
+
+.progress {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 4px 32px 0;
+  list-style: none;
+}
+
+.segment {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--ob-text-tertiary);
+}
+
+.segmentBar {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ob-border);
+}
+
+.segmentDone .segmentBar,
+.segmentCurrent .segmentBar {
+  background: var(--ob-primary);
+}
+
+.segmentDone {
+  color: var(--ob-text-secondary);
+}
+
+.segmentCurrent {
+  color: var(--ob-text);
+  font-weight: 600;
+}
+
+.body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 560px) 280px;
+  justify-content: center;
+  align-items: start;
+  gap: 48px;
+  padding: 40px 32px 56px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ob-primary);
+}
+
+.title {
+  margin: 0 0 6px !important;
+}
+
+.subtitle {
+  margin-bottom: 24px !important;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.aside {
+  padding: 20px;
+  border-radius: var(--ob-radius);
+  background: var(--ob-bg-container);
+  border: 1px solid var(--ob-border);
+}
+
+@media (max-width: 900px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    padding: 28px 20px 40px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topBar,
+  .progress {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Seven labels do not fit a phone - the bars alone still show progress,
+     and the step label in the top bar names the current one. */
+  .segmentLabel {
+    display: none;
+  }
+}
