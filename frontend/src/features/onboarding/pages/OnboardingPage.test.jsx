@@ -5,6 +5,8 @@ import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAuthStore } from '@/features/auth'
+
 import { getProfile, updateProfile } from '../api/onboarding.api'
 
 import OnboardingPage from './OnboardingPage'
@@ -43,6 +45,7 @@ function renderPage() {
 describe('OnboardingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useAuthStore.setState({ user: null, accessToken: null, refreshToken: null })
     updateProfile.mockImplementation(async (changes) => ({ ...profileAt(1), ...changes }))
   })
 
@@ -173,6 +176,59 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByRole('radio', { name: /registrar record/i }))
 
       expect(screen.getByRole('radio', { name: /registrar record/i })).toBeChecked()
+    })
+  })
+
+  describe('Employer step', () => {
+    function signInAs(role) {
+      useAuthStore.setState({ user: { id: 1, role }, accessToken: 'token' })
+    }
+
+    it('lets a candidate skip it without saving any employer', async () => {
+      const user = userEvent.setup()
+      signInAs('candidate')
+      getProfile.mockResolvedValue(profileAt(4))
+      renderPage()
+      await screen.findByText(/Step 4 of 7/)
+
+      await user.click(screen.getByRole('button', { name: /skip for now/i }))
+
+      expect(await screen.findByText(/Step 5 of 7/)).toBeInTheDocument()
+      expect(updateProfile).toHaveBeenCalledWith({ onboarding_step: 5 })
+    })
+
+    it('requires a company, with no skip, for someone who refers', async () => {
+      const user = userEvent.setup()
+      signInAs('company')
+      getProfile.mockResolvedValue(profileAt(4))
+      renderPage()
+      await screen.findByText(/Step 4 of 7/)
+
+      expect(screen.queryByRole('button', { name: /skip for now/i })).not.toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      expect(await screen.findByText('Select the company you work at')).toBeInTheDocument()
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('shows the company card and code, and saves only the employer name', async () => {
+      const user = userEvent.setup()
+      signInAs('company')
+      getProfile.mockResolvedValue(profileAt(4))
+      renderPage()
+      await screen.findByText(/Step 4 of 7/)
+
+      await user.click(screen.getByLabelText('Company'))
+      await user.click(await screen.findByTitle('Garner'))
+
+      expect(await screen.findByText('Domain matched')).toBeInTheDocument()
+      expect(screen.getByText(/sent to your @garner\.com email/)).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(updateProfile).toHaveBeenCalledWith({ employer_name: 'Garner', onboarding_step: 5 }),
+      )
     })
   })
 
