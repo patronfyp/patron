@@ -42,6 +42,8 @@ function WizardShell({
   // antd's live theme tokens as CSS variables, so the module never hard-codes a colour.
   const themeVars = {
     '--ob-primary': token.colorPrimary,
+    // A light tint of the primary - antd's colorPrimaryBg reads too heavy on cards.
+    '--ob-primary-soft': `color-mix(in srgb, ${token.colorPrimary} 9%, ${token.colorBgContainer})`,
     '--ob-on-primary': token.colorTextLightSolid,
     '--ob-bg-layout': token.colorBgLayout,
     '--ob-bg-container': token.colorBgContainer,

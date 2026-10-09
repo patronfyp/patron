@@ -124,6 +124,58 @@ describe('OnboardingPage', () => {
     expect(screen.getByText(/Step 1 of 7/)).toBeInTheDocument()
   })
 
+  describe('University step', () => {
+    it('blocks Continue until university, degree and year are filled in', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(3))
+      renderPage()
+      await screen.findByText(/Step 3 of 7/)
+
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      expect(await screen.findByText('Select your university')).toBeInTheDocument()
+      expect(screen.getByText('Enter your degree')).toBeInTheDocument()
+      expect(screen.getByText('Select your graduation year')).toBeInTheDocument()
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('saves the university fields - and only those - when filled in', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(3))
+      renderPage()
+      await screen.findByText(/Step 3 of 7/)
+
+      await user.click(screen.getByLabelText('University'))
+      await user.click(await screen.findByTitle('Habib University'))
+      await user.type(screen.getByLabelText('Degree'), 'BSc Computer Science')
+      await user.click(screen.getByLabelText('Graduation year'))
+      await user.click(await screen.findByTitle('2026'))
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(updateProfile).toHaveBeenCalledWith({
+          university: 'Habib University',
+          degree: 'BSc Computer Science',
+          graduation_year: 2026,
+          onboarding_step: 4,
+        }),
+      )
+    })
+
+    it('lets the verification method be chosen, defaulting to university email', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(3))
+      renderPage()
+      await screen.findByText(/Step 3 of 7/)
+
+      expect(screen.getByRole('radio', { name: /university email/i })).toBeChecked()
+
+      await user.click(screen.getByRole('radio', { name: /registrar record/i }))
+
+      expect(screen.getByRole('radio', { name: /registrar record/i })).toBeChecked()
+    })
+  })
+
   it('offers a retry when the profile cannot be loaded', async () => {
     const user = userEvent.setup()
     getProfile.mockRejectedValueOnce(new Error('offline')).mockResolvedValue(profileAt(3))

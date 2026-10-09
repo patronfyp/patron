@@ -1,0 +1,84 @@
+/* Colours come from the --ob-* variables WizardShell sets from antd's theme. */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Grid, not nested wrappers: check in the first column, title and description
+   stacked in the second, so the text stays a direct child of the <label>. */
+.card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  column-gap: 12px;
+  row-gap: 2px;
+  align-items: start;
+  padding: 14px 16px;
+  border-radius: var(--ob-radius);
+  border: 1px solid var(--ob-border);
+  background: var(--ob-bg-container);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--ob-primary);
+}
+
+.cardChecked {
+  border-color: var(--ob-primary);
+  background: var(--ob-primary-soft);
+}
+
+/* Visually hidden but still focusable and announced - the card is the visual. */
+.input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.card:has(.input:focus-visible) {
+  outline: 2px solid var(--ob-primary);
+  outline-offset: 2px;
+}
+
+.check {
+  grid-row: span 2;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--ob-border);
+  background: var(--ob-bg-container);
+}
+
+.cardChecked .check {
+  border: 5px solid var(--ob-primary);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--ob-text);
+}
+
+.badge {
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ob-primary);
+  background: var(--ob-primary-soft);
+}
+
+.description {
+  font-size: 13px;
+  color: var(--ob-text-secondary);
+}
