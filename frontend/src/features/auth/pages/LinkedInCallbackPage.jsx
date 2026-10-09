@@ -41,7 +41,7 @@ function LinkedInCallbackPage() {
     getCurrentUser(accessToken)
       .then((user) => {
         setSession({ user, accessToken, refreshToken })
-        navigate('/', { replace: true })
+        navigate('/start', { replace: true })
       })
       .catch(() => {
         message.error(GENERIC_FAILURE)

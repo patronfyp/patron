@@ -26,7 +26,7 @@ function SelectRolePage() {
 
   const handleContinue = () => {
     mutate(role, {
-      onSuccess: () => navigate('/', { replace: true }),
+      onSuccess: () => navigate('/start', { replace: true }),
       onError: () => message.error('Could not save your role. Please try again.'),
     })
   }

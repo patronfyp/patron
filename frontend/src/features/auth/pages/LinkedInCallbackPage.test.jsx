@@ -21,7 +21,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/auth/linkedin/callback']}>
           <Routes>
             <Route path="/auth/linkedin/callback" element={<LinkedInCallbackPage />} />
-            <Route path="/" element={<div>Home screen</div>} />
+            <Route path="/start" element={<div>Home screen</div>} />
             <Route path="/login" element={<div>Login screen</div>} />
           </Routes>
         </MemoryRouter>

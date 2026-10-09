@@ -35,7 +35,7 @@ function RegisterPage() {
       {
         onSuccess: () => {
           message.success('Account created')
-          navigate('/', { replace: true })
+          navigate('/start', { replace: true })
         },
         onError: (error) => message.error(getErrorMessage(error)),
       },
