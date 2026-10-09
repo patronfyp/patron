@@ -4,11 +4,13 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
 import {
+  confirmPasswordReset,
   getCurrentUser,
   linkedinAuthorize,
   login,
   refreshAccessToken,
   register,
+  requestPasswordReset,
   setRole,
 } from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
@@ -68,6 +70,18 @@ export function useSetRole() {
     mutationFn: (role) => setRole(role),
     onSuccess: (user) => setUser(user),
   })
+}
+
+// #50 always answers 202 whether or not the email has an account - this hook
+// has nothing to branch on either, it just reports success or a real failure.
+export function useRequestPasswordReset() {
+  return useMutation({ mutationFn: requestPasswordReset })
+}
+
+// #50's /confirm sets the password and invalidates the token in one call -
+// nothing in the store changes, the user still has to sign in afterwards.
+export function useConfirmPasswordReset() {
+  return useMutation({ mutationFn: confirmPasswordReset })
 }
 
 // Logout is local only - the backend has no session to invalidate (stateless JWTs).

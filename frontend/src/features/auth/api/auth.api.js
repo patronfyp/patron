@@ -46,3 +46,26 @@ export async function setRole(role) {
   const response = await api.post('/api/v1/auth/role', { role })
   return response.data
 }
+
+/**
+ * POST /api/v1/auth/password-reset/request (#50) - always answers 202,
+ * whether or not the email has an account, so there is nothing to branch on
+ * client side.
+ */
+export async function requestPasswordReset({ email }) {
+  const response = await api.post('/api/v1/auth/password-reset/request', { email })
+  return response.data
+}
+
+/**
+ * POST /api/v1/auth/password-reset/confirm (#50) - sets the new password and
+ * invalidates the token. 400 means the token itself is bad (unknown, expired
+ * or already used) - every other failure is a 422 on the password.
+ */
+export async function confirmPasswordReset({ token, newPassword }) {
+  const response = await api.post('/api/v1/auth/password-reset/confirm', {
+    token,
+    new_password: newPassword,
+  })
+  return response.data
+}
