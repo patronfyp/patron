@@ -87,3 +87,26 @@ class UserRead(BaseModel):
     is_email_verified: bool
     is_active: bool
     created_at: datetime
+
+
+class PasswordResetRequest(BaseModel):
+    """What a client sends to POST /auth/password-reset/request."""
+
+    email: EmailStr
+
+
+class PasswordResetConfirm(BaseModel):
+    """What a client sends to POST /auth/password-reset/confirm.
+
+    The password rules match RegisterRequest, so a reset can never set a
+    password that registration would have refused.
+    """
+
+    token: str = Field(min_length=1, max_length=200)
+    new_password: str = Field(min_length=8, max_length=72)
+
+
+class PasswordResetRequested(BaseModel):
+    """Returned by /password-reset/request - the same body every time."""
+
+    detail: str = "If an account uses that email, we've sent a link to reset the password."

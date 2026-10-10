@@ -6,11 +6,11 @@ something is allowed. That belongs in service.py.
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .models import User, UserIdentity
+from .models import PasswordResetToken, User, UserIdentity
 from .schemas import RegisterRequest
 
 
@@ -126,3 +126,59 @@ async def update_role(session: AsyncSession, user: User, role: str) -> User:
     await session.commit()
     await session.refresh(user)
     return user
+
+
+async def get_latest_reset_token(session: AsyncSession, user_id: int) -> PasswordResetToken | None:
+    """The most recently issued reset link for this user, used or not."""
+    stmt = (
+        select(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user_id)
+        .order_by(PasswordResetToken.created_at.desc(), PasswordResetToken.id.desc())
+        .limit(1)
+    )
+    return await session.scalar(stmt)
+
+
+async def get_reset_token_by_hash(
+    session: AsyncSession, token_hash: str
+) -> PasswordResetToken | None:
+    stmt = select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash)
+    return await session.scalar(stmt)
+
+
+async def expire_unused_reset_tokens(session: AsyncSession, user_id: int, now: datetime) -> None:
+    """Mark every still-unused link for this user as used. Does not commit -
+    the caller commits it together with the new token."""
+    stmt = (
+        update(PasswordResetToken)
+        .where(PasswordResetToken.user_id == user_id, PasswordResetToken.used_at.is_(None))
+        .values(used_at=now)
+    )
+    await session.execute(stmt)
+
+
+async def create_reset_token(
+    session: AsyncSession, user_id: int, token_hash: str, expires_at: datetime
+) -> PasswordResetToken:
+    row = PasswordResetToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at)
+    session.add(row)
+    await session.commit()
+    await session.refresh(row)
+    return row
+
+
+async def delete_reset_token(session: AsyncSession, row: PasswordResetToken) -> None:
+    await session.delete(row)
+    await session.commit()
+
+
+async def reset_password(
+    session: AsyncSession, user: User, row: PasswordResetToken, password_hash: str, now: datetime
+) -> None:
+    """Set the new password, record when it changed, and use up the token -
+    in one commit, so a crash can never leave the token reusable after the
+    password changed."""
+    user.password = password_hash
+    user.password_changed_at = now
+    row.used_at = now
+    await session.commit()
