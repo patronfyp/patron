@@ -4,23 +4,33 @@ Routes call these functions and nothing else - no SQL and no HTTP status codes
 belong here, only decisions. STANDARDS.md §2.3.
 """
 
+import hashlib
+import logging
+import secrets
+from datetime import UTC, datetime, timedelta
+
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, UnauthorizedError
+from app.core.email import EmailDeliveryError, EmailSender
+from app.core.exceptions import BadRequestError, ConflictError, UnauthorizedError
 from app.core.security import (
     TokenType,
     create_access_token,
     create_refresh_token,
     decode_token,
     hash_password,
+    issued_before,
     verify_password,
 )
+from config import get_settings
 
 from . import repository
 from .linkedin import LinkedInAccount
 from .models import AuthProvider, User
 from .schemas import AccessTokenResponse, RegisterRequest, TokenPair
+
+logger = logging.getLogger(__name__)
 
 # Same message for every login failure - see STANDARDS.md §6, rule 10.
 # Confirming *which* part was wrong tells an attacker whether an account
@@ -157,5 +167,92 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str) -> Acc
     user = await repository.get_by_id(session, int(payload["sub"]))
     if user is None or not user.is_active:
         raise UnauthorizedError("Invalid or expired refresh token")
+    # Refresh tokens are not stored, so a password reset revokes them by
+    # date: anything issued before the reset is refused.
+    if issued_before(payload, user.password_changed_at):
+        raise UnauthorizedError("Invalid or expired refresh token")
 
     return AccessTokenResponse(access_token=create_access_token(user.id))
+
+
+# --- Password reset - Module 1.12 -------------------------------------------
+
+RESET_TOKEN_TTL = timedelta(minutes=30)
+# One link per minute per account. Stops anyone from flooding a person's
+# inbox through this form - see request_password_reset for why it is silent.
+RESET_REQUEST_COOLDOWN = timedelta(seconds=60)
+
+_INVALID_RESET_TOKEN = "This reset link is invalid or has expired. Request a new one."  # noqa: S105 -- a user-facing message, not a secret
+
+
+def _hash_reset_token(token: str) -> str:
+    """Plain SHA-256 is enough here, unlike passwords or 6-digit codes: the
+    token is 256 random bits, so there is nothing to brute-force."""
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+async def request_password_reset(session: AsyncSession, email: str, sender: EmailSender) -> None:
+    """Email a reset link if an active account has this address.
+
+    Returns normally in *every* case - unknown email, inactive account, inside
+    the cooldown, or even the email provider failing - so the 202 the caller
+    gets says nothing about whether an account exists. A 429 or 503 here would
+    leak exactly that, so those cases are logged instead of raised.
+    """
+    user = await repository.get_by_email(session, email.strip().lower())
+    if user is None or not user.is_active:
+        return
+
+    now = datetime.now(UTC)
+    latest = await repository.get_latest_reset_token(session, user.id)
+    if latest is not None and now - latest.created_at < RESET_REQUEST_COOLDOWN:
+        return
+
+    # A new link replaces any earlier one still waiting to be used.
+    await repository.expire_unused_reset_tokens(session, user.id, now)
+    token = secrets.token_urlsafe(32)
+    row = await repository.create_reset_token(
+        session, user.id, _hash_reset_token(token), now + RESET_TOKEN_TTL
+    )
+
+    link = f"{get_settings().frontend_url}/reset-password?token={token}"
+    minutes = int(RESET_TOKEN_TTL.total_seconds() // 60)
+    try:
+        await sender.send(
+            to=user.email,
+            subject="Reset your PATRON password",
+            body=(
+                f"Someone asked to reset the password for your PATRON account.\n\n"
+                f"Open this link to choose a new one (it expires in {minutes} minutes):\n"
+                f"{link}\n\n"
+                f"If it wasn't you, ignore this email - your password stays the same."
+            ),
+        )
+    except EmailDeliveryError:
+        # Remove the token so the cooldown doesn't block a retry for a link
+        # that never arrived.
+        logger.exception("Password reset email could not be sent for user %s", user.id)
+        await repository.delete_reset_token(session, row)
+
+
+async def confirm_password_reset(session: AsyncSession, token: str, new_password: str) -> None:
+    """Set a new password from a valid reset link, and sign out everywhere.
+
+    Every token problem - unknown, expired, already used or replaced - is the
+    same 400. Recording `password_changed_at` is what makes every access and
+    refresh token issued before now stop working.
+
+    A LinkedIn-only account (no password yet) can use this too: proving it
+    owns the email is the same proof LinkedIn gave us, and afterwards the user
+    can also sign in with email and password.
+    """
+    row = await repository.get_reset_token_by_hash(session, _hash_reset_token(token))
+    now = datetime.now(UTC)
+    if row is None or row.used_at is not None or row.expires_at <= now:
+        raise BadRequestError(_INVALID_RESET_TOKEN)
+
+    user = await repository.get_by_id(session, row.user_id)
+    if user is None or not user.is_active:
+        raise BadRequestError(_INVALID_RESET_TOKEN)
+
+    await repository.reset_password(session, user, row, hash_password(new_password), now)

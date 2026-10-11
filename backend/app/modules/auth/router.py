@@ -10,6 +10,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.email import EmailSender, get_email_sender
 from app.core.exceptions import AppError
 from config import get_settings
 from db import get_session
@@ -19,6 +20,9 @@ from .schemas import (
     AccessTokenResponse,
     LinkedInAuthorizeResponse,
     LoginRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    PasswordResetRequested,
     RefreshRequest,
     RegisterRequest,
     SetRoleRequest,
@@ -29,6 +33,7 @@ from .schemas import (
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
+SenderDep = Annotated[EmailSender, Depends(get_email_sender)]
 
 # Shown to the user when anything about the LinkedIn round trip - not the
 # account-linking rule itself - looks wrong. Deliberately vague: the specific
@@ -210,3 +215,47 @@ async def set_role(
     """
     user = await service.set_user_role(session, current_user, payload.role.value)
     return UserRead.model_validate(user)
+
+
+@router.post(
+    "/password-reset/request",
+    response_model=PasswordResetRequested,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Email a password reset link",
+    responses={422: {"description": "Not a valid email address"}},
+)
+async def request_password_reset(
+    payload: PasswordResetRequest, session: SessionDep, sender: SenderDep
+) -> PasswordResetRequested:
+    """Send a reset link to the address, if an active account uses it.
+
+    Always 202 with the same message - whether or not the account exists,
+    whether a link was sent in the last minute, and even if the email provider
+    failed. Anything else would let a caller find out which emails are
+    registered. The link opens `/reset-password?token=...` on the frontend and
+    stays valid for 30 minutes.
+    """
+    await service.request_password_reset(session, payload.email, sender)
+    return PasswordResetRequested()
+
+
+@router.post(
+    "/password-reset/confirm",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Set a new password from a reset link",
+    responses={
+        400: {
+            "description": "Token is unknown, expired, already used, or replaced by a newer link"
+        },
+        422: {"description": "New password is shorter than 8 or longer than 72 characters"},
+    },
+)
+async def confirm_password_reset(payload: PasswordResetConfirm, session: SessionDep) -> None:
+    """Set the new password and use up the token.
+
+    Every access and refresh token issued before this moment stops working,
+    so a reset signs the account out everywhere. The user then signs in with
+    the new password. Also works for a LinkedIn-only account, giving it a
+    first password.
+    """
+    await service.confirm_password_reset(session, payload.token, payload.new_password)

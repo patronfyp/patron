@@ -91,3 +91,16 @@ def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
     if payload.get("type") != expected_type.value:
         raise jwt.InvalidTokenError(f"Expected a {expected_type.value} token")
     return payload
+
+
+def issued_before(payload: dict[str, Any], moment: datetime | None) -> bool:
+    """True if a decoded token was issued before `moment`.
+
+    Used to revoke every token from before a password reset (Module 1.12).
+    `iat` is stored in whole seconds, so `moment` is floored to the second
+    too - otherwise a token issued in the same second as the reset, i.e. the
+    user's fresh login right after it, would be refused.
+    """
+    if moment is None:
+        return False
+    return int(payload["iat"]) < int(moment.timestamp())

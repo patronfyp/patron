@@ -10,7 +10,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import UnauthorizedError
-from app.core.security import TokenType, decode_token
+from app.core.security import TokenType, decode_token, issued_before
 from app.modules.auth import repository
 from app.modules.auth.models import User
 from db import get_session
@@ -47,6 +47,9 @@ async def get_current_user(credentials: CredentialsDep, session: SessionDep) -> 
 
     user = await repository.get_by_id(session, int(payload["sub"]))
     if user is None or not user.is_active:
+        raise UnauthorizedError(_INVALID_CREDENTIALS)
+    # A password reset signs out every session that existed before it.
+    if issued_before(payload, user.password_changed_at):
         raise UnauthorizedError(_INVALID_CREDENTIALS)
 
     return user

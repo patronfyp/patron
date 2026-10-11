@@ -74,6 +74,13 @@ class User(Base):
     # because endorsements reference them as an audit trail.
     is_active: Mapped[bool] = mapped_column(default=True, server_default=text("true"))
 
+    # Set when the password is reset (Module 1.12). Any token issued before
+    # this moment is refused, which is how a reset signs out every existing
+    # session - JWTs are not stored, so there is nothing else to revoke.
+    password_changed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -138,3 +145,31 @@ class UserIdentity(Base):
 
     def __repr__(self) -> str:
         return f"<UserIdentity id={self.id} provider={self.provider!r} user_id={self.user_id}>"
+
+
+class PasswordResetToken(Base):
+    """One emailed password-reset link - Module 1.12.
+
+    Only a hash of the token is stored, so a leaked table cannot be turned
+    into working reset links.
+    """
+
+    __tablename__ = "password_reset_tokens"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+
+    # SHA-256 hex digest of the token in the link. Unique so a lookup by hash
+    # finds at most one row.
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    # Set when the token is used, or when a newer link replaces it. Either
+    # way the token stops working - that is what makes it single-use.
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self) -> str:
+        return f"<PasswordResetToken id={self.id} user_id={self.user_id}>"
