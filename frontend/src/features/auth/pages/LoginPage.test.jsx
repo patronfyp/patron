@@ -14,12 +14,12 @@ vi.mock('../api/auth.api', () => ({
   getCurrentUser: vi.fn(),
 }))
 
-function renderPage() {
+function renderPage(initialEntries = ['/login']) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
       <AntApp>
-        <MemoryRouter initialEntries={['/login']}>
+        <MemoryRouter initialEntries={initialEntries}>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/start" element={<div>Protected home</div>} />
@@ -55,6 +55,23 @@ describe('LoginPage', () => {
 
     expect(await screen.findByText('Protected home')).toBeVisible()
     expect(login).toHaveBeenCalledWith({ email: 'jane@example.com', password: 'password123' })
+  })
+
+  it('links to the forgot-password page', () => {
+    renderPage()
+
+    expect(screen.getByRole('link', { name: /forgot password/i })).toHaveAttribute(
+      'href',
+      '/forgot-password',
+    )
+  })
+
+  it('shows a success notice when it lands here after a password reset', async () => {
+    renderPage([{ pathname: '/login', state: { passwordWasReset: true } }])
+
+    expect(
+      await screen.findByText('Your password has been reset. Please sign in.'),
+    ).toBeInTheDocument()
   })
 
   it('shows the server error on a failed login', async () => {

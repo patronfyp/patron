@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 
 import { App, Button, Form, Input } from 'antd'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
 import AuthLayout from '../components/AuthLayout'
 import { useLogin } from '../hooks/useAuth'
@@ -18,6 +18,7 @@ function getErrorMessage(error) {
 function LoginPage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
+  const location = useLocation()
   const { mutate, isPending } = useLogin()
   const [searchParams, setSearchParams] = useSearchParams()
   // StrictMode double-invokes this effect in development; clearing the query
@@ -25,6 +26,7 @@ function LoginPage() {
   // would show the message twice - see LinkedInCallbackPage for the same
   // pattern.
   const hasShownLinkedinError = useRef(false)
+  const hasShownResetSuccess = useRef(false)
 
   // /auth/linkedin/callback (the backend route) redirects failures here as
   // ?linkedin_error=<message> rather than a raw JSON page - see router.py.
@@ -36,6 +38,15 @@ function LoginPage() {
     message.error(linkedinError)
     setSearchParams({}, { replace: true })
   }, [searchParams, setSearchParams, message])
+
+  // ResetPasswordPage lands here with this flag in router state (#53) rather
+  // than a query param - there is nothing left to clean up in the URL.
+  useEffect(() => {
+    if (!location.state?.passwordWasReset || hasShownResetSuccess.current) return
+    hasShownResetSuccess.current = true
+
+    message.success('Your password has been reset. Please sign in.')
+  }, [location.state, message])
 
   const onFinish = (values) => {
     mutate(
@@ -68,6 +79,10 @@ function LoginPage() {
         >
           <Input.Password placeholder="Your password" />
         </Form.Item>
+
+        <div style={{ textAlign: 'right', marginTop: -12, marginBottom: 16 }}>
+          <Link to="/forgot-password">Forgot password?</Link>
+        </div>
 
         <Button type="primary" htmlType="submit" loading={isPending} block>
           Log in

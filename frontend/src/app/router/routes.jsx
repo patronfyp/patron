@@ -1,6 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { LinkedInCallbackPage, LoginPage, RegisterPage, SelectRolePage } from '@/features/auth'
+import {
+  ForgotPasswordPage,
+  LinkedInCallbackPage,
+  LoginPage,
+  RegisterPage,
+  ResetPasswordPage,
+  SelectRolePage,
+} from '@/features/auth'
 import { OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 
 import App from '../../App'
@@ -10,6 +17,8 @@ import ProtectedRoute from './ProtectedRoute'
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/register', element: <RegisterPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/auth/linkedin/callback', element: <LinkedInCallbackPage /> },
   {
     path: '/',
