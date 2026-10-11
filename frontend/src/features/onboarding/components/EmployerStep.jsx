@@ -1,5 +1,6 @@
-import { Form, Input, Select } from 'antd'
+import { Form, Select } from 'antd'
 
+import EmailCodeVerification from './EmailCodeVerification'
 import styles from './EmployerStep.module.css'
 
 // Placeholder data: there is no company lookup API yet, so the companies and
@@ -19,10 +20,6 @@ const COMPANY_OPTIONS = COMPANIES.map((company) => ({
   value: company.name,
   label: company.name,
 }))
-
-// Placeholder code: emailing and checking it is #52's work. Not sent to the
-// backend - only the profile fields are saved.
-const DUMMY_OTP = '481920'
 
 /**
  * @param {object} props
@@ -62,14 +59,12 @@ function EmployerStep({ isRequired }) {
             <span className={styles.matched}>Domain matched</span>
           </div>
 
-          <Form.Item
-            name="employer_otp"
-            label={`Enter the 6-digit code sent to your @${company.domain} email`}
-            initialValue={DUMMY_OTP}
-            extra="Didn't get it? Resend in 0:42"
-          >
-            <Input.OTP length={6} />
-          </Form.Item>
+          <EmailCodeVerification
+            kind="employer"
+            label={`Work email at ${company.name}`}
+            placeholder={`you@${company.domain}`}
+            helpText="Use your work email, not a personal one - PATRON checks it isn't a free mailbox."
+          />
 
           <p className={styles.tip}>
             Tip: your employer badge renews automatically every 90 days while your work email stays

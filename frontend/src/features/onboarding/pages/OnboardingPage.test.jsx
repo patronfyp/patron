@@ -172,10 +172,12 @@ describe('OnboardingPage', () => {
       await screen.findByText(/Step 3 of 7/)
 
       expect(screen.getByRole('radio', { name: /university email/i })).toBeChecked()
+      expect(await screen.findByLabelText('University email')).toBeInTheDocument()
 
       await user.click(screen.getByRole('radio', { name: /registrar record/i }))
 
       expect(screen.getByRole('radio', { name: /registrar record/i })).toBeChecked()
+      expect(screen.queryByLabelText('University email')).not.toBeInTheDocument()
     })
   })
 
@@ -222,7 +224,7 @@ describe('OnboardingPage', () => {
       await user.click(await screen.findByTitle('Garner'))
 
       expect(await screen.findByText('Domain matched')).toBeInTheDocument()
-      expect(screen.getByText(/sent to your @garner\.com email/)).toBeInTheDocument()
+      expect(screen.getByText('Work email at Garner')).toBeInTheDocument()
 
       await user.click(screen.getByRole('button', { name: /continue/i }))
 
