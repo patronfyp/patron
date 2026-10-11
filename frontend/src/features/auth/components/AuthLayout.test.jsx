@@ -13,13 +13,19 @@ vi.mock('../api/auth.api', () => ({
   linkedinAuthorize: vi.fn(),
 }))
 
-function renderLayout() {
+function renderLayout(props = {}) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
       <AntApp>
         <MemoryRouter initialEntries={['/login']}>
-          <AuthLayout title="Welcome back" subtitle="Sign in to your Patron account.">
+          <AuthLayout
+            title="Welcome back"
+            subtitle="Sign in to see who can refer you today."
+            linkedInLabel="Continue with LinkedIn"
+            footer="New to PATRON?"
+            {...props}
+          >
             <div>Form content</div>
           </AuthLayout>
         </MemoryRouter>
@@ -38,13 +44,20 @@ describe('AuthLayout', () => {
     vi.clearAllMocks()
   })
 
-  it('renders the tabs, the page content, and the LinkedIn button', () => {
+  it('renders the title, the page content, the footer, and the LinkedIn button', () => {
     renderLayout()
 
-    expect(screen.getByRole('link', { name: 'Sign in' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Create account' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument()
     expect(screen.getByText('Form content')).toBeInTheDocument()
+    expect(screen.getByText('New to PATRON?')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /continue with linkedin/i })).toBeInTheDocument()
+  })
+
+  it('leaves out the LinkedIn button when no label is given', () => {
+    renderLayout({ linkedInLabel: undefined })
+
+    expect(screen.queryByRole('button', { name: /linkedin/i })).not.toBeInTheDocument()
+    expect(screen.queryByText('or')).not.toBeInTheDocument()
   })
 
   it('sends the browser to LinkedIn on click', async () => {

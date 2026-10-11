@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
@@ -40,7 +40,7 @@ describe('LoginPage', () => {
 
     expect(screen.getByLabelText(/email/i)).toBeVisible()
     expect(screen.getByLabelText('Password')).toBeVisible()
-    expect(screen.getByRole('button', { name: /log in/i })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Sign in' })).toBeVisible()
   })
 
   it('logs in successfully and redirects to the protected home page', async () => {
@@ -51,7 +51,7 @@ describe('LoginPage', () => {
 
     await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
     await user.type(screen.getByLabelText('Password'), 'password123')
-    await user.click(screen.getByRole('button', { name: /log in/i }))
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
     expect(await screen.findByText('Protected home')).toBeVisible()
     expect(login).toHaveBeenCalledWith({ email: 'jane@example.com', password: 'password123' })
@@ -83,7 +83,7 @@ describe('LoginPage', () => {
 
     await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
     await user.type(screen.getByLabelText('Password'), 'wrongpassword')
-    await user.click(screen.getByRole('button', { name: /log in/i }))
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
     expect(await screen.findByText('Invalid email or password')).toBeInTheDocument()
   })
