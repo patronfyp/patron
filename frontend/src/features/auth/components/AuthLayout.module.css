@@ -1,245 +1,196 @@
-/* Bespoke hero-screen styling (STANDARDS.md §4.9 / ADR 0012) - a CSS module
-   because this layout's gradient, glow and rotating-tier animation don't map
-   onto antd's ConfigProvider tokens. Colour values are bridged in as CSS
-   custom properties (see AuthLayout.jsx), not duplicated here, so
-   config/theme.js stays the single source of truth. */
+/* Auth layout from the Figma "Sign in" frame (9:3, 1440 x 960). Colours, text
+   styles and radii come from config/theme.js: --pane-* (AuthLayout.jsx) for
+   the brand panel, --patron-* (main.jsx) for the form side. */
 
 .screen {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  /* Figma: 640px panel + 800px form column. */
+  grid-template-columns: minmax(0, 640fr) minmax(0, 800fr);
   /* A viewport unit, not min-height: 100%, on purpose: percentage heights
      need every ancestor back to #root to have an explicit height, and antd's
      <App> wrapper div in between doesn't, so 100% silently collapsed to the
-     content's own height - the login pane fell short of the screen. vh
-     doesn't depend on that chain. */
+     content's own height. vh doesn't depend on that chain. */
   height: 100vh;
   overflow: hidden;
+  background: var(--patron-bg-canvas);
 }
+
+/* ---- Brand panel ---- */
 
 .pane {
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 40px;
-  padding: clamp(28px, 6vw, 64px);
-  background:
-    radial-gradient(120% 140% at 15% 8%, var(--pane-deep) 0%, var(--pane-deeper) 62%),
-    var(--pane-deeper);
+  justify-content: space-between;
+  padding: 52px 56px 84px;
+  background: var(--pane-bg);
   color: var(--pane-on-brand);
 }
 
-.pane::after {
-  content: '';
+.grid,
+.glow,
+.bigMark {
   position: absolute;
-  inset: -20% -10% auto auto;
-  width: 520px;
-  height: 520px;
-  background: radial-gradient(circle, var(--pane-glow), transparent 68%);
   pointer-events: none;
+  user-select: none;
 }
 
-.wordmark {
+/* The grid is a 640 x 960 drawing of 48px squares - shown at its own size,
+   never stretched, so the squares stay square. */
+.grid {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: none;
+  object-position: top left;
+}
+
+.glow {
+  left: -100px;
+  bottom: -260px;
+  width: 800px;
+  height: 800px;
+}
+
+.bigMark {
+  left: 200px;
+  top: 120px;
+  width: 520px;
+  height: 520px;
+}
+
+.logo,
+.testimonial {
   position: relative;
+}
+
+.logo {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: var(--pane-font-display);
-  font-size: 20px;
+  font: var(--patron-type-logo);
+  letter-spacing: var(--patron-type-logo-tracking);
+  color: var(--pane-on-brand-strong);
 }
 
-.wordmarkBadge {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: var(--pane-accent);
-  display: grid;
-  place-items: center;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--pane-deeper);
-}
-
-.copy {
-  position: relative;
-  max-width: 460px;
-}
-
-.eyebrow {
-  margin: 0 0 16px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--pane-on-brand-soft);
-}
-
-.thesis {
-  margin: 0 0 22px;
-  font-family: var(--pane-font-display);
-  font-weight: 500;
-  font-size: clamp(28px, 3.4vw, 40px);
-  line-height: 1.14;
-  text-wrap: balance;
-  color: #fff;
-}
-
-.thesis em {
-  font-style: italic;
-}
-
-.sub {
-  margin: 0;
-  max-width: 38ch;
-  font-size: 15px;
-  line-height: 1.6;
-  color: var(--pane-on-brand-soft);
-}
-
-.tiers {
-  position: relative;
+.testimonial {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding-top: 8px;
-}
-
-.tier {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  opacity: 0.38;
-  transition: opacity 0.45s ease;
-}
-
-.tierActive {
-  opacity: 1;
-}
-
-.badge {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  margin-top: 1px;
-  border-radius: 50%;
-  background: rgba(238, 246, 240, 0.12);
-  border: 1px solid rgba(238, 246, 240, 0.28);
-  display: grid;
-  place-items: center;
-  transition:
-    background 0.45s ease,
-    border-color 0.45s ease;
-}
-
-.tierActive .badge {
-  background: var(--pane-accent);
-  border-color: var(--pane-accent);
-}
-
-.tierName {
-  display: block;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-}
-
-.tierDetail {
-  font-size: 13px;
-  color: var(--pane-on-brand-soft);
+  gap: 24px;
+  max-width: 520px;
+  margin: 0;
 }
 
 .quote {
-  position: relative;
   margin: 0;
-  max-width: 40ch;
-  padding-top: 22px;
-  border-top: 1px solid rgba(238, 246, 240, 0.18);
-  font-size: 14px;
-  line-height: 1.6;
+  font: var(--patron-type-quote);
+  letter-spacing: var(--patron-type-quote-tracking);
+  color: var(--pane-on-brand);
+}
+
+.person {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--pane-avatar);
+  font: var(--patron-type-title);
+  color: var(--pane-on-brand-strong);
+}
+
+.name,
+.role {
+  display: block;
+}
+
+.name {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--pane-on-brand);
+}
+
+.role {
+  margin-top: 2px;
+  font: var(--patron-type-body-s);
   color: var(--pane-on-brand-soft);
 }
 
-.quote b {
-  color: #fff;
-  font-weight: 600;
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--pane-chip-border);
+  border-radius: var(--patron-radius-sm);
+  background: var(--pane-chip-bg);
+  font: var(--patron-type-caption-medium);
+  color: var(--pane-on-brand-strong);
+}
+
+/* ---- Form column ---- */
 
 .formPane {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(20px, 5vw, 56px);
+  padding: 56px 24px;
   height: 100%;
   overflow-y: auto;
 }
 
-.card {
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   width: 100%;
-  max-width: 408px;
-  box-shadow:
-    0 1px 2px rgba(26, 32, 38, 0.04),
-    0 18px 40px -20px rgba(10, 51, 36, 0.28);
+  max-width: 400px;
+  /* Lets the form scroll from its top when it's taller than the screen,
+     instead of being clipped by align-items: center. */
+  margin: auto 0;
 }
 
-.tabs {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  background: var(--pane-tab-track);
-  border-radius: 999px;
-  padding: 4px;
-  margin-bottom: 22px;
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.tab {
-  text-align: center;
-  padding: 9px 12px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--pane-tab-inactive);
-  border-radius: 999px;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease;
+.title {
+  margin: 0;
+  font: var(--patron-type-h2);
+  letter-spacing: var(--patron-type-h2-tracking);
+  color: var(--patron-text-primary);
 }
 
-.tab:hover {
-  color: var(--pane-tab-active);
-}
-
-.tabActive,
-.tabActive:hover {
-  color: var(--pane-tab-active);
-  background: var(--pane-tab-active-bg);
-  box-shadow: 0 1px 2px rgba(26, 32, 38, 0.08);
-}
-
-.linkedinButton {
-  height: auto;
-  padding: 10px 14px;
-  margin-bottom: 18px;
-  background: var(--pane-ink);
-  border-color: var(--pane-ink);
-  color: #fff;
-  font-weight: 600;
-}
-
-.linkedinButton:hover,
-.linkedinButton:focus {
-  background: #000 !important;
-  border-color: #000 !important;
-  color: #fff !important;
+.subtitle {
+  margin: 0;
+  font: var(--patron-type-body-l);
+  letter-spacing: var(--patron-type-body-l-tracking);
+  color: var(--patron-text-secondary);
 }
 
 .divider {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 0 0 18px;
-  font-size: 12px;
-  color: var(--pane-ink-soft);
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
 }
 
 .divider::before,
@@ -247,22 +198,24 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--pane-border);
+  background: var(--patron-border-subtle);
 }
 
-.fineprint {
-  margin: 18px 0 0;
+.footer {
+  margin: 0;
   text-align: center;
-  font-size: 12.5px;
-  color: var(--pane-tab-inactive);
+  font: var(--patron-type-body-s);
+  color: var(--patron-text-secondary);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .tier {
-    transition: none;
-  }
+.footer a {
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-accent-text);
 }
 
+/* Figma's mobile frames (390 wide) drop the brand panel.
+   TODO(figma): mobile also has a top bar with the logo and a Sign in link
+   (frame 68:69) - not built yet. */
 @media (max-width: 860px) {
   .screen {
     grid-template-columns: 1fr;
@@ -272,28 +225,12 @@
   }
 
   .pane {
-    padding: 28px 24px;
-    gap: 24px;
-  }
-
-  .thesis {
-    font-size: 26px;
-  }
-
-  .tiers,
-  .quote {
     display: none;
   }
 
   .formPane {
     height: auto;
     overflow: visible;
-    padding: 8px 16px 40px;
-  }
-
-  /* Without the brand pane, a card still capped at 408px floats in a lot of
-     empty page on a tablet-width screen - let it fill more of the column. */
-  .card {
-    max-width: min(92vw, 480px);
+    padding: 40px 16px;
   }
 }
