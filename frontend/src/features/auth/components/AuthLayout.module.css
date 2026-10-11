@@ -82,7 +82,7 @@
   font-size: clamp(28px, 3.4vw, 40px);
   line-height: 1.14;
   text-wrap: balance;
-  color: #fff;
+  color: var(--pane-on-brand);
 }
 
 .thesis em {
@@ -123,8 +123,8 @@
   height: 22px;
   margin-top: 1px;
   border-radius: 50%;
-  background: rgba(238, 246, 240, 0.12);
-  border: 1px solid rgba(238, 246, 240, 0.28);
+  background: var(--pane-chip-bg);
+  border: 1px solid var(--pane-chip-border);
   display: grid;
   place-items: center;
   transition:
@@ -141,7 +141,7 @@
   display: block;
   font-size: 14px;
   font-weight: 600;
-  color: #fff;
+  color: var(--pane-on-brand);
 }
 
 .tierDetail {
@@ -154,14 +154,14 @@
   margin: 0;
   max-width: 40ch;
   padding-top: 22px;
-  border-top: 1px solid rgba(238, 246, 240, 0.18);
+  border-top: 1px solid var(--pane-divider);
   font-size: 14px;
   line-height: 1.6;
   color: var(--pane-on-brand-soft);
 }
 
 .quote b {
-  color: #fff;
+  color: var(--pane-on-brand);
   font-weight: 600;
 }
 
@@ -177,9 +177,7 @@
 .card {
   width: 100%;
   max-width: 408px;
-  box-shadow:
-    0 1px 2px rgba(26, 32, 38, 0.04),
-    0 18px 40px -20px rgba(10, 51, 36, 0.28);
+  box-shadow: var(--pane-card-shadow);
 }
 
 .tabs {
@@ -213,7 +211,7 @@
 .tabActive:hover {
   color: var(--pane-tab-active);
   background: var(--pane-tab-active-bg);
-  box-shadow: 0 1px 2px rgba(26, 32, 38, 0.08);
+  box-shadow: var(--pane-tab-shadow);
 }
 
 .linkedinButton {
@@ -222,15 +220,15 @@
   margin-bottom: 18px;
   background: var(--pane-ink);
   border-color: var(--pane-ink);
-  color: #fff;
+  color: var(--pane-on-brand);
   font-weight: 600;
 }
 
 .linkedinButton:hover,
 .linkedinButton:focus {
-  background: #000 !important;
-  border-color: #000 !important;
-  color: #fff !important;
+  background: var(--pane-linkedin-hover) !important;
+  border-color: var(--pane-linkedin-hover) !important;
+  color: var(--pane-on-brand) !important;
 }
 
 .divider {

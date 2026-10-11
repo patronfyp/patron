@@ -16,14 +16,9 @@ body,
 
 body {
   margin: 0;
-  /* Matches config/theme.js's colorBgLayout/fontFamily - keep the three in sync.
-     antd applies its own font to antd components; this covers everything else. */
-  background-color: #f6f5f1;
-  font-family:
-    'Inter',
-    ui-sans-serif,
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    sans-serif;
+  /* Values come from config/theme.js via the --patron-* variables main.jsx
+     sets. antd styles its own components; this covers everything else. */
+  background-color: var(--patron-bg-canvas);
+  color: var(--patron-text-primary);
+  font-family: var(--patron-font-sans);
 }

@@ -1,48 +1,198 @@
 /**
- * Antd theme tokens — the brand palette from the marketing site (patron-web),
- * light mode only for now. Dark mode is Sprint 16 (15.2) — when it lands, this
- * is the only file that needs a second palette.
+ * PATRON 2.0 design tokens - copied from the Figma file "PATRON 2.0 · Product
+ * Design" (Foundations → Brand & design system). Figma is the source of truth:
+ * when a value changes there, change it here, nowhere else.
  *
- * Colours are literal hex/rgb values, not CSS custom properties: antd derives
+ * Light mode only for now. Figma already has the dark-mode values; when dark
+ * mode lands this is the only file that needs a second palette.
+ *
+ * Colours are literal hex values, not CSS custom properties: antd derives
  * hover/active/border shades from each seed token using colour math, which
- * needs a real colour to compute from, not a `var(--brand)` reference.
+ * needs a real colour to compute from, not a `var(--accent)` reference.
  */
-export const theme = {
-  token: {
-    colorPrimary: '#12915a',
-    colorLink: '#12915a',
 
-    colorBgLayout: '#f6f5f1',
-    colorBgContainer: '#ffffff',
-    colorBgElevated: '#fbfaf7',
+const FONT_SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+const FONT_MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
-    colorText: '#1a2026',
-    colorTextSecondary: '#58636c',
-    colorTextTertiary: '#8a949c',
-
-    colorBorder: 'rgba(26, 32, 38, 0.2)',
-    colorBorderSecondary: 'rgba(26, 32, 38, 0.11)',
-
-    borderRadius: 8,
-
-    fontFamily: "'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif",
+/** Semantic tokens - Figma's "Theme" collection, light mode. Screens use these. */
+export const tokens = {
+  bg: {
+    canvas: '#f7f6f1',
+    surface: '#ffffff',
+    subtle: '#f1efe8',
+    muted: '#e9e6dd',
+    inverse: '#22262b',
+  },
+  text: {
+    primary: '#22262b',
+    secondary: '#4a4842',
+    tertiary: '#67645b',
+    inverse: '#ffffff',
+    onAccent: '#ffffff',
+  },
+  border: {
+    subtle: '#e9e6dd',
+    default: '#e1ddd2',
+    strong: '#cdc8bb',
+  },
+  accent: {
+    primary: '#0c8558',
+    brand: '#12a06b',
+    subtle: '#e9f6ef',
+    text: '#0a6b47',
+  },
+  ai: {
+    base: '#0b8aa3',
+    subtle: '#e7f5f8',
+    text: '#08667a',
+  },
+  status: {
+    success: '#12a06b',
+    successSubtle: '#e9f6ef',
+    successText: '#0a6b47',
+    warning: '#db8a0e',
+    warningSubtle: '#fdf3e3',
+    warningText: '#9a5b00',
+    danger: '#d9443f',
+    dangerSubtle: '#fcedec',
+    dangerText: '#b4262b',
   },
 }
 
 /**
- * Supplementary tokens for pages with a hero/marketing moment (the auth
- * screens today - STANDARDS.md §4.9). Not fed into antd's ConfigProvider:
- * these are decorative colours for a specific panel, not colours antd derives
- * component states from, and mixing the two would make every antd component
- * quietly inherit a colour meant for one hero panel.
+ * One colour family per endorsement tier, so a recruiter can tell them apart
+ * at a glance. Emerald is reserved for "verified" and primary actions, so no
+ * tier uses it.
  */
-export const brand = {
-  deep: '#0e5c3c',
-  deeper: '#0a3324',
-  onBrand: '#eef6f0',
-  onBrandSoft: 'rgba(238, 246, 240, 0.72)',
+export const trust = {
+  rec: { base: '#5c6573', subtle: '#eff1f3', text: '#3d4450' },
+  emp: { base: '#2f6bbf', subtle: '#ebf2fb', text: '#1f4e8e' },
+  alum: { base: '#8a47ab', subtle: '#f5eef8', text: '#683383' },
+  dv: { base: '#c08a17', subtle: '#fbf4e2', text: '#8a6209' },
 }
 
-// Headline/display face - pair with theme.token.fontFamily (Inter) for
-// everything else. Loaded in index.html alongside Inter.
-export const fontDisplay = "'Fraunces', Georgia, 'Times New Roman', serif"
+/** Figma's Elevation/1-3 and Glow/Emerald effects, as CSS box-shadows. */
+export const elevation = {
+  1: '0 1px 2px rgba(34, 38, 43, 0.05), 0 0 0 1px rgba(34, 38, 43, 0.04)',
+  2: '0 2px 4px rgba(34, 38, 43, 0.04), 0 8px 20px rgba(34, 38, 43, 0.07)',
+  3: '0 4px 10px rgba(34, 38, 43, 0.06), 0 24px 48px rgba(34, 38, 43, 0.14)',
+  glow: '0 10px 32px rgba(18, 160, 107, 0.35)',
+}
+
+/** antd ConfigProvider theme - the 2.0 tokens mapped onto antd's seed tokens. */
+export const theme = {
+  token: {
+    colorPrimary: tokens.accent.primary,
+    colorLink: tokens.accent.text,
+    colorSuccess: tokens.status.success,
+    colorWarning: tokens.status.warning,
+    colorError: tokens.status.danger,
+    colorInfo: tokens.ai.base,
+
+    colorBgLayout: tokens.bg.canvas,
+    colorBgContainer: tokens.bg.surface,
+    colorBgElevated: tokens.bg.surface,
+
+    colorText: tokens.text.primary,
+    colorTextSecondary: tokens.text.secondary,
+    colorTextTertiary: tokens.text.tertiary,
+
+    colorBorder: tokens.border.default,
+    colorBorderSecondary: tokens.border.subtle,
+
+    // Figma has no radius variables - these are read off the Sign in frame
+    // (9:3): chip 6, input field 8, callout card 12. Buttons (10) and the
+    // checkbox (5) differ, so they are set per component below.
+    borderRadiusSM: 6,
+    borderRadius: 8,
+    borderRadiusLG: 12,
+
+    // Figma buttons and inputs: sm 32, md 40 (default), lg 48.
+    controlHeightSM: 32,
+    controlHeight: 40,
+    controlHeightLG: 48,
+
+    fontFamily: FONT_SANS,
+    fontFamilyCode: FONT_MONO,
+    fontSize: 14,
+
+    boxShadow: elevation[2],
+    boxShadowSecondary: elevation[3],
+  },
+  components: {
+    // Figma Button/primary and Button/secondary: radius 10 at every size.
+    Button: { borderRadius: 10, borderRadiusSM: 10, borderRadiusLG: 10 },
+    // Figma "Keep me signed in" checkbox: radius 5.
+    Checkbox: { borderRadiusSM: 5 },
+  },
+}
+
+/** Figma text styles (size / line height / weight / letter spacing, px). */
+export const typography = {
+  display: { size: 64, lineHeight: 72, weight: 600, tracking: -3.5 },
+  h1: { size: 48, lineHeight: 56, weight: 600, tracking: -3 },
+  h2: { size: 36, lineHeight: 44, weight: 600, tracking: -2.5 },
+  h3: { size: 28, lineHeight: 36, weight: 600, tracking: -2 },
+  h4: { size: 20, lineHeight: 28, weight: 600, tracking: -1.2 },
+  title: { size: 16, lineHeight: 24, weight: 600, tracking: -0.6 },
+  bodyL: { size: 16, lineHeight: 26, weight: 400, tracking: -0.2 },
+  body: { size: 14, lineHeight: 22, weight: 400, tracking: -0.1 },
+  bodyS: { size: 13, lineHeight: 20, weight: 400, tracking: 0 },
+  caption: { size: 12, lineHeight: 18, weight: 400, tracking: 0 },
+  label: { size: 11, lineHeight: 16, weight: 600, tracking: 8 },
+  numberL: { size: 30, lineHeight: 36, weight: 600, tracking: -3 },
+  mono: { size: 12, lineHeight: 18, weight: 500, tracking: 0 },
+}
+
+/**
+ * Colours for the dark hero panel on the auth screens. Not fed into antd's
+ * ConfigProvider: they colour one panel, and antd components must not inherit
+ * them.
+ *
+ * Values from the Figma "Sign in" frame's Brand Panel (node 9:4).
+ *
+ * TODO(figma): deeper, divider, cardShadow, tabShadow and linkedinHover style
+ * parts of the current AuthLayout that Figma doesn't have (gradient, tabs,
+ * card, dark LinkedIn button). They go away when AuthLayout is rebuilt to
+ * match frame 9:3.
+ */
+export const brand = {
+  deep: '#141619', // Brand Panel fill (charcoal/900)
+  deeper: '#0d0e10', // not in frame 9:3 - charcoal/950
+  onBrand: '#f7f6f1', // quote and name text (neutral/25)
+  onBrandSoft: '#a9a598', // job-title text (neutral/300)
+  glow: 'rgba(18, 160, 107, 0.35)', // Figma Glow/Emerald colour (#12A06B59)
+  chipBg: 'rgba(255, 255, 255, 0.08)', // Chip/dark fill
+  chipBorder: 'rgba(255, 255, 255, 0.12)', // Chip/dark stroke
+  divider: 'rgba(238, 246, 240, 0.18)', // not in frame 9:3 - pre-2.0 value
+  cardShadow: elevation[2],
+  tabShadow: elevation[1],
+  linkedinHover: '#000000', // not in frame 9:3 - Figma's LinkedIn button is secondary
+}
+
+// Headlines use Geist too in 2.0 (SemiBold, tight tracking) - one family for
+// everything, unlike the old serif display face.
+export const fontDisplay = FONT_SANS
+export const fontMono = FONT_MONO
+
+/**
+ * Every token above as a CSS custom property (`--patron-bg-canvas`, ...), so
+ * plain CSS files read the same values as antd. main.jsx sets these on
+ * <html> once at startup - CSS never hard-codes a colour or font.
+ */
+export function cssVariables() {
+  const vars = {
+    '--patron-font-sans': FONT_SANS,
+    '--patron-font-mono': FONT_MONO,
+  }
+  const add = (prefix, group) => {
+    Object.entries(group).forEach(([key, value]) => {
+      const name = key.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+      vars[`--patron-${prefix}-${name}`] = value
+    })
+  }
+  Object.entries(tokens).forEach(([group, values]) => add(group, values))
+  Object.entries(trust).forEach(([tier, values]) => add(`trust-${tier}`, values))
+  add('elevation', elevation)
+  return vars
+}

@@ -9,8 +9,14 @@ import { RouterProvider } from 'react-router-dom'
 import './index.css'
 import AuthProvider from './app/providers/AuthProvider'
 import { router } from './app/router/routes'
-import { theme } from './config/theme'
+import { cssVariables, theme } from './config/theme'
 import { setupAuthClient } from './features/auth'
+
+// Exposes config/theme.js to plain CSS as --patron-* variables, so CSS files
+// never carry their own copy of a colour or font.
+Object.entries(cssVariables()).forEach(([name, value]) => {
+  document.documentElement.style.setProperty(name, value)
+})
 
 // Lets the shared API client read the session's access token (see setupAuthClient).
 setupAuthClient()

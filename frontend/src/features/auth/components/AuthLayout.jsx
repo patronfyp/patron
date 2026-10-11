@@ -31,7 +31,13 @@ const paneVars = {
   '--pane-deeper': brand.deeper,
   '--pane-on-brand': brand.onBrand,
   '--pane-on-brand-soft': brand.onBrandSoft,
-  '--pane-glow': 'rgba(18, 145, 90, 0.35)',
+  '--pane-glow': brand.glow,
+  '--pane-chip-bg': brand.chipBg,
+  '--pane-chip-border': brand.chipBorder,
+  '--pane-divider': brand.divider,
+  '--pane-card-shadow': brand.cardShadow,
+  '--pane-tab-shadow': brand.tabShadow,
+  '--pane-linkedin-hover': brand.linkedinHover,
   '--pane-accent': theme.token.colorPrimary,
   '--pane-font-display': fontDisplay,
   '--pane-tab-track': theme.token.colorBgLayout,
@@ -45,7 +51,7 @@ const paneVars = {
 
 function LinkedInIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="#fff" width="16" height="16" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
       <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z" />
     </svg>
   )
@@ -56,7 +62,7 @@ function CheckBadge() {
     <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden="true">
       <path
         d="M5 12l4.5 4.5L19 7"
-        stroke="#eef6f0"
+        stroke="currentColor"
         strokeWidth="2.4"
         strokeLinecap="round"
         strokeLinejoin="round"
