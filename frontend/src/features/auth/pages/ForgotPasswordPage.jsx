@@ -47,7 +47,12 @@ function ForgotPasswordPage() {
   return (
     <AuthLayout
       title="Forgot your password?"
-      subtitle="Enter your email and we'll send you a link to reset it."
+      subtitle="Enter the email you signed up with. We will send you a link to reset it."
+      footer={
+        <>
+          Remember it? <Link to="/login">Back to sign in</Link>
+        </>
+      }
     >
       <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
         <Form.Item
@@ -61,7 +66,7 @@ function ForgotPasswordPage() {
           <Input placeholder="jane@example.com" />
         </Form.Item>
 
-        <Button type="primary" htmlType="submit" loading={isPending} block>
+        <Button type="primary" htmlType="submit" size="large" loading={isPending} block>
           Send reset link
         </Button>
       </Form>

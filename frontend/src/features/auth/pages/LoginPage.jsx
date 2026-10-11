@@ -59,7 +59,16 @@ function LoginPage() {
   }
 
   return (
-    <AuthLayout title="Welcome back" subtitle="Sign in to your Patron account.">
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to see who can refer you today."
+      linkedInLabel="Continue with LinkedIn"
+      footer={
+        <>
+          New to PATRON? <Link to="/register">Create an account</Link>
+        </>
+      }
+    >
       <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
         <Form.Item
           name="email"
@@ -84,8 +93,8 @@ function LoginPage() {
           <Link to="/forgot-password">Forgot password?</Link>
         </div>
 
-        <Button type="primary" htmlType="submit" loading={isPending} block>
-          Log in
+        <Button type="primary" htmlType="submit" size="large" loading={isPending} block>
+          Sign in
         </Button>
       </Form>
     </AuthLayout>

@@ -120,14 +120,25 @@ export const theme = {
     boxShadowSecondary: elevation[3],
   },
   components: {
-    // Figma Button/primary and Button/secondary: radius 10 at every size.
-    Button: { borderRadius: 10, borderRadiusSM: 10, borderRadiusLG: 10 },
+    // Figma Button/primary and Button/secondary: radius 10 at every size,
+    // SemiBold label, shadows as on the Sign in frame (9:3).
+    Button: {
+      borderRadius: 10,
+      borderRadiusSM: 10,
+      borderRadiusLG: 10,
+      fontWeight: 600,
+      primaryShadow: '0 1px 1px rgba(33, 38, 43, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
+      defaultShadow: '0 0 0 rgba(34, 38, 43, 0.04), 0 1px 1px rgba(34, 38, 43, 0.05)',
+    },
     // Figma "Keep me signed in" checkbox: radius 5.
     Checkbox: { borderRadiusSM: 5 },
   },
 }
 
-/** Figma text styles (size / line height / weight / letter spacing, px). */
+/**
+ * Figma text styles. size and lineHeight are px; tracking is Figma's letter
+ * spacing in % of the font size (H2's -2.5 = -0.9px at 36px).
+ */
 export const typography = {
   display: { size: 64, lineHeight: 72, weight: 600, tracking: -3.5 },
   h1: { size: 48, lineHeight: 56, weight: 600, tracking: -3 },
@@ -137,8 +148,13 @@ export const typography = {
   title: { size: 16, lineHeight: 24, weight: 600, tracking: -0.6 },
   bodyL: { size: 16, lineHeight: 26, weight: 400, tracking: -0.2 },
   body: { size: 14, lineHeight: 22, weight: 400, tracking: -0.1 },
+  bodySemibold: { size: 14, lineHeight: 22, weight: 600, tracking: -0.2 },
   bodyS: { size: 13, lineHeight: 20, weight: 400, tracking: 0 },
+  bodySMedium: { size: 13, lineHeight: 20, weight: 500, tracking: 0 },
+  bodySSemibold: { size: 13, lineHeight: 20, weight: 600, tracking: -0.1 },
   caption: { size: 12, lineHeight: 18, weight: 400, tracking: 0 },
+  captionMedium: { size: 12, lineHeight: 18, weight: 500, tracking: 0 },
+  captionSemibold: { size: 12, lineHeight: 18, weight: 600, tracking: 0 },
   label: { size: 11, lineHeight: 16, weight: 600, tracking: 8 },
   numberL: { size: 30, lineHeight: 36, weight: 600, tracking: -3 },
   mono: { size: 12, lineHeight: 18, weight: 500, tracking: 0 },
@@ -150,35 +166,31 @@ export const typography = {
  * them.
  *
  * Values from the Figma "Sign in" frame's Brand Panel (node 9:4).
- *
- * TODO(figma): deeper, divider, cardShadow, tabShadow and linkedinHover style
- * parts of the current AuthLayout that Figma doesn't have (gradient, tabs,
- * card, dark LinkedIn button). They go away when AuthLayout is rebuilt to
- * match frame 9:3.
  */
 export const brand = {
   deep: '#141619', // Brand Panel fill (charcoal/900)
-  deeper: '#0d0e10', // not in frame 9:3 - charcoal/950
   onBrand: '#f7f6f1', // quote and name text (neutral/25)
   onBrandSoft: '#a9a598', // job-title text (neutral/300)
-  glow: 'rgba(18, 160, 107, 0.35)', // Figma Glow/Emerald colour (#12A06B59)
+  onBrandStrong: tokens.text.inverse, // logo and chip text
   chipBg: 'rgba(255, 255, 255, 0.08)', // Chip/dark fill
   chipBorder: 'rgba(255, 255, 255, 0.12)', // Chip/dark stroke
-  divider: 'rgba(238, 246, 240, 0.18)', // not in frame 9:3 - pre-2.0 value
-  cardShadow: elevation[2],
-  tabShadow: elevation[1],
-  linkedinHover: '#000000', // not in frame 9:3 - Figma's LinkedIn button is secondary
+  avatarGradient: 'linear-gradient(135deg, rgb(180, 70, 106) 0%, rgb(217, 122, 152) 100%)',
+  // Text on the panel that doesn't use a named Figma text style.
+  logoType: { size: 19, lineHeight: 25, weight: 700, tracking: 4 },
+  quoteType: { size: 30, lineHeight: 40, weight: 500, tracking: -1.5 },
 }
 
-// Headlines use Geist too in 2.0 (SemiBold, tight tracking) - one family for
-// everything, unlike the old serif display face.
-export const fontDisplay = FONT_SANS
+// `600 36px/44px 'Geist', ...` - a style as a CSS `font` shorthand.
+const fontShorthand = ({ size, lineHeight, weight }, family = FONT_SANS) =>
+  `${weight} ${size}px/${lineHeight}px ${family}`
+
 export const fontMono = FONT_MONO
 
 /**
  * Every token above as a CSS custom property (`--patron-bg-canvas`, ...), so
  * plain CSS files read the same values as antd. main.jsx sets these on
- * <html> once at startup - CSS never hard-codes a colour or font.
+ * <html> once at startup - CSS never hard-codes a colour, font, text size or
+ * radius.
  */
 export function cssVariables() {
   const vars = {
@@ -194,5 +206,23 @@ export function cssVariables() {
   Object.entries(tokens).forEach(([group, values]) => add(group, values))
   Object.entries(trust).forEach(([tier, values]) => add(`trust-${tier}`, values))
   add('elevation', elevation)
+  add('radius', {
+    sm: `${theme.token.borderRadiusSM}px`,
+    md: `${theme.token.borderRadius}px`,
+    lg: `${theme.token.borderRadiusLG}px`,
+    button: `${theme.components.Button.borderRadius}px`,
+  })
+
+  // --patron-type-h2 (a `font` shorthand) + --patron-type-h2-tracking (em).
+  const addType = (name, style, family) => {
+    const kebab = name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)
+    vars[`--patron-type-${kebab}`] = fontShorthand(style, family)
+    vars[`--patron-type-${kebab}-tracking`] = `${style.tracking / 100}em`
+  }
+  Object.entries(typography).forEach(([name, style]) =>
+    addType(name, style, name === 'mono' ? FONT_MONO : FONT_SANS),
+  )
+  addType('logo', brand.logoType)
+  addType('quote', brand.quoteType)
   return vars
 }

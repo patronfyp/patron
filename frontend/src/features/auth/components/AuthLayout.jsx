@@ -1,185 +1,112 @@
-import { useEffect, useState } from 'react'
+import { Button } from 'antd'
 
-import { Button, Card, Typography } from 'antd'
-import { Link, useLocation } from 'react-router-dom'
-
-import { brand, fontDisplay, theme } from '../../../config/theme'
+import glowImage from '../../../assets/brand/auth-glow.svg'
+import gridImage from '../../../assets/brand/auth-grid.svg'
+import markOutlineImage from '../../../assets/brand/patron-mark-outline.svg'
+import markImage from '../../../assets/brand/patron-mark.svg'
+import capIcon from '../../../assets/icons/cap.svg'
+import checkCircleIcon from '../../../assets/icons/check-circle.svg'
+import linkedinIcon from '../../../assets/icons/linkedin.svg'
+import { brand } from '../../../config/theme'
 import { useLinkedInAuthorize } from '../hooks/useAuth'
 
 import styles from './AuthLayout.module.css'
 
-const { Title, Paragraph } = Typography
+// Quote on the Figma "Sign in" frame (9:3); "Create account" (64:2) passes its own.
+const DEFAULT_QUOTE =
+  'The referral came from someone who had actually reviewed my code. That changed the whole conversation.'
 
-const TABS = [
-  { to: '/login', label: 'Sign in' },
-  { to: '/register', label: 'Create account' },
-]
-
-const TRUST_TIERS = [
-  { name: 'Recommendation', detail: 'Anyone in your network can vouch for you' },
-  { name: 'Employee Referral', detail: 'A verified employee refers you in' },
-  { name: 'Alumni Referral', detail: 'A verified alumnus opens the door' },
-]
-
-const TIER_ROTATE_MS = 3200
-
-// Bridges config/theme.js's JS colour tokens into the CSS module as custom
-// properties, so this hero panel has one source of truth for colour instead
-// of a second, hand-copied palette that can drift from theme.js.
+// Bridges config/theme.js's brand-panel colours into the CSS module, so the
+// panel has one source of truth for colour. The form side reads the global
+// --patron-* variables set in main.jsx.
 const paneVars = {
-  '--pane-deep': brand.deep,
-  '--pane-deeper': brand.deeper,
+  '--pane-bg': brand.deep,
   '--pane-on-brand': brand.onBrand,
   '--pane-on-brand-soft': brand.onBrandSoft,
-  '--pane-glow': brand.glow,
+  '--pane-on-brand-strong': brand.onBrandStrong,
   '--pane-chip-bg': brand.chipBg,
   '--pane-chip-border': brand.chipBorder,
-  '--pane-divider': brand.divider,
-  '--pane-card-shadow': brand.cardShadow,
-  '--pane-tab-shadow': brand.tabShadow,
-  '--pane-linkedin-hover': brand.linkedinHover,
-  '--pane-accent': theme.token.colorPrimary,
-  '--pane-font-display': fontDisplay,
-  '--pane-tab-track': theme.token.colorBgLayout,
-  '--pane-tab-inactive': theme.token.colorTextSecondary,
-  '--pane-tab-active': theme.token.colorText,
-  '--pane-tab-active-bg': theme.token.colorBgContainer,
-  '--pane-ink': theme.token.colorText,
-  '--pane-ink-soft': theme.token.colorTextTertiary,
-  '--pane-border': theme.token.colorBorderSecondary,
+  '--pane-avatar': brand.avatarGradient,
 }
 
-function LinkedInIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
-      <path d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.03-1.85-3.03-1.86 0-2.14 1.45-2.14 2.94v5.66H9.36V9h3.41v1.56h.05c.48-.9 1.63-1.85 3.36-1.85 3.6 0 4.27 2.37 4.27 5.45v6.29ZM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12ZM7.12 20.45H3.56V9h3.56v11.45Z" />
-    </svg>
-  )
-}
-
-function CheckBadge() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" width="12" height="12" aria-hidden="true">
-      <path
-        d="M5 12l4.5 4.5L19 7"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function BrandPane() {
-  const [activeTier, setActiveTier] = useState(0)
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
-
-    const id = setInterval(() => {
-      setActiveTier((current) => (current + 1) % TRUST_TIERS.length)
-    }, TIER_ROTATE_MS)
-    return () => clearInterval(id)
-  }, [])
-
+function BrandPane({ quote }) {
   return (
     <aside className={styles.pane}>
-      <div className={styles.wordmark}>
-        <span className={styles.wordmarkBadge}>P</span>
-        Patron
+      <img className={styles.grid} src={gridImage} alt="" />
+      <img className={styles.glow} src={glowImage} alt="" />
+      <img className={styles.bigMark} src={markOutlineImage} alt="" />
+
+      <div className={styles.logo}>
+        <img src={markImage} width="30" height="30" alt="" />
+        PATRON
       </div>
 
-      <div className={styles.copy}>
-        <p className={styles.eyebrow}>Trust-based hiring</p>
-        <h1 className={styles.thesis}>
-          Vouched, <em>verified</em>, hired.
-        </h1>
-        <p className={styles.sub}>
-          No cold applications. Every candidate on Patron reaches a company through someone who can
-          actually speak for them.
-        </p>
-
-        <div className={styles.tiers}>
-          {TRUST_TIERS.map((tier, index) => (
-            <div
-              key={tier.name}
-              className={`${styles.tier} ${index === activeTier ? styles.tierActive : ''}`}
-            >
-              <span className={styles.badge}>
-                <CheckBadge />
-              </span>
-              <span>
-                <span className={styles.tierName}>{tier.name}</span>
-                <span className={styles.tierDetail}>{tier.detail}</span>
-              </span>
-            </div>
-          ))}
+      <figure className={styles.testimonial}>
+        <blockquote className={styles.quote}>&ldquo;{quote}&rdquo;</blockquote>
+        <figcaption className={styles.person}>
+          <span className={styles.avatar}>AR</span>
+          <span>
+            <span className={styles.name}>Abdul Rafay</span>
+            <span className={styles.role}>Software Engineer · Garner</span>
+          </span>
+        </figcaption>
+        <div className={styles.chips}>
+          <span className={styles.chip}>
+            <img src={checkCircleIcon} width="12" height="12" alt="" />
+            Employee verified
+          </span>
+          <span className={styles.chip}>
+            <img src={capIcon} width="12" height="12" alt="" />
+            LUMS alumna
+          </span>
         </div>
-      </div>
-
-      <p className={styles.quote}>
-        Patron auto-tags every connection as <b>Professional</b>, <b>Alumni</b>, or <b>Both</b> -
-        that&rsquo;s what decides which of the three ways someone can vouch for you.
-      </p>
+      </figure>
     </aside>
   )
 }
 
 /**
- * Shared hero layout for the auth screens (STANDARDS.md §4.9, ADR 0012):
- * a brand pane stating Patron's actual thesis, paired with an elevated form
- * card. `title`/`subtitle` head the card; `children` is the page's own form.
+ * Shared layout for the auth screens, built from the Figma "Sign in" frame
+ * (9:3): a dark brand panel on the left, the page's form on the right.
+ *
+ * `linkedInLabel` adds the LinkedIn button and the "or" divider above the
+ * form ("Continue with LinkedIn" on sign in, "Sign up with LinkedIn" on
+ * create account). `footer` is the line under the form, e.g. "New to PATRON?".
  */
-function AuthLayout({ title, subtitle, children }) {
-  const location = useLocation()
+function AuthLayout({ title, subtitle, quote = DEFAULT_QUOTE, linkedInLabel, footer, children }) {
   const { mutate: startLinkedIn, isPending: isLinkedInPending } = useLinkedInAuthorize()
 
   return (
     <div className={styles.screen} style={paneVars}>
-      <BrandPane />
+      <BrandPane quote={quote} />
 
       <main className={styles.formPane}>
-        <Card className={styles.card}>
-          <Title level={3} style={{ marginTop: 0, marginBottom: 4 }}>
-            {title}
-          </Title>
-          <Paragraph type="secondary" style={{ marginBottom: 22 }}>
-            {subtitle}
-          </Paragraph>
+        <div className={styles.form}>
+          <header className={styles.header}>
+            <h1 className={styles.title}>{title}</h1>
+            <p className={styles.subtitle}>{subtitle}</p>
+          </header>
 
-          <nav className={styles.tabs} aria-label="Sign in or create an account">
-            {TABS.map((tab) => (
-              <Link
-                key={tab.to}
-                to={tab.to}
-                className={`${styles.tab} ${location.pathname === tab.to ? styles.tabActive : ''}`}
+          {linkedInLabel && (
+            <>
+              <Button
+                block
+                size="large"
+                icon={<img src={linkedinIcon} width="18" height="18" alt="" />}
+                loading={isLinkedInPending}
+                onClick={() => startLinkedIn()}
               >
-                {tab.label}
-              </Link>
-            ))}
-          </nav>
+                {linkedInLabel}
+              </Button>
 
-          <Button
-            block
-            className={styles.linkedinButton}
-            icon={<LinkedInIcon />}
-            loading={isLinkedInPending}
-            onClick={() => startLinkedIn()}
-          >
-            Continue with LinkedIn
-          </Button>
-
-          <div className={styles.divider}>
-            <span>or continue with email</span>
-          </div>
+              <div className={styles.divider}>or</div>
+            </>
+          )}
 
           {children}
 
-          <p className={styles.fineprint}>
-            By continuing you agree to Patron&rsquo;s Terms and Privacy Policy.
-          </p>
-        </Card>
+          {footer && <p className={styles.footer}>{footer}</p>}
+        </div>
       </main>
     </div>
   )

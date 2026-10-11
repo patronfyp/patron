@@ -1,5 +1,5 @@
 import { App, Button, Form, Input, Select } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import AuthLayout from '../components/AuthLayout'
 import { useRegister } from '../hooks/useAuth'
@@ -43,7 +43,17 @@ function RegisterPage() {
   }
 
   return (
-    <AuthLayout title="Create your account" subtitle="Join Patron in a couple of minutes.">
+    <AuthLayout
+      title="Create your account"
+      subtitle="Join PATRON and get referred by people who can vouch for you."
+      quote="I signed up on a Monday. By Friday a LUMS alumnus at Garner had referred me."
+      linkedInLabel="Sign up with LinkedIn"
+      footer={
+        <>
+          Already have an account? <Link to="/login">Sign in</Link>
+        </>
+      }
+    >
       <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
         <Form.Item
           name="fullName"
@@ -102,7 +112,7 @@ function RegisterPage() {
           <Select placeholder="Select a role" options={ROLE_OPTIONS} />
         </Form.Item>
 
-        <Button type="primary" htmlType="submit" loading={isPending} block>
+        <Button type="primary" htmlType="submit" size="large" loading={isPending} block>
           Create account
         </Button>
       </Form>
