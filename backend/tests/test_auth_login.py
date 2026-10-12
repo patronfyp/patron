@@ -1,5 +1,6 @@
 """Tests for POST /api/v1/auth/login and POST /api/v1/auth/refresh."""
 
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import jwt
@@ -17,7 +18,8 @@ _EMAIL = "login@test.com"
 _PASSWORD = "secret123"
 
 
-async def _register(client: AsyncClient) -> None:
+async def _register(client: AsyncClient) -> str:
+    """Register the test user and return their id."""
     response = await client.post(
         REGISTER_URL,
         json={
@@ -28,9 +30,10 @@ async def _register(client: AsyncClient) -> None:
         },
     )
     assert response.status_code == 201
+    return response.json()["id"]
 
 
-def _expired_token(user_id: int, token_type: str) -> str:
+def _expired_token(user_id: str, token_type: str) -> str:
     """Builds a token whose `exp` is already in the past - PyJWT rejects it
     on decode regardless of what created it."""
     settings = get_settings()
@@ -107,7 +110,7 @@ class TestLogin:
         """A future LinkedIn-only account (Module 1.1) has password=None.
         Attempting password login against it must not crash."""
         async with SessionLocal() as session:
-            session.add(User(email="oauth-only@test.com", full_name="OAuth Only", role="candidate"))
+            session.add(User(email="oauth-only@test.com", full_name="OAuth Only"))
             await session.commit()
 
         response = await client.post(
@@ -122,7 +125,7 @@ class TestRefresh:
     async def test_refresh_returns_a_new_access_token(
         self, client: AsyncClient, clean_users_table: None
     ) -> None:
-        await _register(client)
+        user_id = await _register(client)
         login = await client.post(LOGIN_URL, json={"email": _EMAIL, "password": _PASSWORD})
         refresh_token = login.json()["refresh_token"]
 
@@ -140,7 +143,7 @@ class TestRefresh:
         settings = get_settings()
         payload = jwt.decode(new_access_token, settings.secret_key, algorithms=["HS256"])
         assert payload["type"] == "access"
-        assert payload["sub"] == "1"
+        assert payload["sub"] == user_id
 
     async def test_an_access_token_is_rejected_at_the_refresh_endpoint(
         self, client: AsyncClient, clean_users_table: None
@@ -158,10 +161,50 @@ class TestRefresh:
     async def test_an_expired_refresh_token_is_rejected(
         self, client: AsyncClient, clean_users_table: None
     ) -> None:
-        await _register(client)
-        expired = _expired_token(user_id=1, token_type="refresh")
+        user_id = await _register(client)
+        expired = _expired_token(user_id=user_id, token_type="refresh")
 
         response = await client.post(REFRESH_URL, json={"refresh_token": expired})
+
+        assert response.status_code == 401
+
+    async def test_a_refresh_token_whose_subject_is_not_a_uuid_is_rejected(
+        self, client: AsyncClient
+    ) -> None:
+        """A token from before ids became UUIDs carries `sub: "1"`. It must be
+        a clean 401, not a 500 from failing to parse the id."""
+        settings = get_settings()
+        old_style = jwt.encode(
+            {
+                "sub": "1",
+                "type": "refresh",
+                "iat": datetime.now(UTC),
+                "exp": datetime.now(UTC) + timedelta(days=1),
+            },
+            settings.secret_key,
+            algorithm="HS256",
+        )
+
+        response = await client.post(REFRESH_URL, json={"refresh_token": old_style})
+
+        assert response.status_code == 401
+
+    async def test_a_refresh_token_for_an_unknown_user_is_rejected(
+        self, client: AsyncClient, clean_users_table: None
+    ) -> None:
+        settings = get_settings()
+        token = jwt.encode(
+            {
+                "sub": str(uuid.uuid4()),
+                "type": "refresh",
+                "iat": datetime.now(UTC),
+                "exp": datetime.now(UTC) + timedelta(days=1),
+            },
+            settings.secret_key,
+            algorithm="HS256",
+        )
+
+        response = await client.post(REFRESH_URL, json={"refresh_token": token})
 
         assert response.status_code == 401
 
@@ -190,12 +233,12 @@ class TestRefresh:
     ) -> None:
         """A refresh token outlives a single request - it must be checked
         against current account state, not just trusted as of login time."""
-        await _register(client)
+        user_id = await _register(client)
         login = await client.post(LOGIN_URL, json={"email": _EMAIL, "password": _PASSWORD})
         refresh_token = login.json()["refresh_token"]
 
         async with SessionLocal() as session:
-            user = await session.get(User, 1)
+            user = await session.get(User, uuid.UUID(user_id))
             user.is_active = False
             await session.commit()
 

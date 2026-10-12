@@ -95,7 +95,7 @@ async def test_callback_creates_a_new_user_and_identity(
     assert body["email"] == "jane@example.com"
     assert body["full_name"] == "Jane Doe"
     assert body["avatar_url"] == "https://example.com/jane.jpg"
-    assert body["role"] is None
+    assert body["roles"] == []  # picked next, through POST /auth/role
 
 
 async def test_callback_logs_in_a_returning_identity_without_duplicating_the_user(
@@ -159,7 +159,7 @@ async def test_callback_links_a_verified_email_to_an_existing_account(
     body = me.json()
     assert body["email"] == "jane@example.com"
     assert body["full_name"] == "Jane Doe"  # the password-registered name, untouched
-    assert body["role"] == "candidate"  # the existing account's role, untouched
+    assert body["roles"] == ["candidate"]  # the existing account's roles, untouched
 
 
 async def test_callback_refuses_to_link_an_unverified_email(

@@ -1,6 +1,7 @@
 """Tests for POST /api/v1/auth/password-reset/request and /confirm - Module 1.12."""
 
 import re
+import uuid
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
@@ -75,7 +76,7 @@ async def _token_rows() -> list[PasswordResetToken]:
         return list((await session.scalars(select(PasswordResetToken))).all())
 
 
-def _token_issued_seconds_ago(user_id: int, kind: str, seconds: int) -> str:
+def _token_issued_seconds_ago(user_id: uuid.UUID, kind: str, seconds: int) -> str:
     """A token like the ones login hands out, but issued in the past.
 
     `iat` has one-second resolution, so a token from a real login in the same

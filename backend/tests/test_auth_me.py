@@ -5,10 +5,12 @@ protected endpoint in every module reuses get_current_user, so a bug here is
 a bug everywhere at once.
 """
 
+import uuid
 from datetime import UTC, datetime, timedelta
 
 import jwt
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.modules.auth.models import User
 from config import get_settings
@@ -65,7 +67,7 @@ async def test_me_rejects_an_expired_token(client: AsyncClient, clean_users_tabl
     settings = get_settings()
     expired = jwt.encode(
         {
-            "sub": "1",
+            "sub": str(uuid.uuid4()),
             "type": "access",
             "iat": datetime.now(UTC) - timedelta(hours=1),
             "exp": datetime.now(UTC) - timedelta(minutes=1),
@@ -88,6 +90,8 @@ async def test_me_returns_the_signed_in_user(client: AsyncClient, clean_users_ta
     body = response.json()
     assert body["email"] == _EMAIL
     assert body["full_name"] == "Me Test"
+    assert body["roles"] == ["candidate"]
+    assert uuid.UUID(body["id"])  # a UUID, not a guessable 1, 2, 3
     assert "password" not in body
 
 
@@ -99,7 +103,7 @@ async def test_me_rejects_a_token_for_a_deactivated_user(
     tokens = await _register_and_get_tokens(client)
 
     async with SessionLocal() as session:
-        user = await session.get(User, 1)
+        user = await session.scalar(select(User).where(User.email == _EMAIL))
         user.is_active = False
         await session.commit()
 

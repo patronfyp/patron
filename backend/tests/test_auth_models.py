@@ -6,7 +6,7 @@ and SQLAlchemy runs it on assignment, before anything is persisted.
 
 import pytest
 
-from app.modules.auth.models import AuthProvider, User, UserRole
+from app.modules.auth.models import AuthProvider, SignupRole, User, UserRole
 
 
 @pytest.mark.parametrize(
@@ -39,8 +39,13 @@ def test_a_null_email_is_left_alone() -> None:
 
 
 def test_role_values_match_the_spec() -> None:
-    """Module 1.3 names exactly these three roles."""
-    assert {r.value for r in UserRole} == {"candidate", "company", "both"}
+    """The three "I want to" cards on the Create account screen, plus admin."""
+    assert {r.value for r in UserRole} == {"candidate", "referrer", "recruiter", "admin"}
+
+
+def test_admin_is_not_a_signup_role() -> None:
+    """Admin is granted by Patron, never picked by the user."""
+    assert {r.value for r in SignupRole} == {"candidate", "referrer", "recruiter"}
 
 
 def test_linkedin_is_a_known_provider() -> None:
