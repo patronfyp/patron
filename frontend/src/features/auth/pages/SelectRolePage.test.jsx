@@ -42,20 +42,27 @@ describe('SelectRolePage', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
   })
 
+  it('offers the three roles a user can pick - never admin', () => {
+    renderPage()
+
+    const options = screen.getAllByRole('radio').map((radio) => radio.value)
+    expect(options).toEqual(['candidate', 'referrer', 'recruiter'])
+  })
+
   it('saves the chosen role and navigates home', async () => {
     const user = userEvent.setup()
-    setRole.mockResolvedValue({ id: 1, email: 'jane@example.com', role: 'candidate' })
+    setRole.mockResolvedValue({ id: 'user-1', email: 'jane@example.com', roles: ['referrer'] })
 
     renderPage()
-    await user.click(screen.getByText('Candidate'))
+    await user.click(screen.getByText('Refer others'))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(await screen.findByText('Home screen')).toBeInTheDocument()
-    expect(setRole).toHaveBeenCalledWith('candidate')
+    expect(setRole).toHaveBeenCalledWith('referrer')
     expect(useAuthStore.getState().user).toEqual({
-      id: 1,
+      id: 'user-1',
       email: 'jane@example.com',
-      role: 'candidate',
+      roles: ['referrer'],
     })
   })
 
@@ -64,7 +71,7 @@ describe('SelectRolePage', () => {
     setRole.mockRejectedValue(new Error('network error'))
 
     renderPage()
-    await user.click(screen.getByText('Candidate'))
+    await user.click(screen.getByText('Get referred'))
     await user.click(screen.getByRole('button', { name: 'Continue' }))
 
     expect(

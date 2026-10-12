@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+﻿import { act, render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 
@@ -26,7 +26,7 @@ afterEach(() => {
 
 describe('ProtectedRoute', () => {
   it('shows the page while there is a session', () => {
-    useAuthStore.setState({ accessToken: 'token', user: { role: 'candidate' } })
+    useAuthStore.setState({ accessToken: 'token', user: { roles: ['candidate'] } })
 
     renderRoutes()
 
@@ -42,7 +42,7 @@ describe('ProtectedRoute', () => {
   // This is how a failed token refresh reaches the user: the API client clears
   // the store, and this route reacts - nothing navigates by hand.
   it('redirects to /login the moment the session is cleared', () => {
-    useAuthStore.setState({ accessToken: 'token', user: { role: 'candidate' } })
+    useAuthStore.setState({ accessToken: 'token', user: { roles: ['candidate'] } })
     renderRoutes()
 
     act(() => useAuthStore.getState().clearSession())
@@ -50,10 +50,10 @@ describe('ProtectedRoute', () => {
     expect(screen.getByText('Login screen')).toBeInTheDocument()
   })
 
-  // A LinkedIn sign-up (#25) reaches here with role=null - LinkedIn never
-  // tells us candidate vs company.
+  // A LinkedIn sign-up (#25) reaches here with no roles - LinkedIn never
+  // tells us what someone wants to do on Patron.
   it('redirects to /select-role when there is a session but no role yet', () => {
-    useAuthStore.setState({ accessToken: 'token', user: { role: null } })
+    useAuthStore.setState({ accessToken: 'token', user: { roles: [] } })
 
     renderRoutes()
 
@@ -61,7 +61,7 @@ describe('ProtectedRoute', () => {
   })
 
   it('does not redirect away from /select-role itself', () => {
-    useAuthStore.setState({ accessToken: 'token', user: { role: null } })
+    useAuthStore.setState({ accessToken: 'token', user: { roles: [] } })
 
     renderRoutes(['/select-role'])
 
