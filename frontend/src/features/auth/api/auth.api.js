@@ -41,7 +41,7 @@ export async function linkedinAuthorize() {
   return response.data
 }
 
-/** POST /api/v1/auth/role - the one field a LinkedIn sign-up starts without (#25). */
+/** POST /api/v1/auth/role - adds a role (candidate, referrer or recruiter) to the account. */
 export async function setRole(role) {
   const response = await api.post('/api/v1/auth/role', { role })
   return response.data

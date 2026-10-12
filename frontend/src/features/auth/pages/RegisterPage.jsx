@@ -1,14 +1,11 @@
-import { App, Button, Form, Input, Select } from 'antd'
+import { useState } from 'react'
+
+import { App, Button, Form, Input } from 'antd'
 import { Link, useNavigate } from 'react-router-dom'
 
 import AuthLayout from '../components/AuthLayout'
+import RoleCards from '../components/RoleCards'
 import { useRegister } from '../hooks/useAuth'
-
-const ROLE_OPTIONS = [
-  { value: 'candidate', label: 'Candidate' },
-  { value: 'company', label: 'Company' },
-  { value: 'both', label: 'Both' },
-]
 
 // A 422 from Pydantic carries an array of {msg}; our own errors carry a plain
 // string - STANDARDS.md §4.7 says show the backend's reason, so handle both.
@@ -23,6 +20,9 @@ function RegisterPage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
   const { mutate, isPending } = useRegister()
+  // Outside the <Form>: Figma puts the role picker above the LinkedIn button,
+  // and it always has a value (Candidate by default), so it needs no rules.
+  const [role, setRole] = useState('candidate')
 
   const onFinish = (values) => {
     mutate(
@@ -30,7 +30,7 @@ function RegisterPage() {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
-        role: values.role,
+        role,
       },
       {
         onSuccess: () => {
@@ -47,6 +47,7 @@ function RegisterPage() {
       title="Create your account"
       subtitle="Join PATRON and get referred by people who can vouch for you."
       quote="I signed up on a Monday. By Friday a LUMS alumnus at Garner had referred me."
+      beforeLinkedIn={<RoleCards value={role} onChange={setRole} disabled={isPending} />}
       linkedInLabel="Sign up with LinkedIn"
       footer={
         <>
@@ -102,14 +103,6 @@ function RegisterPage() {
           ]}
         >
           <Input.Password placeholder="Re-enter your password" />
-        </Form.Item>
-
-        <Form.Item
-          name="role"
-          label="I am a"
-          rules={[{ required: true, message: 'Please select a role' }]}
-        >
-          <Select placeholder="Select a role" options={ROLE_OPTIONS} />
         </Form.Item>
 
         <Button type="primary" htmlType="submit" size="large" loading={isPending} block>

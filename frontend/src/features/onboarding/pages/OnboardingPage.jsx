@@ -15,8 +15,9 @@ import { useProfile, useUpdateProfile } from '../hooks/useProfile'
 import { STEPS } from '../steps'
 
 // Steps that are built; every other step renders StepPlaceholder.
-// `isCandidate` decides the Employer step: optional and skippable for a
-// candidate, required for anyone who will refer (company / both).
+// `isReferrer` decides the Employer step: required for anyone who refers
+// (a verified employer is what lets them refer), optional and skippable for
+// everyone else.
 const STEP_VIEWS = {
   university: {
     render: () => <UniversityStep />,
@@ -29,8 +30,8 @@ const STEP_VIEWS = {
     ),
   },
   employer: {
-    render: ({ isCandidate }) => <EmployerStep isRequired={!isCandidate} />,
-    canSkip: ({ isCandidate }) => isCandidate,
+    render: ({ isReferrer }) => <EmployerStep isRequired={isReferrer} />,
+    canSkip: ({ isReferrer }) => !isReferrer,
     aside: (
       <StepAside
         title="Employer Referral"
@@ -68,11 +69,11 @@ function OnboardingWizard({ profile }) {
   // Resume where the user left off; after this, the wizard owns the position.
   const [step, setStep] = useState(profile.onboarding_step)
 
-  const isCandidate = useAuthStore((state) => state.user?.role) === 'candidate'
+  const isReferrer = useAuthStore((state) => state.user?.roles?.includes('referrer') ?? false)
 
   const current = STEPS[step - 1]
   const view = STEP_VIEWS[current.key]
-  const stepContext = { isCandidate }
+  const stepContext = { isReferrer }
   const isLastStep = step === STEPS.length
 
   const save = (changes, onSuccess) =>
