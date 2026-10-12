@@ -6,6 +6,7 @@ authenticated request; the profile is filled in gradually through onboarding
 changes to it never touch the auth tables.
 """
 
+import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String, func, text
@@ -24,10 +25,10 @@ class Profile(Base):
 
     __tablename__ = "profiles"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 
     # unique=True makes this one-to-one: a user cannot have two profiles.
-    user_id: Mapped[int] = mapped_column(
+    user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True
     )
 
