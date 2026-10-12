@@ -6,11 +6,12 @@ able to leak `password`. Returning the ORM model directly is the single most
 common way projects leak a password hash.
 """
 
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
-from .models import UserRole
+from .models import SignupRole, UserRole
 
 
 class RegisterRequest(BaseModel):
@@ -21,7 +22,9 @@ class RegisterRequest(BaseModel):
     # rejecting an overlong password here is better than silently truncating it.
     password: str = Field(min_length=8, max_length=72)
     full_name: str = Field(min_length=1, max_length=150)
-    role: UserRole
+    # The "I want to" card picked at sign-up. More roles can be added later
+    # through POST /auth/role; admin can never be picked (SignupRole).
+    role: SignupRole
 
     @field_validator("full_name")
     @classmethod
@@ -66,11 +69,12 @@ class LinkedInAuthorizeResponse(BaseModel):
     authorize_url: str
 
 
-class SetRoleRequest(BaseModel):
-    """What a client sends to POST /auth/role - the one thing a LinkedIn
-    sign-up doesn't supply that email/password registration does."""
+class AddRoleRequest(BaseModel):
+    """What a client sends to POST /auth/role - a role to add to the account.
+    A LinkedIn sign-up uses it for its first role; anyone can use it later to
+    take on another one."""
 
-    role: UserRole
+    role: SignupRole
 
 
 class UserRead(BaseModel):
@@ -79,11 +83,12 @@ class UserRead(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: int
+    id: uuid.UUID
     email: str
     full_name: str
     avatar_url: str | None
-    role: str | None
+    # Empty only for a LinkedIn sign-up that hasn't picked a role yet.
+    roles: list[UserRole]
     is_email_verified: bool
     is_active: bool
     created_at: datetime

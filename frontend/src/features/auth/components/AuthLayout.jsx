@@ -71,9 +71,19 @@ function BrandPane({ quote }) {
  *
  * `linkedInLabel` adds the LinkedIn button and the "or" divider above the
  * form ("Continue with LinkedIn" on sign in, "Sign up with LinkedIn" on
- * create account). `footer` is the line under the form, e.g. "New to PATRON?".
+ * create account). `beforeLinkedIn` sits between the subtitle and that button
+ * - the role picker on create account. `footer` is the line under the form,
+ * e.g. "New to PATRON?".
  */
-function AuthLayout({ title, subtitle, quote = DEFAULT_QUOTE, linkedInLabel, footer, children }) {
+function AuthLayout({
+  title,
+  subtitle,
+  quote = DEFAULT_QUOTE,
+  beforeLinkedIn,
+  linkedInLabel,
+  footer,
+  children,
+}) {
   const { mutate: startLinkedIn, isPending: isLinkedInPending } = useLinkedInAuthorize()
 
   return (
@@ -86,6 +96,8 @@ function AuthLayout({ title, subtitle, quote = DEFAULT_QUOTE, linkedInLabel, foo
             <h1 className={styles.title}>{title}</h1>
             <p className={styles.subtitle}>{subtitle}</p>
           </header>
+
+          {beforeLinkedIn}
 
           {linkedInLabel && (
             <>

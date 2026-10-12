@@ -4,13 +4,14 @@ Functions here just fetch and store rows - no decisions about whether
 something is allowed. That belongs in service.py.
 """
 
+import uuid
 from datetime import UTC, datetime
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from .models import PasswordResetToken, User, UserIdentity
+from .models import PasswordResetToken, User, UserIdentity, UserRoleAssignment
 from .schemas import RegisterRequest
 
 
@@ -22,18 +23,19 @@ async def get_by_email(session: AsyncSession, email: str) -> User | None:
     return await session.scalar(stmt)
 
 
-async def get_by_id(session: AsyncSession, user_id: int) -> User | None:
+async def get_by_id(session: AsyncSession, user_id: uuid.UUID) -> User | None:
     return await session.get(User, user_id)
 
 
 async def create_user(session: AsyncSession, payload: RegisterRequest, password_hash: str) -> User:
-    """Insert a new user row. Assumes the duplicate-email check already ran -
-    that decision belongs to the service, not here."""
+    """Insert a new user row with the role picked at sign-up. Assumes the
+    duplicate-email check already ran - that decision belongs to the service,
+    not here."""
     user = User(
         email=payload.email,
         full_name=payload.full_name,
-        role=payload.role.value,
         password=password_hash,
+        role_assignments=[UserRoleAssignment(role=payload.role.value)],
     )
     session.add(user)
     await session.commit()
@@ -74,14 +76,13 @@ async def create_user_with_identity(
     provider_user_id: str,
     provider_email: str | None,
 ) -> User:
-    """First-time sign-in through a provider: no password, no role yet - both
-    are nullable on User for exactly this case (see models.py)."""
+    """First-time sign-in through a provider: no password and no roles yet -
+    the user picks a role next, through POST /auth/role (see models.py)."""
     user = User(
         email=email,
         full_name=full_name,
         avatar_url=avatar_url,
         is_email_verified=is_email_verified,
-        role=None,
         password=None,
     )
     session.add(user)
@@ -119,16 +120,18 @@ async def attach_identity(
     await session.commit()
 
 
-async def update_role(session: AsyncSession, user: User, role: str) -> User:
-    """Set a user's role - the one field a LinkedIn sign-up (models.py) starts
-    without, asked for once through POST /auth/role."""
-    user.role = role
+async def add_role(session: AsyncSession, user: User, role: str) -> User:
+    """Give a user one more role. Assumes they don't hold it yet - checking
+    that is the service's decision."""
+    user.role_assignments.append(UserRoleAssignment(role=role))
     await session.commit()
     await session.refresh(user)
     return user
 
 
-async def get_latest_reset_token(session: AsyncSession, user_id: int) -> PasswordResetToken | None:
+async def get_latest_reset_token(
+    session: AsyncSession, user_id: uuid.UUID
+) -> PasswordResetToken | None:
     """The most recently issued reset link for this user, used or not."""
     stmt = (
         select(PasswordResetToken)
@@ -146,7 +149,9 @@ async def get_reset_token_by_hash(
     return await session.scalar(stmt)
 
 
-async def expire_unused_reset_tokens(session: AsyncSession, user_id: int, now: datetime) -> None:
+async def expire_unused_reset_tokens(
+    session: AsyncSession, user_id: uuid.UUID, now: datetime
+) -> None:
     """Mark every still-unused link for this user as used. Does not commit -
     the caller commits it together with the new token."""
     stmt = (
@@ -158,7 +163,7 @@ async def expire_unused_reset_tokens(session: AsyncSession, user_id: int, now: d
 
 
 async def create_reset_token(
-    session: AsyncSession, user_id: int, token_hash: str, expires_at: datetime
+    session: AsyncSession, user_id: uuid.UUID, token_hash: str, expires_at: datetime
 ) -> PasswordResetToken:
     row = PasswordResetToken(user_id=user_id, token_hash=token_hash, expires_at=expires_at)
     session.add(row)

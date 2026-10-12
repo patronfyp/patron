@@ -32,8 +32,6 @@ async function fillValidForm(user) {
   await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
   await user.type(screen.getByLabelText('Password'), 'password123')
   await user.type(screen.getByLabelText(/confirm password/i), 'password123')
-  await user.click(screen.getByRole('combobox'))
-  await user.click(await screen.findByText('Candidate'))
 }
 
 describe('RegisterPage', () => {
@@ -85,6 +83,23 @@ describe('RegisterPage', () => {
     expect(login).toHaveBeenCalledWith({
       email: 'jane@example.com',
       password: 'password123',
+    })
+  })
+
+  it('starts on Candidate and sends whichever role card is picked', async () => {
+    const user = userEvent.setup()
+    register.mockResolvedValue({ id: 'user-1', email: 'jane@example.com' })
+    login.mockResolvedValue({ access_token: 'token-123', refresh_token: 'refresh-123' })
+    renderPage()
+
+    expect(screen.getByRole('radio', { name: /get referred/i })).toBeChecked()
+
+    await user.click(screen.getByText('Hire talent'))
+    await fillValidForm(user)
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    await waitFor(() => {
+      expect(register).toHaveBeenCalledWith(expect.objectContaining({ role: 'recruiter' }))
     })
   })
 

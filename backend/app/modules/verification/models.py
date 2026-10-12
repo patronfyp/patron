@@ -6,6 +6,7 @@ which are what earn the Verified Alumni and Verified Employee badges. Each
 attempt to prove one is a row here.
 """
 
+import uuid
 from datetime import datetime
 from enum import StrEnum
 
@@ -32,9 +33,11 @@ class EmailVerification(Base):
 
     __tablename__ = "email_verifications"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
 
     # The address being proven, always lowercase. Not the user's login email.
     email: Mapped[str] = mapped_column(String(255))

@@ -1,28 +1,22 @@
 import { useState } from 'react'
 
-import { App, Button, Card, Flex, Radio, Typography } from 'antd'
+import { App, Button, Card, Flex, Typography } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
+import RoleCards from '../components/RoleCards'
 import { useSetRole } from '../hooks/useAuth'
 
 const { Title, Paragraph } = Typography
 
-// LinkedIn never tells us candidate vs company vs both (ADR 0011) - a
-// LinkedIn sign-up reaches this page with role=None and picks one here,
-// once, before the rest of the app (ProtectedRoute enforces the "before").
-const ROLE_OPTIONS = [
-  { value: 'candidate', label: 'Candidate', detail: 'Looking for your next role' },
-  { value: 'company', label: 'Company', detail: 'Hiring through trust, not cold applications' },
-  { value: 'both', label: 'Both', detail: 'Hiring, and open to opportunities yourself' },
-]
-
+// LinkedIn never tells us what someone wants to do on Patron (ADR 0011) - a
+// LinkedIn sign-up reaches this page with no roles and picks one here, once,
+// before the rest of the app (ProtectedRoute enforces the "before"). More
+// roles can be added later.
 function SelectRolePage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
   const [role, setRole] = useState(null)
   const { mutate, isPending } = useSetRole()
-
-  const selectedDetail = ROLE_OPTIONS.find((option) => option.value === role)?.detail
 
   const handleContinue = () => {
     mutate(role, {
@@ -38,28 +32,15 @@ function SelectRolePage() {
           One more thing
         </Title>
         <Paragraph type="secondary" style={{ marginBottom: 22 }}>
-          How will you be using Patron?
+          How will you be using Patron? You can add more roles later.
         </Paragraph>
 
-        <Radio.Group
-          block
-          optionType="button"
-          buttonStyle="solid"
-          value={role}
-          disabled={isPending}
-          onChange={(event) => setRole(event.target.value)}
-          options={ROLE_OPTIONS.map(({ value, label }) => ({ value, label }))}
-        />
-
-        {selectedDetail ? (
-          <Paragraph type="secondary" style={{ marginTop: 12, marginBottom: 0 }}>
-            {selectedDetail}
-          </Paragraph>
-        ) : null}
+        <RoleCards value={role} onChange={setRole} disabled={isPending} />
 
         <Button
           type="primary"
           block
+          size="large"
           style={{ marginTop: 22 }}
           disabled={!role}
           loading={isPending}

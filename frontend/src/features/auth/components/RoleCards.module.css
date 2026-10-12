@@ -1,0 +1,125 @@
+/* Role picker from the Figma Create account frame (64:2, node 64:168).
+   Colours, text styles and radii are --patron-* variables from config/theme.js. */
+
+.group {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-primary);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-button);
+  background: var(--patron-bg-surface);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--patron-border-strong);
+}
+
+/* Figma draws the selected card's border at 1.5px; an inset shadow adds the
+   extra half pixel without shifting the card's content. */
+.checked,
+.checked:hover {
+  border-color: var(--patron-accent-primary);
+  box-shadow: inset 0 0 0 0.5px var(--patron-accent-primary);
+  background: var(--patron-accent-subtle);
+}
+
+.group:disabled .card {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Visually hidden, still focusable and announced. */
+.input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.card:has(.input:focus-visible) {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  background: var(--patron-text-secondary);
+  /* Each SVG is the drawn shape at its Figma size; centring it in the 18px
+     box reproduces Figma's per-icon insets. */
+  -webkit-mask-image: var(--icon);
+  mask-image: var(--icon);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.checked .icon {
+  background: var(--patron-accent-primary);
+}
+
+.radio {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--patron-border-strong);
+  border-radius: 50%;
+  background: var(--patron-bg-surface);
+  display: grid;
+  place-items: center;
+}
+
+.checked .radio {
+  border-color: var(--patron-accent-primary);
+  background: var(--patron-accent-primary);
+}
+
+.checked .radio::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--patron-text-on-accent);
+}
+
+.title {
+  font: var(--patron-type-body-s-semibold);
+  letter-spacing: var(--patron-type-body-s-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.label {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}

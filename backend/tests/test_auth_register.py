@@ -28,8 +28,21 @@ async def test_register_creates_an_account(client: AsyncClient, clean_users_tabl
     body = response.json()
     assert body["email"] == "ali@example.com"
     assert body["full_name"] == "Ali Khan"
-    assert body["role"] == "candidate"
+    assert body["roles"] == ["candidate"]
     assert body["is_email_verified"] is False
+
+
+async def test_register_accepts_each_self_chosen_role(
+    client: AsyncClient, clean_users_table: None
+) -> None:
+    """The three "I want to" cards on the Create account screen."""
+    for index, role in enumerate(["candidate", "referrer", "recruiter"]):
+        response = await client.post(
+            REGISTER_URL, json=_payload(email=f"user{index}@example.com", role=role)
+        )
+
+        assert response.status_code == 201
+        assert response.json()["roles"] == [role]
 
 
 async def test_password_never_appears_in_the_response(
@@ -93,10 +106,21 @@ async def test_invalid_email_is_rejected(client: AsyncClient, clean_users_table:
     assert response.status_code == 422
 
 
-async def test_invalid_role_is_rejected(client: AsyncClient, clean_users_table: None) -> None:
+async def test_admin_cannot_be_picked_at_sign_up(
+    client: AsyncClient, clean_users_table: None
+) -> None:
+    """Admin is granted by Patron, never self-assigned."""
     response = await client.post(REGISTER_URL, json=_payload(role="admin"))
 
     assert response.status_code == 422
+
+
+async def test_old_role_values_are_rejected(client: AsyncClient, clean_users_table: None) -> None:
+    """`company` and `both` were replaced by recruiter and multiple roles."""
+    for role in ["company", "both"]:
+        response = await client.post(REGISTER_URL, json=_payload(role=role))
+
+        assert response.status_code == 422
 
 
 async def test_missing_field_is_rejected(client: AsyncClient, clean_users_table: None) -> None:

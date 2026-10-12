@@ -60,9 +60,9 @@ export function useLinkedInAuthorize() {
   })
 }
 
-// POST /auth/role - the step a LinkedIn sign-up needs before reaching the
-// app (#25). Only the user record changes; the tokens already in the store
-// are untouched.
+// POST /auth/role - adds a role to the account. A LinkedIn sign-up needs it
+// before reaching the app (#25). Only the user record changes; the tokens
+// already in the store are untouched.
 export function useSetRole() {
   const setUser = useAuthStore((state) => state.setUser)
 

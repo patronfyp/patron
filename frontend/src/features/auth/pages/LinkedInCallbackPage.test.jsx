@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -39,7 +39,7 @@ describe('LinkedInCallbackPage', () => {
 
   it('stores the session from the URL fragment and navigates home', async () => {
     window.location.hash = '#access_token=access-1&refresh_token=refresh-1'
-    getCurrentUser.mockResolvedValue({ id: 1, email: 'jane@example.com', role: 'candidate' })
+    getCurrentUser.mockResolvedValue({ id: 1, email: 'jane@example.com', roles: ['candidate'] })
 
     renderPage()
 
@@ -50,7 +50,7 @@ describe('LinkedInCallbackPage', () => {
     expect(useAuthStore.getState().user).toEqual({
       id: 1,
       email: 'jane@example.com',
-      role: 'candidate',
+      roles: ['candidate'],
     })
   })
 

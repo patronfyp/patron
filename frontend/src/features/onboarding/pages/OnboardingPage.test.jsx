@@ -1,4 +1,4 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
@@ -182,8 +182,8 @@ describe('OnboardingPage', () => {
   })
 
   describe('Employer step', () => {
-    function signInAs(role) {
-      useAuthStore.setState({ user: { id: 1, role }, accessToken: 'token' })
+    function signInAs(...roles) {
+      useAuthStore.setState({ user: { id: 'user-1', roles }, accessToken: 'token' })
     }
 
     it('lets a candidate skip it without saving any employer', async () => {
@@ -201,7 +201,7 @@ describe('OnboardingPage', () => {
 
     it('requires a company, with no skip, for someone who refers', async () => {
       const user = userEvent.setup()
-      signInAs('company')
+      signInAs('candidate', 'referrer')
       getProfile.mockResolvedValue(profileAt(4))
       renderPage()
       await screen.findByText(/Step 4 of 7/)
@@ -215,7 +215,7 @@ describe('OnboardingPage', () => {
 
     it('shows the company card and code, and saves only the employer name', async () => {
       const user = userEvent.setup()
-      signInAs('company')
+      signInAs('candidate', 'referrer')
       getProfile.mockResolvedValue(profileAt(4))
       renderPage()
       await screen.findByText(/Step 4 of 7/)
