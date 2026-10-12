@@ -1,16 +1,21 @@
-"""Business rules for proving ownership of a university or work email.
+"""Business rules for proving who a user is.
 
-The flow (Module 1.9): send a 6-digit code to the address, the user types it
-back, the address is marked verified. Everything that makes that safe lives
+Email codes (Module 1.9): send a 6-digit code to the address, the user types
+it back, the address is marked verified. Everything that makes that safe lives
 here: hashing, expiry, single use, the wrong-guess limit, the resend limit,
 and checking the address belongs to the right institution.
+
+Documents (Modules 1.10, 1.11): an uploaded transcript or employment letter,
+stored as pending until admin review exists.
 """
 
 import hashlib
 import hmac
 import secrets
+import uuid
 from datetime import UTC, datetime, timedelta
 
+from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.email import EmailDeliveryError, EmailSender
@@ -20,12 +25,17 @@ from app.core.exceptions import (
     TooManyRequestsError,
     UnprocessableError,
 )
+from app.core.storage import FileStorage
+from app.core.uploads import FileKind, read_upload
 from app.modules.auth.models import User
 from app.modules.profiles import service as profiles_service
 from config import get_settings
 
 from . import repository
-from .models import EmailVerification, VerificationKind
+from .models import EmailVerification, VerificationDocument, VerificationKind
+from .schemas import VerificationStatus, VerifiedEmailRead
+
+_DOCUMENT_TYPES = {FileKind.PDF, FileKind.JPEG, FileKind.PNG}
 
 CODE_TTL = timedelta(minutes=10)
 RESEND_COOLDOWN = timedelta(seconds=60)
@@ -87,6 +97,15 @@ def _domain_matches(email_domain: str, allowed: str) -> bool:
 
 async def _check_domain(session: AsyncSession, user: User, email: str, kind: str) -> None:
     domain = email.rsplit("@", 1)[1]
+
+    if kind == VerificationKind.ACCOUNT:
+        # Only the address on the account - this proves the sign-up, it is not
+        # a way to attach a new address.
+        if email != user.email:
+            raise UnprocessableError("Verify the email address you signed up with.")
+        if user.is_email_verified:
+            raise UnprocessableError("Your email is already verified.")
+        return
 
     if kind == VerificationKind.UNIVERSITY:
         profile = await profiles_service.get_or_create_profile(session, user)
@@ -177,4 +196,50 @@ async def confirm_code(
         raise BadRequestError(_INVALID_CODE)
 
     row.verified_at = now
+    if kind == VerificationKind.ACCOUNT:
+        # Saved in the same commit as the code, so the two can't disagree.
+        user.is_email_verified = True
     return await repository.save(session, row)
+
+
+async def upload_document(
+    session: AsyncSession, user: User, kind: str, file: UploadFile, storage: FileStorage
+) -> VerificationDocument:
+    """Store a transcript, degree or employment letter as pending review.
+
+    Only university and employer documents - the account email is proven by
+    code alone.
+    """
+    if kind == VerificationKind.ACCOUNT:
+        raise UnprocessableError("Documents are only for university or employer verification.")
+
+    data, file_kind = await read_upload(file, _DOCUMENT_TYPES, description="a PDF, JPG or PNG file")
+    key = f"documents/{uuid.uuid4()}.{file_kind.value}"
+    await storage.save(key, data)
+    filename = (file.filename or f"document.{file_kind.value}").replace("\\", "/").split("/")[-1]
+    return await repository.create_document(
+        session,
+        user_id=user.id,
+        kind=kind,
+        file_key=key,
+        filename=filename[:255],
+        size_bytes=len(data),
+    )
+
+
+async def get_status(session: AsyncSession, user: User) -> VerificationStatus:
+    """Everything the user has proven so far, for the onboarding summary."""
+
+    async def latest(kind: VerificationKind) -> VerifiedEmailRead | None:
+        row = await repository.get_latest_verified(session, user.id, kind)
+        if row is None or row.verified_at is None:
+            return None
+        return VerifiedEmailRead(email=row.email, verified_at=row.verified_at)
+
+    return VerificationStatus(
+        email=user.email,
+        email_verified=user.is_email_verified,
+        university_email=await latest(VerificationKind.UNIVERSITY),
+        employer_email=await latest(VerificationKind.EMPLOYER),
+        documents=await repository.list_documents(session, user.id),
+    )
