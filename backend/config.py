@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     # when email_backend is "resend".
     resend_api_key: str = ""
 
+    # Where uploaded files (CVs, profile photos, verification documents) are
+    # kept by the local storage backend in app/core/storage.py. Relative to
+    # the directory uvicorn is started from, i.e. backend/.
+    upload_dir: str = "uploads"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
