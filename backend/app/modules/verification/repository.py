@@ -4,6 +4,7 @@ Functions here just fetch and store rows - no decisions about whether
 something is allowed. That belongs in service.py.
 """
 
+import uuid
 from datetime import datetime
 
 from sqlalchemy import select
@@ -13,7 +14,7 @@ from .models import EmailVerification
 
 
 async def get_latest(
-    session: AsyncSession, user_id: int, email: str, kind: str
+    session: AsyncSession, user_id: uuid.UUID, email: str, kind: str
 ) -> EmailVerification | None:
     """The most recent code sent to this address for this purpose.
 
@@ -36,7 +37,7 @@ async def get_latest(
 async def create(
     session: AsyncSession,
     *,
-    user_id: int,
+    user_id: uuid.UUID,
     email: str,
     kind: str,
     code_hash: str,

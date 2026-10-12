@@ -4,18 +4,20 @@ Functions here just fetch and store rows - no decisions about whether
 something is allowed. That belongs in service.py.
 """
 
+import uuid
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Profile
 
 
-async def get_by_user_id(session: AsyncSession, user_id: int) -> Profile | None:
+async def get_by_user_id(session: AsyncSession, user_id: uuid.UUID) -> Profile | None:
     stmt = select(Profile).where(Profile.user_id == user_id)
     return await session.scalar(stmt)
 
 
-async def create_for_user(session: AsyncSession, user_id: int) -> Profile:
+async def create_for_user(session: AsyncSession, user_id: uuid.UUID) -> Profile:
     """Insert an empty profile at step 1. Assumes none exists yet - checking
     that is the service's decision."""
     profile = Profile(user_id=user_id)

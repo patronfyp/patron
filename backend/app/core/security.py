@@ -11,6 +11,7 @@ that release removed) and passlib itself has had no release since 2020 - so
 build on. Direct use of `bcrypt` is what current guidance recommends instead.
 """
 
+import uuid
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 from typing import Any
@@ -55,7 +56,7 @@ class TokenType(StrEnum):
     REFRESH = "refresh"
 
 
-def _create_token(user_id: int, token_type: TokenType, expires_delta: timedelta) -> str:
+def _create_token(user_id: uuid.UUID, token_type: TokenType, expires_delta: timedelta) -> str:
     settings = get_settings()
     now = datetime.now(UTC)
     payload = {
@@ -67,13 +68,13 @@ def _create_token(user_id: int, token_type: TokenType, expires_delta: timedelta)
     return jwt.encode(payload, settings.secret_key, algorithm=_JWT_ALGORITHM)
 
 
-def create_access_token(user_id: int) -> str:
+def create_access_token(user_id: uuid.UUID) -> str:
     settings = get_settings()
     delta = timedelta(minutes=settings.access_token_expire_minutes)
     return _create_token(user_id, TokenType.ACCESS, delta)
 
 
-def create_refresh_token(user_id: int) -> str:
+def create_refresh_token(user_id: uuid.UUID) -> str:
     settings = get_settings()
     delta = timedelta(days=settings.refresh_token_expire_days)
     return _create_token(user_id, TokenType.REFRESH, delta)
@@ -91,6 +92,19 @@ def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
     if payload.get("type") != expected_type.value:
         raise jwt.InvalidTokenError(f"Expected a {expected_type.value} token")
     return payload
+
+
+def token_user_id(payload: dict[str, Any]) -> uuid.UUID:
+    """The user id in a decoded token's `sub` claim.
+
+    Raises `jwt.InvalidTokenError` if it isn't a UUID - e.g. a token minted
+    before ids became UUIDs, whose `sub` is "1" - so callers turn it into the
+    same 401 as any other bad token instead of a 500.
+    """
+    try:
+        return uuid.UUID(payload["sub"])
+    except (KeyError, TypeError, ValueError) as exc:
+        raise jwt.InvalidTokenError("Token subject is not a user id") from exc
 
 
 def issued_before(payload: dict[str, Any], moment: datetime | None) -> bool:

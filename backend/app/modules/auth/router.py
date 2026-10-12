@@ -18,6 +18,7 @@ from db import get_session
 from . import linkedin, service
 from .schemas import (
     AccessTokenResponse,
+    AddRoleRequest,
     LinkedInAuthorizeResponse,
     LoginRequest,
     PasswordResetConfirm,
@@ -25,7 +26,6 @@ from .schemas import (
     PasswordResetRequested,
     RefreshRequest,
     RegisterRequest,
-    SetRoleRequest,
     TokenPair,
     UserRead,
 )
@@ -204,16 +204,20 @@ async def linkedin_callback(
 @router.post(
     "/role",
     response_model=UserRead,
-    summary="Set your role after a LinkedIn sign-up",
+    summary="Add a role to your account",
+    responses={422: {"description": "Not a role you can give yourself (admin is never allowed)"}},
 )
-async def set_role(
-    payload: SetRoleRequest, current_user: CurrentUser, session: SessionDep
+async def add_role(
+    payload: AddRoleRequest, current_user: CurrentUser, session: SessionDep
 ) -> UserRead:
-    """LinkedIn never tells us candidate vs company vs both - a LinkedIn
-    sign-up reaches the app with role=None (models.py) and is sent here once,
-    before the rest of the app, to fill it in.
+    """Add candidate, referrer or recruiter to your roles.
+
+    LinkedIn never tells us what someone wants to do on Patron, so a LinkedIn
+    sign-up reaches the app with no roles and is sent here once, before the
+    rest of the app, to pick one. Anyone can call it again later to take on
+    another role. Adding a role you already hold changes nothing.
     """
-    user = await service.set_user_role(session, current_user, payload.role.value)
+    user = await service.add_user_role(session, current_user, payload.role.value)
     return UserRead.model_validate(user)
 
 

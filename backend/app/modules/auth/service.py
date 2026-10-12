@@ -21,6 +21,7 @@ from app.core.security import (
     decode_token,
     hash_password,
     issued_before,
+    token_user_id,
     verify_password,
 )
 from config import get_settings
@@ -145,10 +146,17 @@ async def login_with_linkedin(session: AsyncSession, account: LinkedInAccount) -
     return existing_user
 
 
-async def set_user_role(session: AsyncSession, user: User, role: str) -> User:
-    """POST /auth/role - the step a LinkedIn sign-up needs that email/password
-    registration doesn't, since LinkedIn never tells us candidate vs company."""
-    return await repository.update_role(session, user, role)
+async def add_user_role(session: AsyncSession, user: User, role: str) -> User:
+    """POST /auth/role - add a role to the account.
+
+    A LinkedIn sign-up uses this for its first role, since LinkedIn never
+    tells us what someone wants to do on Patron. Adding a role the user
+    already holds is a no-op rather than an error, so a double-submitted form
+    or a retried request is harmless.
+    """
+    if role in user.roles:
+        return user
+    return await repository.add_role(session, user, role)
 
 
 async def refresh_access_token(session: AsyncSession, refresh_token: str) -> AccessTokenResponse:
@@ -161,10 +169,11 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str) -> Acc
     """
     try:
         payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
+        user_id = token_user_id(payload)
     except jwt.PyJWTError as exc:
         raise UnauthorizedError("Invalid or expired refresh token") from exc
 
-    user = await repository.get_by_id(session, int(payload["sub"]))
+    user = await repository.get_by_id(session, user_id)
     if user is None or not user.is_active:
         raise UnauthorizedError("Invalid or expired refresh token")
     # Refresh tokens are not stored, so a password reset revokes them by
