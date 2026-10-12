@@ -10,6 +10,7 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
+from app.core.storage import get_file_storage
 from db import engine
 from main import app
 
@@ -45,6 +46,31 @@ async def clean_users_table() -> AsyncIterator[None]:
     async with engine.begin() as conn:
         await conn.execute(text("TRUNCATE TABLE users CASCADE"))
     yield
+
+
+class MemoryStorage:
+    """Stands in for app/core/storage.py's LocalFileStorage, so tests never
+    write to disk. `files` maps key -> bytes for assertions."""
+
+    def __init__(self) -> None:
+        self.files: dict[str, bytes] = {}
+
+    async def save(self, key: str, data: bytes) -> None:
+        self.files[key] = data
+
+    async def read(self, key: str) -> bytes | None:
+        return self.files.get(key)
+
+    async def delete(self, key: str) -> None:
+        self.files.pop(key, None)
+
+
+@pytest.fixture
+async def storage() -> AsyncIterator[MemoryStorage]:
+    memory = MemoryStorage()
+    app.dependency_overrides[get_file_storage] = lambda: memory
+    yield memory
+    app.dependency_overrides.pop(get_file_storage, None)
 
 
 @pytest.fixture
