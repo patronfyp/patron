@@ -1,8 +1,29 @@
 import { useEffect, useState } from 'react'
 
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { confirmVerificationCode, sendVerificationCode } from '../api/verification.api'
+import {
+  confirmVerificationCode,
+  getVerificationStatus,
+  sendVerificationCode,
+  uploadVerificationDocument,
+} from '../api/verification.api'
+
+const STATUS_KEY = ['verification', 'me']
+
+/** GET /verification/me - what the user has verified so far. */
+export function useVerificationStatus() {
+  return useQuery({ queryKey: STATUS_KEY, queryFn: getVerificationStatus })
+}
+
+/** POST /verification/documents - refreshes the status once stored. */
+export function useUploadVerificationDocument() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: uploadVerificationDocument,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: STATUS_KEY }),
+  })
+}
 
 // Same shape as LoginPage's getErrorMessage - a 422/429/503 from this module
 // carries a plain string in `detail` (app/core/exceptions.py), a 422 from
@@ -19,9 +40,14 @@ export function useSendVerificationCode() {
   return useMutation({ mutationFn: sendVerificationCode })
 }
 
-/** POST /verification/email/confirm - checks the code the user typed. */
+/** POST /verification/email/confirm - checks the code the user typed, and
+ * refreshes the status once it is accepted. */
 export function useConfirmVerificationCode() {
-  return useMutation({ mutationFn: confirmVerificationCode })
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: confirmVerificationCode,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: STATUS_KEY }),
+  })
 }
 
 /**
