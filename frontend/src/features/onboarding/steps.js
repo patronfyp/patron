@@ -32,7 +32,8 @@ export const STEPS = [
     key: 'cv',
     label: 'CV',
     title: 'Upload your CV',
-    subtitle: 'Referrers attach this to your referral. We use it to match you with the right people.',
+    subtitle:
+      'Referrers attach this to your referral. We use it to match you with the right people.',
   },
   {
     key: 'skills',

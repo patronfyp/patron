@@ -306,9 +306,7 @@ describe('OnboardingPage', () => {
       await screen.findByText(/Step 3 of 7/)
 
       await user.click(screen.getByLabelText('University'))
-      await user.click(
-        await screen.findByTitle('Lahore University of Management Sciences (LUMS)'),
-      )
+      await user.click(await screen.findByTitle('Lahore University of Management Sciences (LUMS)'))
 
       expect(screen.getByRole('radio', { name: /university email/i })).toBeChecked()
       expect(screen.getByText('We send a code to your @lums.edu.pk address.')).toBeInTheDocument()

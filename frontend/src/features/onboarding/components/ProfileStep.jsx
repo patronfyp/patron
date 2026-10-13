@@ -119,9 +119,14 @@ function ProfileStep({ profile }) {
       <Form.Item
         name="headline"
         label="Headline"
-        rules={[{ required: true, message: 'Add a headline - it is the first thing referrers read' }]}
+        rules={[
+          { required: true, message: 'Add a headline - it is the first thing referrers read' },
+        ]}
       >
-        <Input placeholder="e.g. Final-year CS student · Backend & distributed systems" maxLength={120} />
+        <Input
+          placeholder="e.g. Final-year CS student · Backend & distributed systems"
+          maxLength={120}
+        />
       </Form.Item>
 
       <Row gutter={16}>
@@ -145,7 +150,9 @@ function ProfileStep({ profile }) {
             // displays; saved as "+923001234567".
             getValueProps={(value) => {
               const digits = value?.replace(/^\+92/, '') ?? ''
-              return { value: digits.length > 3 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : digits }
+              return {
+                value: digits.length > 3 ? `${digits.slice(0, 3)} ${digits.slice(3)}` : digits,
+              }
             }}
             normalize={(value) => {
               const digits = (value ?? '').replace(/[^\d ]/g, '')
@@ -158,7 +165,10 @@ function ProfileStep({ profile }) {
               },
             ]}
           >
-            <Input prefix={<span className={styles.phonePrefix}>+92</span>} placeholder="300 1234567" />
+            <Input
+              prefix={<span className={styles.phonePrefix}>+92</span>}
+              placeholder="300 1234567"
+            />
           </Form.Item>
         </Col>
       </Row>
@@ -171,7 +181,12 @@ function ProfileStep({ profile }) {
           value: value?.replace(/^https?:\/\/(www\.)?/, '') ?? '',
         })}
         normalize={(value) => value || null}
-        rules={[{ pattern: LINKEDIN_PATTERN, message: 'Use your profile URL, e.g. linkedin.com/in/your-name' }]}
+        rules={[
+          {
+            pattern: LINKEDIN_PATTERN,
+            message: 'Use your profile URL, e.g. linkedin.com/in/your-name',
+          },
+        ]}
         extra="We only read your public profile."
       >
         <Input

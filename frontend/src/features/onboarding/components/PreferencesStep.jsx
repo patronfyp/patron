@@ -128,7 +128,10 @@ function PreferencesStep() {
             },
           ]}
         >
-          <Input prefix={<span className={styles.prefix}>PKR</span>} placeholder="250,000 – 350,000" />
+          <Input
+            prefix={<span className={styles.prefix}>PKR</span>}
+            placeholder="250,000 – 350,000"
+          />
         </Form.Item>
         <Form.Item name="available_from" label="Available from">
           <DatePicker
