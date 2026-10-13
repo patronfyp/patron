@@ -1,0 +1,89 @@
+﻿/* Profile step, from Figma frame 65:198. Values are --patron-* variables from
+   config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.photoRow {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--patron-avatar-gradient);
+  font: var(--patron-type-avatar-l);
+  letter-spacing: var(--patron-type-avatar-l-tracking);
+  color: var(--patron-text-inverse);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoActions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.photoButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.uploadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-text-primary);
+}
+
+.ghost {
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-text-secondary);
+}
+
+/* !important: antd's Form gives every input[type=file] display: block, with a
+   more specific selector than this class. */
+.fileInput {
+  display: none !important;
+}
+
+.hint {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+.validIcon {
+  color: var(--patron-text-tertiary);
+}
+
+.phonePrefix {
+  color: var(--patron-text-tertiary);
+}
+
+/* Figma's helper and counter lines are Caption in text/tertiary. */
+.fields :global(.ant-form-item-extra) {
+  margin-top: 6px;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}

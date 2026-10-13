@@ -1,11 +1,11 @@
-/* Onboarding wizard frame. Every colour is an antd theme token passed in as a
-   CSS variable by WizardShell.jsx - nothing here is hard-coded. */
+/* Onboarding wizard frame, from the Figma onboarding frames (65:53 ...).
+   Colours, text styles and radii are --patron-* variables from config/theme.js. */
 
 .screen {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--ob-bg-layout);
+  background: var(--patron-bg-canvas);
 }
 
 .topBar {
@@ -13,34 +13,39 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 32px;
+  height: 72px;
+  padding: 0 40px;
 }
 
-.wordmark {
+.logo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ob-text);
-}
-
-.wordmarkBadge {
-  width: 22px;
-  height: 22px;
-  border-radius: 6px;
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  background: var(--ob-primary);
-  color: var(--ob-on-primary);
+  gap: 9px;
+  font: var(--patron-type-logo-small);
+  letter-spacing: var(--patron-type-logo-small-tracking);
+  color: var(--patron-text-primary);
 }
 
 .stepLabel {
-  font-size: 13px;
-  color: var(--ob-text-secondary);
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-secondary);
+}
+
+/* Button/ghost: Body S/Semibold in text/secondary. */
+.ghost,
+.back {
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-text-secondary);
+}
+
+/* Back and "Skip for now": Button/ghost at 40px, Body/Semibold. */
+.back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px;
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
 }
 
 .progress {
@@ -48,63 +53,101 @@
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
   margin: 0;
-  padding: 4px 32px 0;
+  padding: 0 40px;
   list-style: none;
 }
 
 .segment {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 11.5px;
-  color: var(--ob-text-tertiary);
+  gap: 10px;
+  min-width: 0;
+  color: var(--patron-text-tertiary);
 }
 
-.segmentBar {
+.bar {
   height: 4px;
-  border-radius: 999px;
-  background: var(--ob-border);
+  border-radius: 2px;
+  background: var(--patron-border-default);
 }
 
-.segmentDone .segmentBar,
-.segmentCurrent .segmentBar {
-  background: var(--ob-primary);
+.done .bar,
+.current .bar {
+  background: var(--patron-accent-primary);
 }
 
-.segmentDone {
-  color: var(--ob-text-secondary);
+.segmentLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  font: var(--patron-type-caption-medium);
+  white-space: nowrap;
 }
 
-.segmentCurrent {
-  color: var(--ob-text);
-  font-weight: 600;
+.number {
+  font: var(--patron-type-mono);
+}
+
+.done .segmentLabel {
+  color: var(--patron-text-secondary);
+}
+
+.doneIcon {
+  color: var(--patron-accent-primary);
+}
+
+.current .segmentLabel {
+  font: var(--patron-type-caption-semibold);
+  color: var(--patron-text-primary);
+}
+
+.current .number {
+  color: var(--patron-accent-text);
 }
 
 .body {
-  flex: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 560px) 280px;
+  display: flex;
   justify-content: center;
-  align-items: start;
-  gap: 48px;
-  padding: 40px 32px 56px;
+  align-items: flex-start;
+  gap: 72px;
+  padding: 56px 40px 64px;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 640px;
+  min-width: 0;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .eyebrow {
-  margin: 0 0 6px;
-  font-size: 11.5px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  margin: 0;
+  font: var(--patron-type-label);
+  letter-spacing: var(--patron-type-label-tracking);
   text-transform: uppercase;
-  color: var(--ob-primary);
+  color: var(--patron-accent-text);
 }
 
 .title {
-  margin: 0 0 6px !important;
+  margin: 0;
+  font: var(--patron-type-h2);
+  letter-spacing: var(--patron-type-h2-tracking);
+  color: var(--patron-text-primary);
 }
 
 .subtitle {
-  margin-bottom: 24px !important;
+  margin: 0;
+  font: var(--patron-type-body-l);
+  letter-spacing: var(--patron-type-body-l-tracking);
+  color: var(--patron-text-secondary);
 }
 
 .footer {
@@ -112,7 +155,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 32px;
+  padding-top: 8px;
 }
 
 .footerActions {
@@ -121,18 +164,29 @@
   gap: 8px;
 }
 
-.aside {
-  padding: 20px;
-  border-radius: var(--ob-radius);
-  background: var(--ob-bg-container);
-  border: 1px solid var(--ob-border);
+.continue {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 22px;
 }
 
-@media (max-width: 900px) {
+.aside {
+  flex: none;
+  width: 340px;
+}
+
+@media (max-width: 1100px) {
   .body {
-    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
+    align-items: stretch;
     gap: 24px;
-    padding: 28px 20px 40px;
+    padding: 32px 20px 48px;
+  }
+
+  .content,
+  .aside {
+    width: 100%;
   }
 }
 

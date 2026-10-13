@@ -1,0 +1,130 @@
+/* Preferences step, Figma frame 65:545. Values are --patron-* variables from
+   config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.roleChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-pill);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-secondary);
+  cursor: pointer;
+}
+
+.roleChip:hover {
+  border-color: var(--patron-border-strong);
+}
+
+.picked,
+.picked:hover {
+  border-color: transparent;
+  background: var(--patron-accent-subtle);
+  color: var(--patron-accent-text);
+}
+
+.roleChip:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Body S/Medium labels, kept centred in antd's 34px items. */
+.segmented :global(.ant-segmented-item-label) {
+  display: flex;
+  align-items: center;
+  font: var(--patron-type-body-s-medium);
+}
+
+.locations {
+  width: 100%;
+}
+
+.locationChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  margin-right: 6px;
+  padding: 0 8px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-text-secondary);
+}
+
+.chipRemove {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--patron-text-secondary);
+  cursor: pointer;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.prefix,
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+.month {
+  width: 100%;
+}
+
+/* Figma "Visibility" card. */
+.visibility {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-surface);
+  cursor: pointer;
+}
+
+.visibilityText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.visibilityTitle {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.visibilityHint {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

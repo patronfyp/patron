@@ -1,0 +1,142 @@
+﻿/* CV step, Figma frame 65:354. Values are --patron-* variables from
+   config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 22px 24px;
+  border: 1px dashed var(--patron-border-strong);
+  border-radius: var(--patron-radius-card);
+  background: var(--patron-bg-subtle);
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.dropzone:hover,
+.dragging {
+  border-color: var(--patron-accent-primary);
+}
+
+.dragging {
+  background: var(--patron-accent-subtle);
+}
+
+.dropzone:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+}
+
+.uploadTile {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-surface);
+  color: var(--patron-accent-primary);
+}
+
+.dropTitle {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.dropHint {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+/* !important: antd's Form gives every input[type=file] display: block, with a
+   more specific selector than this class. */
+.fileInput {
+  display: none !important;
+}
+
+.file {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-1);
+}
+
+.fileTile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--patron-radius-button);
+  background: var(--patron-status-danger-subtle);
+  color: var(--patron-status-danger-text);
+}
+
+.fileText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fileRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fileName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.fileSize {
+  flex: none;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+/* Upload is a single request, so a stored file is simply complete. */
+.progress {
+  height: 4px;
+  max-width: 420px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--patron-bg-muted);
+}
+
+.progressFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--patron-accent-primary);
+}
+
+.trash {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: var(--patron-text-secondary);
+}

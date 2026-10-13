@@ -1,0 +1,83 @@
+/* Account step, from Figma frame 65:53. Values are --patron-* variables from
+   config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.sentTo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1px solid var(--patron-border-subtle);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-subtle);
+}
+
+.mailTile {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--patron-radius-tile);
+  background: var(--patron-accent-tint);
+  color: var(--patron-accent-primary);
+}
+
+.sentToText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sentToLabel {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.sentToEmail {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+  overflow-wrap: anywhere;
+}
+
+.codeGroup {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.codeLabel {
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-primary);
+}
+
+.error {
+  margin: 0;
+  font: var(--patron-type-caption);
+  color: var(--patron-status-danger-text);
+}
+
+.resend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.resendLink {
+  padding: 0;
+  height: auto;
+  font: var(--patron-type-caption-semibold);
+}
+
+.checkbox {
+  font: var(--patron-type-body-s);
+  color: var(--patron-text-secondary);
+}
