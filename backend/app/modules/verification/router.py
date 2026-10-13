@@ -3,20 +3,71 @@ business logic and no queries. STANDARDS.md §2.3."""
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
 from app.core.email import EmailSender, get_email_sender
+from app.core.storage import FileStorage, get_file_storage
 from db import get_session
 
 from . import service
-from .schemas import ConfirmCodeRequest, SendCodeRequest, SendCodeResponse, VerificationRead
+from .models import VerificationKind
+from .schemas import (
+    ConfirmCodeRequest,
+    DocumentRead,
+    SendCodeRequest,
+    SendCodeResponse,
+    VerificationRead,
+    VerificationStatus,
+)
 
 router = APIRouter(prefix="/verification", tags=["verification"])
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SenderDep = Annotated[EmailSender, Depends(get_email_sender)]
+StorageDep = Annotated[FileStorage, Depends(get_file_storage)]
+
+
+@router.get(
+    "/me",
+    response_model=VerificationStatus,
+    summary="What I have verified so far",
+    responses={401: {"description": "Missing, invalid or expired access token"}},
+)
+async def get_my_status(current_user: CurrentUser, session: SessionDep) -> VerificationStatus:
+    """Whether the sign-up email is verified, the latest verified university
+    and work email, and every uploaded document with its review status."""
+    return await service.get_status(session, current_user)
+
+
+@router.post(
+    "/documents",
+    response_model=DocumentRead,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload a verification document",
+    responses={
+        401: {"description": "Missing, invalid or expired access token"},
+        422: {
+            "description": "kind is account, or the file is empty, over 5 MB, "
+            "or not a PDF, JPG or PNG"
+        },
+    },
+)
+async def upload_document(
+    current_user: CurrentUser,
+    session: SessionDep,
+    storage: StorageDep,
+    kind: Annotated[VerificationKind, Form(description="university or employer")],
+    file: Annotated[UploadFile, File(description="A PDF, JPG or PNG, up to 5 MB")],
+) -> DocumentRead:
+    """Upload a transcript, degree or employment letter - the route for
+    anyone whose university or employer can't be verified by email.
+
+    It is stored as `pending` until a person reviews it (Module 13).
+    """
+    row = await service.upload_document(session, current_user, kind, file, storage)
+    return DocumentRead.model_validate(row)
 
 
 @router.post(
@@ -37,11 +88,14 @@ SenderDep = Annotated[EmailSender, Depends(get_email_sender)]
 async def send_code(
     payload: SendCodeRequest, current_user: CurrentUser, session: SessionDep, sender: SenderDep
 ) -> SendCodeResponse:
-    """Send a code to a university (`kind=university`) or work (`kind=employer`) email.
+    """Send a code to the sign-up email (`kind=account`), a university email
+    (`kind=university`) or a work email (`kind=employer`).
 
-    A university address must be on the domain of the university saved on the
-    caller's profile, so save the profile first. Sending again replaces the
-    previous code. The code is never returned here - only in the email.
+    `account` only accepts the address the user signed up with; confirming it
+    marks the account's email verified. A university address must be on the
+    domain of the university saved on the caller's profile, so save the
+    profile first. Sending again replaces the previous code. The code is
+    never returned here - only in the email.
     """
     await service.send_code(session, current_user, payload.email, payload.kind, sender)
     return SendCodeResponse(

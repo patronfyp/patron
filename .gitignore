@@ -19,6 +19,8 @@ venv/
 .mypy_cache/
 htmlcov/
 .coverage
+# Uploaded files (CVs, photos, documents) - real users' data, never committed.
+backend/uploads/
 
 # ---------- Environment / Secrets ----------
 .env
