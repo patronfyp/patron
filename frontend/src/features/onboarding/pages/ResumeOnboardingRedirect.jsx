@@ -2,15 +2,15 @@ import { Flex, Spin } from 'antd'
 import { Navigate } from 'react-router-dom'
 
 import { useProfile } from '../hooks/useProfile'
-import { STEPS } from '../steps'
 
 /**
  * Where sign-in, sign-up and role selection land (`/start`): sends the user
- * back into onboarding at their saved step, or home if they are past it.
+ * back into onboarding at their saved step, or home once they have pressed
+ * "Finish setup".
  *
- * "Past it" means the profile's step reached the last one - the backend has
- * no separate completed flag yet. A profile that cannot be loaded goes home
- * rather than blocking sign-in on it.
+ * Being on the last step is not finishing it - `onboarding_completed` is set
+ * only by the Finish button (POST /profile/me/onboarding/complete). A profile
+ * that cannot be loaded goes home rather than blocking sign-in on it.
  */
 function ResumeOnboardingRedirect() {
   const { data: profile, isPending, isError } = useProfile()
@@ -23,7 +23,7 @@ function ResumeOnboardingRedirect() {
     )
   }
 
-  const isUnfinished = !isError && profile.onboarding_step < STEPS.length
+  const isUnfinished = !isError && !profile.onboarding_completed
   return <Navigate to={isUnfinished ? '/onboarding' : '/'} replace />
 }
 

@@ -1,0 +1,262 @@
+/* All set screen, Figma frame 65:630. Values are --patron-* variables from
+   config/theme.js. */
+
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--patron-bg-canvas);
+}
+
+.ghost {
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-text-secondary);
+}
+
+.body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 28px 20px 48px;
+  overflow: hidden;
+}
+
+/* Figma's soft emerald glow behind the card (the Glow ellipse, 65:792). */
+.glow {
+  position: absolute;
+  top: 156px;
+  left: 50%;
+  width: 900px;
+  height: 600px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  max-width: 560px;
+  padding: 40px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sheet);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-2);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--patron-accent-primary);
+  box-shadow: var(--patron-elevation-glow);
+  color: var(--patron-text-on-accent);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-h2);
+  letter-spacing: var(--patron-type-h2-tracking);
+  color: var(--patron-text-primary);
+}
+
+.subtitle {
+  margin: 0;
+  font: var(--patron-type-body-l);
+  letter-spacing: var(--patron-type-body-l-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.rows {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.row:last-child {
+  border-bottom: 0;
+}
+
+.tile {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--patron-radius-tile);
+}
+
+.tile-accent {
+  background: var(--patron-accent-tint);
+  color: var(--patron-accent-primary);
+}
+
+.tile-alum {
+  background: var(--patron-trust-alum-tint);
+  color: var(--patron-trust-alum-base);
+}
+
+.tile-emp {
+  background: var(--patron-trust-emp-tint);
+  color: var(--patron-trust-emp-base);
+}
+
+.tile-warning {
+  background: var(--patron-status-warning-tint);
+  color: var(--patron-status-warning-text);
+}
+
+.tile-neutral {
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-tertiary);
+}
+
+.rowText,
+.strengthText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.rowTitle {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.rowDetail {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+  overflow-wrap: anywhere;
+}
+
+/* Figma Chip/success and Chip/warning, with a status dot. */
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--patron-radius-sm);
+  font: var(--patron-type-caption-medium);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.success {
+  background: var(--patron-status-success-subtle);
+  color: var(--patron-status-success-text);
+}
+
+.success .dot {
+  background: var(--patron-status-success);
+}
+
+.warning {
+  background: var(--patron-status-warning-subtle);
+  color: var(--patron-status-warning-text);
+}
+
+.warning .dot {
+  background: var(--patron-trust-dv-base);
+}
+
+.neutral {
+  border: 1px solid var(--patron-border-default);
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+}
+
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 16px;
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-subtle);
+}
+
+.ring {
+  position: relative;
+  flex: none;
+  width: 56px;
+  height: 56px;
+}
+
+.ring svg {
+  transform: rotate(-90deg);
+}
+
+.ringTrack,
+.ringProgress {
+  fill: none;
+  stroke-width: 5;
+}
+
+.ringTrack {
+  stroke: var(--patron-bg-muted);
+}
+
+.ringProgress {
+  stroke: var(--patron-accent-primary);
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.ringLabel {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: var(--patron-type-ring);
+  letter-spacing: var(--patron-type-ring-tracking);
+  color: var(--patron-text-primary);
+}
+
+.cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .card {
+    padding: 28px 20px;
+  }
+
+  .title {
+    font: var(--patron-type-h3);
+    letter-spacing: var(--patron-type-h3-tracking);
+  }
+}
