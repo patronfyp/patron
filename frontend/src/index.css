@@ -22,3 +22,9 @@ body {
   color: var(--patron-text-primary);
   font-family: var(--patron-font-sans);
 }
+
+/* Figma's field labels are Body S/Medium; antd has a size token for them
+   (theme.js) but no weight token, so the whole text style is applied here. */
+.ant-form-item-label > label {
+  font: var(--patron-type-body-s-medium);
+}

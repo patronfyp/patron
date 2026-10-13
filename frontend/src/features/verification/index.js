@@ -3,4 +3,6 @@ export {
   useConfirmVerificationCode,
   useResendCountdown,
   useSendVerificationCode,
+  useUploadVerificationDocument,
+  useVerificationStatus,
 } from './hooks/useVerification'

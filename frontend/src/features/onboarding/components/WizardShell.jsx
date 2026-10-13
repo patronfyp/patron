@@ -1,14 +1,20 @@
-import { Button, theme, Typography } from 'antd'
+import { Button } from 'antd'
+
+import arrowLeftIcon from '@/assets/icons/arrow-left.svg'
+import arrowRightIcon from '@/assets/icons/arrow-right.svg'
+import Icon from '@/shared/components/Icon/Icon'
 
 import { STEPS } from '../steps'
 
+import WizardHeader from './WizardHeader'
 import styles from './WizardShell.module.css'
 
-const { Title, Paragraph } = Typography
+const pad = (number) => String(number).padStart(2, '0')
 
 /**
- * The frame every onboarding step sits in: top bar, 7-step progress, the
- * step's own content, an optional info card, and the Back / Continue row.
+ * The frame every onboarding step sits in - the Figma onboarding frames
+ * (65:53 ... 65:545): top bar, 7-step progress, the step's own content, an
+ * info card beside it, and the Back / Continue row.
  *
  * @param {object} props
  * @param {number} props.step - 1-based current step
@@ -16,7 +22,7 @@ const { Title, Paragraph } = Typography
  * @param {string} props.subtitle
  * @param {import('react').ReactNode} props.children - the step's content
  * @param {import('react').ReactNode} [props.aside] - info card beside the step
- * @param {import('react').ReactNode} [props.secondaryAction] - e.g. "Skip for now"
+ * @param {() => void} [props.onSkip] - shows "Skip for now" when given
  * @param {string} props.continueLabel
  * @param {boolean} props.isSaving
  * @param {() => void} props.onBack
@@ -29,94 +35,61 @@ function WizardShell({
   subtitle,
   children,
   aside,
-  secondaryAction,
+  onSkip,
   continueLabel,
   isSaving,
   onBack,
   onContinue,
   onSaveExit,
 }) {
-  const { token } = theme.useToken()
   const current = STEPS[step - 1]
 
-  // antd's live theme tokens as CSS variables, so the module never hard-codes a colour.
-  const themeVars = {
-    '--ob-primary': token.colorPrimary,
-    // A light tint of the primary - antd's colorPrimaryBg reads too heavy on cards.
-    '--ob-primary-soft': `color-mix(in srgb, ${token.colorPrimary} 9%, ${token.colorBgContainer})`,
-    '--ob-on-primary': token.colorTextLightSolid,
-    '--ob-bg-layout': token.colorBgLayout,
-    '--ob-bg-container': token.colorBgContainer,
-    '--ob-border': token.colorBorderSecondary,
-    '--ob-text': token.colorText,
-    '--ob-text-secondary': token.colorTextSecondary,
-    '--ob-text-tertiary': token.colorTextTertiary,
-    '--ob-radius': `${token.borderRadiusLG}px`,
-  }
-
   return (
-    <div className={styles.screen} style={themeVars}>
-      <header className={styles.topBar}>
-        <span className={styles.wordmark}>
-          <span className={styles.wordmarkBadge} aria-hidden="true">
-            P
-          </span>
-          Patron
-        </span>
-        <span className={styles.stepLabel}>
-          Step {step} of {STEPS.length} &middot; {current.label}
-        </span>
-        <Button type="text" onClick={onSaveExit} disabled={isSaving}>
-          Save &amp; exit
-        </Button>
-      </header>
-
-      <nav aria-label="Onboarding progress">
-        <ol className={styles.progress}>
-          {STEPS.map((item, index) => {
-            const number = index + 1
-            const state =
-              number < step ? styles.segmentDone : number === step ? styles.segmentCurrent : ''
-            return (
-              <li
-                key={item.key}
-                className={`${styles.segment} ${state}`}
-                aria-current={number === step ? 'step' : undefined}
-              >
-                <span className={styles.segmentBar} />
-                <span className={styles.segmentLabel}>
-                  {String(number).padStart(2, '0')} {item.label}
-                </span>
-              </li>
-            )
-          })}
-        </ol>
-      </nav>
+    <div className={styles.screen}>
+      <WizardHeader
+        step={step}
+        label={`Step ${step} of ${STEPS.length} · ${current.label}`}
+        action={
+          <Button type="text" size="small" className={styles.ghost} onClick={onSaveExit}>
+            Save &amp; exit
+          </Button>
+        }
+      />
 
       <main className={styles.body}>
-        <section className={styles.main}>
-          <p className={styles.eyebrow}>Step {String(step).padStart(2, '0')}</p>
-          <Title level={2} className={styles.title}>
-            {title}
-          </Title>
-          <Paragraph type="secondary" className={styles.subtitle}>
-            {subtitle}
-          </Paragraph>
+        <section className={styles.content}>
+          <div className={styles.heading}>
+            <p className={styles.eyebrow}>Step {pad(step)}</p>
+            <h1 className={styles.title}>{title}</h1>
+            <p className={styles.subtitle}>{subtitle}</p>
+          </div>
 
           {children}
 
           <div className={styles.footer}>
             {step > 1 ? (
-              <Button type="text" onClick={onBack} disabled={isSaving}>
-                &larr; Back
+              <Button type="text" className={styles.back} onClick={onBack} disabled={isSaving}>
+                <Icon src={arrowLeftIcon} />
+                Back
               </Button>
             ) : (
               <span />
             )}
             <div className={styles.footerActions}>
-              {secondaryAction}
-              <Button type="primary" onClick={onContinue} loading={isSaving}>
-                {continueLabel} &rarr;
+              {onSkip ? (
+                <Button type="text" className={styles.back} onClick={onSkip} disabled={isSaving}>
+                  Skip for now
+                </Button>
+              ) : null}
+              <Button
+                type="primary"
+                size="large"
+                className={styles.continue}
+                onClick={onContinue}
+                loading={isSaving}
+              >
+                {continueLabel}
+                <Icon src={arrowRightIcon} size={18} />
               </Button>
             </div>
           </div>

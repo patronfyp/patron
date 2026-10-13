@@ -1,29 +1,72 @@
 ﻿import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '@/features/auth'
+// The test mocks the HTTP calls under the verification hooks, so it imports
+// that module directly - app code goes through '@/features/verification'.
+// eslint-disable-next-line no-restricted-imports
+import {
+  confirmVerificationCode,
+  getVerificationStatus,
+  sendVerificationCode,
+} from '@/features/verification/api/verification.api'
 
-import { getProfile, updateProfile } from '../api/onboarding.api'
+import { completeOnboarding, getProfile, updateProfile } from '../api/onboarding.api'
 
 import OnboardingPage from './OnboardingPage'
 
-vi.mock('../api/onboarding.api', () => ({
+vi.mock('../api/onboarding.api', async (importOriginal) => ({
+  ...(await importOriginal()),
   getProfile: vi.fn(),
   updateProfile: vi.fn(),
+  completeOnboarding: vi.fn(),
 }))
+
+vi.mock('@/features/verification/api/verification.api', () => ({
+  getVerificationStatus: vi.fn(),
+  sendVerificationCode: vi.fn(),
+  confirmVerificationCode: vi.fn(),
+  uploadVerificationDocument: vi.fn(),
+}))
+
+const EMAIL = 'jane@example.com'
 
 function profileAt(step) {
   return {
+    headline: null,
+    city: null,
+    phone: null,
+    linkedin_url: null,
+    bio: null,
+    photo_url: null,
     university: null,
     degree: null,
     graduation_year: null,
     employer_name: null,
+    cv: null,
+    skills: [],
+    primary_role: null,
+    desired_roles: [],
+    work_mode: null,
+    preferred_locations: [],
+    salary_min: null,
+    salary_max: null,
+    available_from: null,
+    open_to_referrers: true,
     onboarding_step: step,
+    onboarding_completed: false,
   }
+}
+
+function signIn({ roles = ['candidate'], verified = true } = {}) {
+  useAuthStore.setState({
+    user: { id: 'user-1', email: EMAIL, full_name: 'Jane Doe', roles, is_email_verified: verified },
+    accessToken: 'token',
+  })
 }
 
 function renderPage() {
@@ -34,6 +77,7 @@ function renderPage() {
         <MemoryRouter initialEntries={['/onboarding']}>
           <Routes>
             <Route path="/onboarding" element={<OnboardingPage />} />
+            <Route path="/onboarding/done" element={<div>All set screen</div>} />
             <Route path="/" element={<div>Home screen</div>} />
           </Routes>
         </MemoryRouter>
@@ -45,29 +89,26 @@ function renderPage() {
 describe('OnboardingPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    useAuthStore.setState({ user: null, accessToken: null, refreshToken: null })
+    signIn()
     updateProfile.mockImplementation(async (changes) => ({ ...profileAt(1), ...changes }))
+    completeOnboarding.mockResolvedValue({ ...profileAt(7), onboarding_completed: true })
+    getVerificationStatus.mockResolvedValue({
+      email: EMAIL,
+      email_verified: true,
+      university_email: null,
+      employer_email: null,
+      documents: [],
+    })
+    sendVerificationCode.mockResolvedValue({ resend_after_seconds: 60 })
   })
 
   it('resumes at the step saved on the profile', async () => {
-    getProfile.mockResolvedValue(profileAt(5))
+    getProfile.mockResolvedValue(profileAt(6))
 
     renderPage()
 
-    expect(await screen.findByText(/Step 5 of 7/)).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Your skills' })).toBeInTheDocument()
-  })
-
-  it('saves the next step and moves forward on Continue', async () => {
-    const user = userEvent.setup()
-    getProfile.mockResolvedValue(profileAt(1))
-    renderPage()
-    await screen.findByText(/Step 1 of 7/)
-
-    await user.click(screen.getByRole('button', { name: /continue/i }))
-
-    expect(await screen.findByText(/Step 2 of 7/)).toBeInTheDocument()
-    expect(updateProfile).toHaveBeenCalledWith(expect.objectContaining({ onboarding_step: 2 }))
+    expect(await screen.findByText(/Step 6 of 7/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Check your skills' })).toBeInTheDocument()
   })
 
   it('goes back a step without saving', async () => {
@@ -102,18 +143,6 @@ describe('OnboardingPage', () => {
     expect(updateProfile).toHaveBeenCalledWith(expect.objectContaining({ onboarding_step: 2 }))
   })
 
-  it('finishes from the last step and goes home', async () => {
-    const user = userEvent.setup()
-    getProfile.mockResolvedValue(profileAt(7))
-    renderPage()
-    await screen.findByText(/Step 7 of 7/)
-
-    await user.click(screen.getByRole('button', { name: /finish/i }))
-
-    expect(await screen.findByText('Home screen')).toBeInTheDocument()
-    expect(updateProfile).toHaveBeenCalledWith(expect.objectContaining({ onboarding_step: 7 }))
-  })
-
   it('stays on the step and shows the server message when saving fails', async () => {
     const user = userEvent.setup()
     getProfile.mockResolvedValue(profileAt(1))
@@ -125,6 +154,110 @@ describe('OnboardingPage', () => {
 
     expect(await screen.findByText('Cannot move ahead')).toBeInTheDocument()
     expect(screen.getByText(/Step 1 of 7/)).toBeInTheDocument()
+  })
+
+  describe('Account step', () => {
+    it('sends a code to the sign-up email as soon as it opens', async () => {
+      signIn({ verified: false })
+      getProfile.mockResolvedValue(profileAt(1))
+
+      renderPage()
+
+      expect(await screen.findByText(EMAIL)).toBeInTheDocument()
+      // [0][0]: react-query also passes its own context as a second argument.
+      await waitFor(() =>
+        expect(sendVerificationCode.mock.calls[0][0]).toEqual({ email: EMAIL, kind: 'account' }),
+      )
+      expect(screen.getByRole('button', { name: /verify email/i })).toBeInTheDocument()
+    })
+
+    it('confirms the code on "Verify email", then moves on', async () => {
+      const user = userEvent.setup()
+      signIn({ verified: false })
+      getProfile.mockResolvedValue(profileAt(1))
+      confirmVerificationCode.mockResolvedValue({ verified_at: '2026-10-12T00:00:00Z' })
+      renderPage()
+      await screen.findByText(/Step 1 of 7/)
+
+      const boxes = within(screen.getByRole('group', { name: '6-digit code' })).getAllByRole(
+        'textbox',
+      )
+      await user.type(boxes[0], '123456')
+      await user.click(screen.getByRole('button', { name: /verify email/i }))
+
+      expect(await screen.findByText(/Step 2 of 7/)).toBeInTheDocument()
+      expect(confirmVerificationCode.mock.calls[0][0]).toEqual({
+        email: EMAIL,
+        kind: 'account',
+        code: '123456',
+      })
+      expect(useAuthStore.getState().user.is_email_verified).toBe(true)
+    })
+
+    it('asks for the whole code before verifying', async () => {
+      const user = userEvent.setup()
+      signIn({ verified: false })
+      getProfile.mockResolvedValue(profileAt(1))
+      renderPage()
+      await screen.findByText(/Step 1 of 7/)
+
+      await user.click(screen.getByRole('button', { name: /verify email/i }))
+
+      expect(await screen.findByText('Enter the 6-digit code from the email.')).toBeInTheDocument()
+      expect(confirmVerificationCode).not.toHaveBeenCalled()
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('lets an already verified user continue without a code', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(1))
+      renderPage()
+      await screen.findByText(/Step 1 of 7/)
+
+      await user.click(screen.getByRole('button', { name: /^continue/i }))
+
+      expect(await screen.findByText(/Step 2 of 7/)).toBeInTheDocument()
+      expect(sendVerificationCode).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('Profile step', () => {
+    it('requires a headline', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 7/)
+
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      expect(await screen.findByText(/Add a headline/)).toBeInTheDocument()
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('saves the profile fields, with the phone in +92 form', { timeout: 15000 }, async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 7/)
+
+      await user.type(screen.getByLabelText('Headline'), 'Final-year CS student')
+      await user.type(screen.getByLabelText('Phone'), '3001234567')
+      await user.type(screen.getByLabelText('LinkedIn profile'), 'linkedin.com/in/jane-doe')
+      await user.type(screen.getByLabelText('Short bio'), 'I build backends.')
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(updateProfile).toHaveBeenCalledWith(
+          expect.objectContaining({
+            headline: 'Final-year CS student',
+            phone: '+923001234567',
+            linkedin_url: 'linkedin.com/in/jane-doe',
+            bio: 'I build backends.',
+            onboarding_step: 3,
+          }),
+        ),
+      )
+    })
   })
 
   describe('University step', () => {
@@ -143,12 +276,13 @@ describe('OnboardingPage', () => {
     })
 
     it('saves the university fields - and only those - when filled in', async () => {
-      const user = userEvent.setup()
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
       getProfile.mockResolvedValue(profileAt(3))
       renderPage()
       await screen.findByText(/Step 3 of 7/)
 
-      await user.click(screen.getByLabelText('University'))
+      // The list only draws its first options - search, as a user would.
+      await user.type(screen.getByLabelText('University'), 'Habib')
       await user.click(await screen.findByTitle('Habib University'))
       await user.type(screen.getByLabelText('Degree'), 'BSc Computer Science')
       await user.click(screen.getByLabelText('Graduation year'))
@@ -165,30 +299,29 @@ describe('OnboardingPage', () => {
       )
     })
 
-    it('lets the verification method be chosen, defaulting to university email', async () => {
-      const user = userEvent.setup()
+    it('offers the university email for a university verifiable by email', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
       getProfile.mockResolvedValue(profileAt(3))
       renderPage()
       await screen.findByText(/Step 3 of 7/)
 
+      await user.click(screen.getByLabelText('University'))
+      await user.click(await screen.findByTitle('Lahore University of Management Sciences (LUMS)'))
+
       expect(screen.getByRole('radio', { name: /university email/i })).toBeChecked()
+      expect(screen.getByText('We send a code to your @lums.edu.pk address.')).toBeInTheDocument()
       expect(await screen.findByLabelText('University email')).toBeInTheDocument()
 
       await user.click(screen.getByRole('radio', { name: /registrar record/i }))
 
-      expect(screen.getByRole('radio', { name: /registrar record/i })).toBeChecked()
       expect(screen.queryByLabelText('University email')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /upload transcript or degree/i })).toBeVisible()
     })
   })
 
   describe('Employer step', () => {
-    function signInAs(...roles) {
-      useAuthStore.setState({ user: { id: 'user-1', roles }, accessToken: 'token' })
-    }
-
     it('lets a candidate skip it without saving any employer', async () => {
       const user = userEvent.setup()
-      signInAs('candidate')
       getProfile.mockResolvedValue(profileAt(4))
       renderPage()
       await screen.findByText(/Step 4 of 7/)
@@ -201,7 +334,7 @@ describe('OnboardingPage', () => {
 
     it('requires a company, with no skip, for someone who refers', async () => {
       const user = userEvent.setup()
-      signInAs('candidate', 'referrer')
+      signIn({ roles: ['candidate', 'referrer'] })
       getProfile.mockResolvedValue(profileAt(4))
       renderPage()
       await screen.findByText(/Step 4 of 7/)
@@ -215,7 +348,7 @@ describe('OnboardingPage', () => {
 
     it('shows the company card and code, and saves only the employer name', async () => {
       const user = userEvent.setup()
-      signInAs('candidate', 'referrer')
+      signIn({ roles: ['candidate', 'referrer'] })
       getProfile.mockResolvedValue(profileAt(4))
       renderPage()
       await screen.findByText(/Step 4 of 7/)
@@ -223,14 +356,39 @@ describe('OnboardingPage', () => {
       await user.click(screen.getByLabelText('Company'))
       await user.click(await screen.findByTitle('Garner'))
 
-      expect(await screen.findByText('Domain matched')).toBeInTheDocument()
       expect(screen.getByText('Work email at Garner')).toBeInTheDocument()
+      // Nothing is matched until a work email on garner.com is verified.
+      expect(screen.queryByText('Domain matched')).not.toBeInTheDocument()
 
       await user.click(screen.getByRole('button', { name: /continue/i }))
 
       await waitFor(() =>
         expect(updateProfile).toHaveBeenCalledWith({ employer_name: 'Garner', onboarding_step: 5 }),
       )
+    })
+  })
+
+  describe('Preferences step', () => {
+    it('saves the roles and salary range, then finishes and opens All set', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(7))
+      renderPage()
+      await screen.findByText(/Step 7 of 7/)
+
+      await user.click(screen.getByRole('button', { name: 'Backend Engineer' }))
+      await user.type(screen.getByLabelText('Expected salary (monthly)'), '250,000 - 350,000')
+      await user.click(screen.getByRole('button', { name: /finish setup/i }))
+
+      expect(await screen.findByText('All set screen')).toBeInTheDocument()
+      expect(updateProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          desired_roles: ['backend_engineer'],
+          salary_min: 250000,
+          salary_max: 350000,
+          onboarding_step: 7,
+        }),
+      )
+      expect(completeOnboarding).toHaveBeenCalled()
     })
   })
 

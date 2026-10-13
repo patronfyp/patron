@@ -40,11 +40,18 @@ export const tokens = {
     brand: '#12a06b',
     subtle: '#e9f6ef',
     text: '#0a6b47',
+    // Not a Figma variable: the onboarding icon tiles use accent/primary at
+    // 12% opacity as a literal fill (frames 65:53, 65:198).
+    tint: 'rgba(12, 133, 88, 0.12)',
   },
   ai: {
     base: '#0b8aa3',
     subtle: '#e7f5f8',
     text: '#08667a',
+    // Not Figma variables: ai/base at 12% (Skills aside tile, 9:549) and 18%
+    // (AI Insight border, 9:310), as literal fills in the frames.
+    tint: 'rgba(11, 138, 163, 0.12)',
+    border: 'rgba(11, 138, 163, 0.18)',
   },
   status: {
     success: '#12a06b',
@@ -56,6 +63,12 @@ export const tokens = {
     danger: '#d9443f',
     dangerSubtle: '#fcedec',
     dangerText: '#b4262b',
+    // Not a Figma variable: the checklist dots on the onboarding aside use
+    // status/success at 14% opacity as a literal fill (frame 65:198).
+    successTint: 'rgba(18, 160, 107, 0.14)',
+    // Not a Figma variable: status/warning at 12%, the "In review" row tile
+    // on the All set card (65:790).
+    warningTint: 'rgba(219, 138, 14, 0.12)',
   },
 }
 
@@ -66,8 +79,22 @@ export const tokens = {
  */
 export const trust = {
   rec: { base: '#5c6573', subtle: '#eff1f3', text: '#3d4450' },
-  emp: { base: '#2f6bbf', subtle: '#ebf2fb', text: '#1f4e8e' },
-  alum: { base: '#8a47ab', subtle: '#f5eef8', text: '#683383' },
+  // tint / border: the tier's base at 12% (icon tiles) and 28% (Trust badge
+  // border), as literal fills on the onboarding frames (9:203, 9:337).
+  emp: {
+    base: '#2f6bbf',
+    subtle: '#ebf2fb',
+    text: '#1f4e8e',
+    tint: 'rgba(47, 107, 191, 0.12)',
+    border: 'rgba(47, 107, 191, 0.28)',
+  },
+  alum: {
+    base: '#8a47ab',
+    subtle: '#f5eef8',
+    text: '#683383',
+    tint: 'rgba(138, 71, 171, 0.12)',
+    border: 'rgba(138, 71, 171, 0.28)',
+  },
   dv: { base: '#c08a17', subtle: '#fbf4e2', text: '#8a6209' },
 }
 
@@ -132,7 +159,32 @@ export const theme = {
     },
     // Figma "Keep me signed in" checkbox: radius 5.
     Checkbox: { borderRadiusSM: 5 },
+    // Figma Input/text: a Body S/Medium label 6px above the field.
+    Form: { labelFontSize: 13, verticalLabelPadding: '0 0 6px' },
+    // Figma Segmented (9:537, 65:501): bg/muted track, 3px padding, 34px
+    // items, radius 9 outside / 7 inside, Body S/Medium labels.
+    Segmented: {
+      trackBg: tokens.bg.muted,
+      itemSelectedBg: tokens.bg.surface,
+      itemColor: tokens.text.secondary,
+      itemSelectedColor: tokens.text.primary,
+      trackPadding: 3,
+      borderRadius: 9,
+      borderRadiusSM: 7,
+      controlHeight: 40,
+      fontSize: 13,
+    },
+    // Figma toggle (65:526): 36 x 20 track, 16px knob, 2px inset.
+    Switch: { trackHeight: 20, trackMinWidth: 36, handleSize: 16, trackPadding: 2 },
   },
+}
+
+/**
+ * Nested ConfigProvider theme for the onboarding wizard, whose fields sit 16px
+ * apart (frame 65:198) instead of the auth screens' 24.
+ */
+export const wizardTheme = {
+  components: { Form: { itemMarginBottom: 16 } },
 }
 
 /**
@@ -177,6 +229,14 @@ export const brand = {
   avatarGradient: 'linear-gradient(135deg, rgb(180, 70, 106) 0%, rgb(217, 122, 152) 100%)',
   // Text on the panel that doesn't use a named Figma text style.
   logoType: { size: 19, lineHeight: 25, weight: 700, tracking: 4 },
+  // The smaller logo in the onboarding top bar (frame 65:53).
+  logoSmallType: { size: 16, lineHeight: 20, weight: 700, tracking: 4 },
+  // Initials in the 64px onboarding avatar (frame 65:198).
+  avatarLType: { size: 23, lineHeight: 28, weight: 600, tracking: -1 },
+  // The letter in a 44px company logo tile (frame 9:337).
+  logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
+  // The percentage inside the profile-strength ring (frame 65:790).
+  ringType: { size: 15, lineHeight: 20, weight: 600, tracking: -3 },
   quoteType: { size: 30, lineHeight: 40, weight: 500, tracking: -1.5 },
 }
 
@@ -211,6 +271,16 @@ export function cssVariables() {
     md: `${theme.token.borderRadius}px`,
     lg: `${theme.token.borderRadiusLG}px`,
     button: `${theme.components.Button.borderRadius}px`,
+    // The onboarding aside card and the small icon tile beside the "Code
+    // sent to" email (frame 65:53) - nothing antd draws uses them.
+    xl: '16px',
+    tile: '9px',
+    // The CV dropzone and company card (14), the All set card (20), a company
+    // logo tile (11) and the Preferences role chips (16).
+    card: '14px',
+    sheet: '20px',
+    logo: '11px',
+    pill: '16px',
   })
 
   // --patron-type-h2 (a `font` shorthand) + --patron-type-h2-tracking (em).
@@ -223,6 +293,12 @@ export function cssVariables() {
     addType(name, style, name === 'mono' ? FONT_MONO : FONT_SANS),
   )
   addType('logo', brand.logoType)
+  addType('logoSmall', brand.logoSmallType)
+  addType('avatarL', brand.avatarLType)
+  addType('logoInitial', brand.logoInitialType)
+  addType('ring', brand.ringType)
+  // Avatars without a photo, on and off the dark auth panel.
+  vars['--patron-avatar-gradient'] = brand.avatarGradient
   addType('quote', brand.quoteType)
   return vars
 }

@@ -33,15 +33,23 @@ describe('ResumeOnboardingRedirect', () => {
   })
 
   it('sends a user with unfinished onboarding back into the wizard', async () => {
-    getProfile.mockResolvedValue({ onboarding_step: 3 })
+    getProfile.mockResolvedValue({ onboarding_step: 3, onboarding_completed: false })
 
     renderAtStart()
 
     expect(await screen.findByText('Onboarding screen')).toBeInTheDocument()
   })
 
-  it('sends a user who reached the last step home', async () => {
-    getProfile.mockResolvedValue({ onboarding_step: 7 })
+  it('keeps a user who is on the last step - but has not finished it - in the wizard', async () => {
+    getProfile.mockResolvedValue({ onboarding_step: 7, onboarding_completed: false })
+
+    renderAtStart()
+
+    expect(await screen.findByText('Onboarding screen')).toBeInTheDocument()
+  })
+
+  it('sends a user who pressed "Finish setup" home', async () => {
+    getProfile.mockResolvedValue({ onboarding_step: 7, onboarding_completed: true })
 
     renderAtStart()
 

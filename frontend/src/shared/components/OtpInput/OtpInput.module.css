@@ -1,0 +1,25 @@
+/* Figma's onboarding code boxes: 56 x 64, 12px apart, radius 12, H3 digits.
+   Values are --patron-* variables from config/theme.js. */
+
+.large {
+  column-gap: 12px;
+}
+
+.large :global(.ant-otp-input) {
+  width: 56px;
+  height: 64px;
+  border-radius: var(--patron-radius-lg);
+  font: var(--patron-type-h3);
+  letter-spacing: var(--patron-type-h3-tracking);
+}
+
+@media (max-width: 480px) {
+  .large {
+    column-gap: 8px;
+  }
+
+  .large :global(.ant-otp-input) {
+    width: 44px;
+    height: 52px;
+  }
+}

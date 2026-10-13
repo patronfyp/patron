@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react'
 
 import { Input } from 'antd'
 
+import styles from './OtpInput.module.css'
+
 // antd's Input.OTP formats the whole string on every keystroke, with a
 // literal space standing in for each not-yet-filled box (see its
 // patchValue) - stripping spaces here would collapse that padding and
@@ -26,6 +28,8 @@ const NOT_DIGIT_OR_SPACE = /[^0-9 ]/g
  * @param {boolean} [props.disabled]
  * @param {boolean} [props.autoFocus]
  * @param {string} [props.ariaLabel] - read by screen readers for the whole group
+ * @param {'default' | 'large'} [props.size] - `large` is the 56 x 64 boxes of
+ *   the Figma onboarding frames (65:53, 9:337)
  */
 function OtpInput({
   length = 6,
@@ -36,6 +40,7 @@ function OtpInput({
   disabled,
   autoFocus = false,
   ariaLabel = 'Verification code',
+  size = 'default',
 }) {
   const otpRef = useRef(null)
   // Reaching for focus() on mount rather than antd's own autoFocus prop: that
@@ -57,6 +62,7 @@ function OtpInput({
 
   return (
     <Input.OTP
+      className={size === 'large' ? styles.large : undefined}
       ref={otpRef}
       aria-label={ariaLabel}
       length={length}

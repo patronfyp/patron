@@ -2,29 +2,17 @@ import { useState } from 'react'
 
 import { App, Button, Input } from 'antd'
 
+import checkCircleIcon from '@/assets/icons/check-circle-16.svg'
 import {
   useConfirmVerificationCode,
   useResendCountdown,
   useSendVerificationCode,
 } from '@/features/verification'
 import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
+import Icon from '@/shared/components/Icon/Icon'
 import OtpInput from '@/shared/components/OtpInput/OtpInput'
 
 import styles from './EmailCodeVerification.module.css'
-
-function CheckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" width="16" height="16" aria-hidden="true">
-      <path
-        d="M5 12l4.5 4.5L19 7"
-        stroke="currentColor"
-        strokeWidth="2.4"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
 
 function formatCountdown(totalSeconds) {
   const minutes = Math.floor(totalSeconds / 60)
@@ -36,23 +24,32 @@ const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
 
 /**
  * Send-a-code-type-a-code email verification, shared by the university and
- * employer onboarding steps. Not a Form.Item: the verified email and the
- * code are never sent to PATCH /profile/me (#52 - the profile has no field
- * for them), so this keeps its own state instead of registering with the
- * wizard's antd Form.
+ * employer onboarding steps; the code part follows Figma frame 9:337. Not a
+ * Form.Item: the verified email and the code are never sent to PATCH
+ * /profile/me (#52 - the profile has no field for them), so this keeps its
+ * own state instead of registering with the wizard's antd Form.
  *
  * @param {object} props
  * @param {'university' | 'employer'} props.kind
  * @param {string} props.label - e.g. "University email"
  * @param {string} [props.placeholder]
  * @param {string} [props.helpText]
+ * @param {string} [props.defaultEmail] - pre-filled address, e.g. the sign-up email
+ * @param {string | null} [props.verifiedEmail] - an address already verified earlier
  */
-function EmailCodeVerification({ kind, label, placeholder, helpText }) {
+function EmailCodeVerification({
+  kind,
+  label,
+  placeholder,
+  helpText,
+  defaultEmail = '',
+  verifiedEmail: alreadyVerified = null,
+}) {
   const { message } = App.useApp()
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(defaultEmail)
   const [code, setCode] = useState('')
   const [sentTo, setSentTo] = useState(null)
-  const [verifiedEmail, setVerifiedEmail] = useState(null)
+  const [verifiedEmail, setVerifiedEmail] = useState(alreadyVerified)
 
   const sendCode = useSendVerificationCode()
   const confirmCode = useConfirmVerificationCode()
@@ -90,9 +87,7 @@ function EmailCodeVerification({ kind, label, placeholder, helpText }) {
   if (verifiedEmail) {
     return (
       <div className={styles.verified}>
-        <span className={styles.verifiedIcon} aria-hidden="true">
-          <CheckIcon />
-        </span>
+        <Icon src={checkCircleIcon} className={styles.verifiedIcon} />
         <span>
           <strong>{verifiedEmail}</strong> is verified
         </span>
@@ -102,29 +97,33 @@ function EmailCodeVerification({ kind, label, placeholder, helpText }) {
 
   return (
     <div className={styles.wrap}>
-      <label className={styles.label} htmlFor={`${kind}-email`}>
-        {label}
-      </label>
-      <div className={styles.row}>
-        <Input
-          id={`${kind}-email`}
-          type="email"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder={placeholder}
-          disabled={Boolean(sentTo)}
-        />
-        {!sentTo && (
-          <Button onClick={handleSend} loading={sendCode.isPending} disabled={!isEmailValid}>
-            Send code
-          </Button>
-        )}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={`${kind}-email`}>
+          {label}
+        </label>
+        <div className={styles.row}>
+          <Input
+            id={`${kind}-email`}
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder={placeholder}
+            disabled={Boolean(sentTo)}
+          />
+          {!sentTo && (
+            <Button onClick={handleSend} loading={sendCode.isPending} disabled={!isEmailValid}>
+              Send code
+            </Button>
+          )}
+        </div>
+        {helpText ? <p className={styles.help}>{helpText}</p> : null}
       </div>
-      {helpText ? <p className={styles.help}>{helpText}</p> : null}
 
       {sentTo ? (
-        <div className={styles.otpRow}>
+        <div className={styles.codeGroup}>
+          <span className={styles.label}>Enter the 6-digit code sent to {sentTo}</span>
           <OtpInput
+            size="large"
             value={code}
             onChange={setCode}
             onComplete={handleComplete}
@@ -132,9 +131,21 @@ function EmailCodeVerification({ kind, label, placeholder, helpText }) {
             disabled={confirmCode.isPending}
             ariaLabel={`${label} verification code`}
           />
-          <Button type="link" onClick={handleSend} disabled={isActive || sendCode.isPending}>
-            {isActive ? `Resend in ${formatCountdown(secondsLeft)}` : "Didn't get it? Resend"}
-          </Button>
+          <span className={styles.resend}>
+            Didn&rsquo;t get it?{' '}
+            {isActive ? (
+              <span className={styles.resendAction}>Resend in {formatCountdown(secondsLeft)}</span>
+            ) : (
+              <button
+                type="button"
+                className={styles.resendAction}
+                onClick={handleSend}
+                disabled={sendCode.isPending}
+              >
+                Resend
+              </button>
+            )}
+          </span>
         </div>
       ) : null}
     </div>

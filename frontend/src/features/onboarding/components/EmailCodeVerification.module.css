@@ -1,13 +1,21 @@
-/* Colours come from the --ob-* variables WizardShell sets from antd's theme. */
+/* The code part follows Figma frame 9:337. Values are --patron-* variables
+   from config/theme.js. */
 
 .wrap {
-  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--ob-text);
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-primary);
 }
 
 .row {
@@ -20,37 +28,47 @@
 }
 
 .help {
-  margin: 6px 0 0;
-  font-size: 12.5px;
-  color: var(--ob-text-secondary);
+  margin: 0;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
 }
 
-.otpRow {
-  margin-top: 14px;
+.codeGroup {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.resend {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.resendAction {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: var(--patron-type-caption-semibold);
+  color: var(--patron-accent-text);
+}
+
+button.resendAction {
+  cursor: pointer;
 }
 
 .verified {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
   padding: 14px 16px;
-  border-radius: var(--ob-radius);
-  border: 1px solid var(--ob-border);
-  background: var(--ob-primary-soft);
-  color: var(--ob-text);
+  border: 1px solid var(--patron-border-subtle);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-status-success-subtle);
+  font: var(--patron-type-body-s);
+  color: var(--patron-text-primary);
 }
 
 .verifiedIcon {
-  flex: none;
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: var(--ob-on-primary);
-  background: var(--ob-primary);
+  color: var(--patron-status-success);
 }

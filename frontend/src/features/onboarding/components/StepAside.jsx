@@ -1,37 +1,79 @@
+import Icon from '@/shared/components/Icon/Icon'
+
 import styles from './StepAside.module.css'
 
 /**
- * The info card beside a step ("Why verify?", "Employer Referral").
+ * The info card beside a step ("Why a code?", "What referrers see"), as on
+ * the Figma onboarding frames' Aside.
  *
  * @param {object} props
+ * @param {string} props.icon - an imported .svg, drawn in the tile at the top
+ * @param {'accent' | 'alum' | 'emp' | 'ai'} [props.tone] - the tile's colour
+ *   family: green, or the trust tier / AI colour the step is about
  * @param {string} props.title
  * @param {string} props.text
- * @param {string} props.tag - the endorsement route this step unlocks
+ * @param {import('react').ReactNode} [props.children] - a chip or checklist under the text
  */
-function StepAside({ title, text, tag }) {
+function StepAside({ icon, tone = 'accent', title, text, children }) {
   return (
     <div className={styles.aside}>
-      <span className={styles.icon} aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none">
-          <path
-            d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3Z"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9 12l2 2 4-4"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+      <span className={`${styles.iconTile} ${styles[tone]}`}>
+        <Icon src={icon} size={20} />
       </span>
       <p className={styles.title}>{title}</p>
       <p className={styles.text}>{text}</p>
-      <span className={styles.tag}>{tag}</span>
+      {children}
     </div>
+  )
+}
+
+/** The small accent chip under an aside's text, e.g. "Takes 30 seconds". */
+export function AsideChip({ icon, children }) {
+  return (
+    <span className={styles.chip}>
+      <Icon src={icon} size={12} />
+      {children}
+    </span>
+  )
+}
+
+/**
+ * A trust-tier badge, e.g. "Verified Alumni" in plum (Figma Trust/alum).
+ *
+ * @param {object} props
+ * @param {'alum' | 'emp'} props.tier
+ * @param {string} props.icon
+ */
+export function TrustBadge({ tier, icon, children }) {
+  return (
+    <span className={`${styles.trust} ${styles[`trust-${tier}`]}`}>
+      <Icon src={icon} size={12} />
+      {children}
+    </span>
+  )
+}
+
+/**
+ * A ticked list - each item shows a filled tick when `done`, an empty dot
+ * when not, so the card reflects what the user has really filled in.
+ *
+ * @param {object} props
+ * @param {{ label: string, done: boolean }[]} props.items
+ * @param {string} props.checkIcon
+ */
+export function AsideChecklist({ items, checkIcon }) {
+  return (
+    <ul className={styles.checklist}>
+      {items.map((item) => (
+        <li key={item.label} className={styles.checkItem}>
+          <span className={`${styles.checkDot} ${item.done ? styles.checkDone : ''}`}>
+            {item.done ? <Icon src={checkIcon} size={11} /> : null}
+          </span>
+          {item.label}
+          <span className={styles.srOnly}>{item.done ? ' (done)' : ' (not yet)'}</span>
+        </li>
+      ))}
+    </ul>
   )
 }
 

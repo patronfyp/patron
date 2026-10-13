@@ -1,0 +1,50 @@
+/* Skills step, Figma frame 9:549. Values are --patron-* variables from
+   config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+/* The skills field is a 120px box the chips wrap inside (antd 6 draws the
+   border on the Select's root element). */
+.skills {
+  min-height: 120px;
+  align-items: flex-start;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  margin: 4px 6px 0 0;
+  padding: 0 10px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-text-secondary);
+}
+
+.chipRemove {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--patron-text-secondary);
+  cursor: pointer;
+}
+
+/* Body S/Medium labels, kept centred in antd's 34px items. */
+.segmented :global(.ant-segmented-item-label) {
+  display: flex;
+  align-items: center;
+  font: var(--patron-type-body-s-medium);
+}
+
+.fields :global(.ant-form-item-extra) {
+  margin-top: 6px;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
