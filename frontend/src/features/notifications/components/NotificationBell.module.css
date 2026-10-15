@@ -1,0 +1,67 @@
+/* The top bar's bell, from the Figma "Top Navigation" frame (7:648).
+   Colours, text styles and radii are --patron-* variables from config/theme.js. */
+
+.root {
+  position: relative;
+  display: inline-flex;
+}
+
+/* The 38px bordered square beside the search box. */
+.button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-md);
+  background: var(--patron-bg-surface);
+  color: var(--patron-text-secondary);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.button:hover {
+  border-color: var(--patron-border-strong);
+  color: var(--patron-text-primary);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+}
+
+/* Figma's Chip/accent (the "5" beside "All" on the panel's tabs): 20px tall,
+   accent/subtle fill, accent/text label. Figma has no badge on the bell
+   itself, so this style sits on its top-right corner. The ring keeps it
+   readable where it overlaps the button's border. It is high enough that a
+   wide "99+" still clears the top of the bell. */
+.badge {
+  position: absolute;
+  top: -11px;
+  right: -9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-accent-subtle);
+  box-shadow: 0 0 0 2px var(--patron-bg-surface);
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-accent-text);
+}
+
+/* antd's popover box, stripped so the panel draws its own surface. */
+.popover {
+  padding: 0 !important;
+  border-radius: var(--patron-radius-xl) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}

@@ -1,0 +1,28 @@
+/* The notifications panel, from the Figma "Notifications Panel" frame (14:968).
+   Colours, text styles, radii and shadows are --patron-* variables from
+   config/theme.js. */
+
+.panel {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-xl);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+}
