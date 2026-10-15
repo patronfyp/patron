@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppError
 from app.modules.auth.router import router as auth_router
+from app.modules.notifications.router import router as notifications_router
 from app.modules.profiles.router import router as profiles_router
 from app.modules.verification.router import router as verification_router
 from config import get_settings
@@ -53,6 +54,7 @@ async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
 app.include_router(auth_router, prefix=settings.api_v1_prefix)
 app.include_router(profiles_router, prefix=settings.api_v1_prefix)
 app.include_router(verification_router, prefix=settings.api_v1_prefix)
+app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 
