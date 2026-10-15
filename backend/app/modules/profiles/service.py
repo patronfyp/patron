@@ -9,11 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundError, UnprocessableError
 from app.core.storage import FileStorage
 from app.core.uploads import FileKind, read_upload
+from app.modules.auth import repository as auth_repository
 from app.modules.auth.models import User
+from app.modules.verification import repository as verification_repository
+from app.modules.verification.models import VerificationKind
 
 from . import repository
 from .models import ONBOARDING_STEP_COUNT, Profile
-from .schemas import ProfileUpdate
+from .schemas import ProfileUpdate, PublicProfileRead, photo_url
 
 _PHOTO_TYPES = {FileKind.JPEG, FileKind.PNG}
 _CV_TYPES = {FileKind.PDF, FileKind.DOCX}
@@ -29,6 +32,46 @@ async def get_or_create_profile(session: AsyncSession, user: User) -> Profile:
     if profile is None:
         profile = await repository.create_for_user(session, user.id)
     return profile
+
+
+async def get_public_profile(session: AsyncSession, user_id: uuid.UUID) -> PublicProfileRead:
+    """Someone's public profile - Module 1.6.
+
+    A deactivated account is a 404, the same as one that never existed.
+    Reading someone else's profile never creates one for them: a user who
+    hasn't started onboarding just has empty fields.
+    """
+    user = await auth_repository.get_by_id(session, user_id)
+    if user is None or not user.is_active:
+        raise NotFoundError("Profile not found")
+
+    profile = await repository.get_by_user_id(session, user_id)
+    university = await verification_repository.get_latest_verified(
+        session, user_id, VerificationKind.UNIVERSITY
+    )
+    employer = await verification_repository.get_latest_verified(
+        session, user_id, VerificationKind.EMPLOYER
+    )
+
+    return PublicProfileRead(
+        user_id=user.id,
+        full_name=user.full_name,
+        roles=user.roles,
+        photo_url=photo_url(profile.photo_key) if profile else None,
+        avatar_url=user.avatar_url,
+        headline=profile.headline if profile else None,
+        city=profile.city if profile else None,
+        bio=profile.bio if profile else None,
+        linkedin_url=profile.linkedin_url if profile else None,
+        university=profile.university if profile else None,
+        degree=profile.degree if profile else None,
+        graduation_year=profile.graduation_year if profile else None,
+        employer_name=profile.employer_name if profile else None,
+        skills=profile.skills if profile else [],
+        primary_role=profile.primary_role if profile else None,
+        university_verified=university is not None,
+        employer_verified=employer is not None,
+    )
 
 
 async def update_profile(session: AsyncSession, user: User, payload: ProfileUpdate) -> Profile:

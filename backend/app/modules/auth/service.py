@@ -184,6 +184,32 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str) -> Acc
     return AccessTokenResponse(access_token=create_access_token(user.id))
 
 
+# --- Password change - Module 1.8 -------------------------------------------
+
+
+async def change_password(
+    session: AsyncSession, user: User, current_password: str, new_password: str
+) -> TokenPair:
+    """Change a signed-in user's password and sign out every other session.
+
+    Wrong current password is a 400, not a 401: the user *is* signed in, and
+    a 401 would make the frontend try to refresh the session. Returns a fresh
+    token pair, because recording the change also invalidates the tokens of
+    the session making it.
+    """
+    if user.password is None:
+        raise BadRequestError(
+            "Your account doesn't have a password yet. Use 'Forgot password' to set one."
+        )
+    if not verify_password(current_password, user.password):
+        raise BadRequestError("Your current password is incorrect.")
+    if verify_password(new_password, user.password):
+        raise BadRequestError("Choose a new password that's different from your current one.")
+
+    await repository.set_password(session, user, hash_password(new_password), datetime.now(UTC))
+    return create_session(user)
+
+
 # --- Password reset - Module 1.12 -------------------------------------------
 
 RESET_TOKEN_TTL = timedelta(minutes=30)

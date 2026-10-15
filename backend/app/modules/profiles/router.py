@@ -1,6 +1,7 @@
 """HTTP layer for the profiles module. URL, validation, response shape - no
 business logic and no queries. STANDARDS.md §2.3."""
 
+import uuid
 from typing import Annotated
 from urllib.parse import quote
 
@@ -14,7 +15,7 @@ from app.core.uploads import CONTENT_TYPES
 from db import get_session
 
 from . import service
-from .schemas import ProfileRead, ProfileUpdate
+from .schemas import ProfileRead, ProfileUpdate, PublicProfileRead
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -180,3 +181,25 @@ async def download_cv(
             "Cache-Control": "private, no-store",
         },
     )
+
+
+# Declared last: "/{user_id}" would otherwise also match "/me".
+@router.get(
+    "/{user_id}",
+    response_model=PublicProfileRead,
+    summary="Get someone's public profile",
+    responses={
+        **_UNAUTHORIZED,
+        404: {"description": "No such user, or the account is deactivated"},
+    },
+)
+async def get_public_profile(
+    user_id: uuid.UUID, current_user: CurrentUser, session: SessionDep
+) -> PublicProfileRead:
+    """What any signed-in user may see about another: name, photo, headline,
+    education, employer, skills and the verification badges.
+
+    Phone, CV, salary, job preferences and onboarding progress are never
+    included - they stay on GET /profile/me.
+    """
+    return await service.get_public_profile(session, user_id)

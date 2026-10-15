@@ -6,6 +6,7 @@ are never accepted from the outside.
 """
 
 import re
+import uuid
 from datetime import UTC, date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
@@ -109,6 +110,38 @@ class ProfileRead(BaseModel):
     @property
     def onboarding_completed(self) -> bool:
         return self.onboarding_completed_at is not None
+
+
+class PublicProfileRead(BaseModel):
+    """Returned by GET /profile/{user_id} - what any signed-in user may see.
+
+    Deliberately leaves out everything private: phone, CV, salary, the rest of
+    the job preferences and onboarding progress. Built field by field in the
+    service, never straight from the model, so a new private column can't leak
+    by default.
+    """
+
+    user_id: uuid.UUID
+    full_name: str
+    roles: list[str]
+    # Our uploaded photo (an API path, like ProfileRead.photo_url), else None.
+    photo_url: str | None
+    # The LinkedIn picture, for users who signed up with LinkedIn and have no
+    # photo of their own yet. A full URL.
+    avatar_url: str | None
+    headline: str | None
+    city: str | None
+    bio: str | None
+    linkedin_url: str | None
+    university: str | None
+    degree: str | None
+    graduation_year: int | None
+    employer_name: str | None
+    skills: list[str]
+    primary_role: PrimaryRole | None
+    # The Verified Alumni / Verified Employee badges.
+    university_verified: bool
+    employer_verified: bool
 
 
 def _dedupe(values: list[str]) -> list[str]:

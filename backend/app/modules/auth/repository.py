@@ -177,6 +177,16 @@ async def delete_reset_token(session: AsyncSession, row: PasswordResetToken) -> 
     await session.commit()
 
 
+async def set_password(
+    session: AsyncSession, user: User, password_hash: str, now: datetime
+) -> None:
+    """Store a new password and record when it changed - which is what makes
+    every token issued before `now` stop working."""
+    user.password = password_hash
+    user.password_changed_at = now
+    await session.commit()
+
+
 async def reset_password(
     session: AsyncSession, user: User, row: PasswordResetToken, password_hash: str, now: datetime
 ) -> None:
