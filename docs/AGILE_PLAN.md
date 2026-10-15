@@ -4,7 +4,11 @@ How we plan, split and track work between now and submission.
 
 **Timeline:** 8 September 2026 → **15 May 2027** (~36 weeks)
 **Method:** Scrum, trimmed for a three-person part-time team
-**Scope:** Phase 1 MVP — Modules 1–8 and 11 from the feature specification
+**Scope:** Phase 1 MVP — Modules 1–10 (the core loop) from the feature
+specification. Updated 15 Oct 2026, Sprint 3: Modules 9 (AI) and 10
+(Notifications) are in; Module 11 (Reputation) moved out, alongside Module 16
+(LinkedIn research), fraud ML, a PWA, and a full admin console — none are
+part of Phase 1. See §9's MoSCoW table.
 
 ---
 
@@ -276,16 +280,26 @@ Also this sprint: create the ESLint boundary rules once `features/` and
 
 **Goal:** a user can prove a university or employer affiliation.
 
-| Item | Spec |
-|---|---|
-| University verification — email domain or document upload | 1.10, 7.2 |
-| Employer verification — corporate domain or document upload | 1.11, 6.1 |
-| File upload handling (type, size, storage) | — |
-| Notification core — bell, unread count, mark read | 11.1, 11.2, 11.6 |
+| Item | Spec | Status (15 Oct) |
+|---|---|---|
+| University verification — email domain or document upload | 1.10, 7.2 | done — #64 |
+| Employer verification — corporate domain or document upload | 1.11, 6.1 | done — #64 |
+| File upload handling (type, size, storage) | — | done — #64 |
+| Notification core — bell, unread count, mark read | 11.1, 11.2, 11.6 | done — #78 |
+| Onboarding wizard finished — remaining fields, "All set" screen | 1.5 | done — #65 |
+| **Carried over from Sprint 2:** public profile page, profile edit | 1.6, 1.7 | open — #70 |
+| **Carried over from Sprint 2:** account settings — password change | 1.8 | open — #74 |
+| Referrer onboarding (own wizard) | — | open — #68 |
 
 Verification gates Referral and Alumni Referral eligibility, so it has to exist
 before those engines. Manual admin review of documents is deferred (Module 13);
 for now verification is by email domain, with uploads stored and marked pending.
+Everything above except the two carry-over rows and referrer onboarding landed
+in the first three days of the sprint, ahead of schedule — see the Sprint 2
+report for why it slipped from there instead of Sprint 2.
+
+**Recruiter onboarding** (own wizard) was going to be part of this sprint too,
+but has moved to Sprint 4 instead — tracked as #69.
 
 ### Sprint 4 — Connections · 26 Oct – 8 Nov
 
@@ -299,6 +313,7 @@ each connection is.
 | Remove connection, connection count | 3.7, 3.8 |
 | **Connection type tagging** — Professional / Alumni / Both | **3.9** |
 | Mutual connections | 3.5 |
+| Recruiter onboarding (own wizard) — moved from Sprint 3, #69 | — |
 
 3.9 is the critical one — it decides which endorsement types are possible
 between any two people. Everything in Sprints 7, 9 and 11 reads it.
@@ -630,10 +645,10 @@ If we fall behind, this is the order things go:
 
 | Priority | Contents | Cuttable? |
 |---|---|---|
-| **Must** | Modules 1, 3, 4, **5, 6, 7**, 8, 11 | no — 5/6/7 *are* the product |
+| **Must** | Modules 1, 3, 4, **5, 6, 7**, 8, 9, 10 | no — 5/6/7 *are* the product |
 | **Should** | Module 2 (CV Builder), most of 15 (polish) | reduce scope, don't cut |
 | **Could** | 4.8 similar jobs, 3.6 suggestions, 7.10 events | cut first |
-| **Won't (Phase 1)** | Modules 9, 10, 12, 13, 14 | already out of scope |
+| **Won't (Phase 1)** | Module 11 (Reputation), 12, 13 (full admin console), 14, 16 (LinkedIn research); fraud ML; a PWA | already out of scope |
 
 Modules 5, 6 and 7 are non-negotiable. A demo with two of the three trust tiers
 does not demonstrate the product.
