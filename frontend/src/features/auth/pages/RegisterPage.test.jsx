@@ -37,6 +37,7 @@ async function fillValidForm(user) {
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    sessionStorage.clear()
   })
 
   it('renders the registration form', () => {
@@ -101,6 +102,17 @@ describe('RegisterPage', () => {
     await waitFor(() => {
       expect(register).toHaveBeenCalledWith(expect.objectContaining({ role: 'recruiter' }))
     })
+  })
+
+  it('remembers the picked role for SelectRolePage, in case LinkedIn sign-up needs it (#75)', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    expect(sessionStorage.getItem('patron:picked-role')).toBe('candidate')
+
+    await user.click(screen.getByText('Refer others'))
+
+    expect(sessionStorage.getItem('patron:picked-role')).toBe('referrer')
   })
 
   it('shows the server error on a duplicate email', async () => {

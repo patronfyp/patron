@@ -1,4 +1,4 @@
-import { Button } from 'antd'
+import { App, Button } from 'antd'
 
 import glowImage from '../../../assets/brand/auth-glow.svg'
 import gridImage from '../../../assets/brand/auth-grid.svg'
@@ -8,6 +8,7 @@ import capIcon from '../../../assets/icons/cap.svg'
 import checkCircleIcon from '../../../assets/icons/check-circle.svg'
 import linkedinIcon from '../../../assets/icons/linkedin.svg'
 import { brand } from '../../../config/theme'
+import { getApiErrorMessage } from '../../../shared/api/getApiErrorMessage'
 import { useLinkedInAuthorize } from '../hooks/useAuth'
 
 import styles from './AuthLayout.module.css'
@@ -84,7 +85,19 @@ function AuthLayout({
   footer,
   children,
 }) {
+  const { message } = App.useApp()
   const { mutate: startLinkedIn, isPending: isLinkedInPending } = useLinkedInAuthorize()
+
+  const handleLinkedIn = () => {
+    startLinkedIn(undefined, {
+      // The authorize request itself failed (backend down, LinkedIn keys
+      // missing, ...) - there is no redirect to fail silently into (#75).
+      onError: (error) =>
+        message.error(
+          getApiErrorMessage(error, 'Could not start LinkedIn sign-in. Please try again.'),
+        ),
+    })
+  }
 
   return (
     <div className={styles.screen} style={paneVars}>
@@ -106,7 +119,7 @@ function AuthLayout({
                 size="large"
                 icon={<img src={linkedinIcon} width="18" height="18" alt="" />}
                 loading={isLinkedInPending}
-                onClick={() => startLinkedIn()}
+                onClick={handleLinkedIn}
               >
                 {linkedInLabel}
               </Button>

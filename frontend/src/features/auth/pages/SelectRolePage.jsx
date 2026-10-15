@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import RoleCards from '../components/RoleCards'
 import { useSetRole } from '../hooks/useAuth'
+import { forgetPickedRole, getRememberedRole } from '../roleMemory'
 
 const { Title, Paragraph } = Typography
 
@@ -15,12 +16,18 @@ const { Title, Paragraph } = Typography
 function SelectRolePage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
-  const [role, setRole] = useState(null)
+  // Pre-selects the role picked on Create account, if a LinkedIn sign-up
+  // carried one over (#75) - the user still has to press Continue, this
+  // just saves re-picking what they already chose.
+  const [role, setRole] = useState(() => getRememberedRole())
   const { mutate, isPending } = useSetRole()
 
   const handleContinue = () => {
     mutate(role, {
-      onSuccess: () => navigate('/start', { replace: true }),
+      onSuccess: () => {
+        forgetPickedRole()
+        navigate('/start', { replace: true })
+      },
       onError: () => message.error('Could not save your role. Please try again.'),
     })
   }
