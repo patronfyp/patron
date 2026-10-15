@@ -28,6 +28,8 @@ from app.core.exceptions import (
 from app.core.storage import FileStorage
 from app.core.uploads import FileKind, read_upload
 from app.modules.auth.models import User
+from app.modules.notifications import service as notifications_service
+from app.modules.notifications.models import NotificationType
 from app.modules.profiles import service as profiles_service
 from config import get_settings
 
@@ -36,6 +38,18 @@ from .models import EmailVerification, VerificationDocument, VerificationKind
 from .schemas import VerificationStatus, VerifiedEmailRead
 
 _DOCUMENT_TYPES = {FileKind.PDF, FileKind.JPEG, FileKind.PNG}
+
+# The kinds that earn a badge, and how a notification names them. The account
+# email has no badge, so it gets no notification - the user is looking at the
+# screen that confirmed it.
+_BADGE_TITLES = {
+    VerificationKind.UNIVERSITY: "University",
+    VerificationKind.EMPLOYER: "Work",
+}
+_DOCUMENT_TITLES = {
+    VerificationKind.UNIVERSITY: "University document received",
+    VerificationKind.EMPLOYER: "Employment document received",
+}
 
 CODE_TTL = timedelta(minutes=10)
 RESEND_COOLDOWN = timedelta(seconds=60)
@@ -199,7 +213,18 @@ async def confirm_code(
     if kind == VerificationKind.ACCOUNT:
         # Saved in the same commit as the code, so the two can't disagree.
         user.is_email_verified = True
-    return await repository.save(session, row)
+    row = await repository.save(session, row)
+
+    if kind in _BADGE_TITLES:
+        await notifications_service.notify(
+            session,
+            user.id,
+            NotificationType.EMAIL_VERIFIED,
+            f"{_BADGE_TITLES[kind]} email verified",
+            body=f"{email} is now verified.",
+            link="/onboarding",
+        )
+    return row
 
 
 async def upload_document(
@@ -217,7 +242,7 @@ async def upload_document(
     key = f"documents/{uuid.uuid4()}.{file_kind.value}"
     await storage.save(key, data)
     filename = (file.filename or f"document.{file_kind.value}").replace("\\", "/").split("/")[-1]
-    return await repository.create_document(
+    document = await repository.create_document(
         session,
         user_id=user.id,
         kind=kind,
@@ -225,6 +250,16 @@ async def upload_document(
         filename=filename[:255],
         size_bytes=len(data),
     )
+
+    await notifications_service.notify(
+        session,
+        user.id,
+        NotificationType.DOCUMENT_UPLOADED,
+        _DOCUMENT_TITLES[kind],
+        body=f"{document.filename} is waiting for review. We'll let you know once it's checked.",
+        link="/onboarding",
+    )
+    return document
 
 
 async def get_status(session: AsyncSession, user: User) -> VerificationStatus:
