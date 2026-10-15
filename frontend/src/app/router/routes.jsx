@@ -11,6 +11,7 @@ import {
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 
 import App from '../../App'
+import AppLayout from '../layouts/AppLayout'
 
 import ProtectedRoute from './ProtectedRoute'
 
@@ -24,7 +25,14 @@ export const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
-      { index: true, element: <App /> },
+      {
+        index: true,
+        element: (
+          <AppLayout>
+            <App />
+          </AppLayout>
+        ),
+      },
       { path: 'select-role', element: <SelectRolePage /> },
       { path: 'onboarding', element: <OnboardingPage /> },
       { path: 'onboarding/done', element: <AllSetPage /> },

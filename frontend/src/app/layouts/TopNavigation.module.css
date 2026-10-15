@@ -1,0 +1,123 @@
+/* The top navigation, from the Figma "Top Navigation" frame (7:648).
+   Colours, text styles and radii are --patron-* variables from config/theme.js. */
+
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  height: 72px;
+  padding: 0 40px;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+/* The current page is one step darker than the trail before it. */
+.crumb[aria-current='page'] {
+  color: var(--patron-text-secondary);
+}
+
+.title {
+  margin: 0;
+  overflow: hidden;
+  font: var(--patron-type-h4);
+  letter-spacing: var(--patron-type-h4-tracking);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--patron-text-primary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Search: a 280 x 38 field with a ⌘K hint. Not built yet, so it is a button
+   that stays inert, and it looks inert too (default cursor, no hover). */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-md);
+  background: var(--patron-bg-surface);
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  text-align: left;
+  color: var(--patron-text-tertiary);
+  cursor: default;
+}
+
+.placeholder {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-key);
+  background: var(--patron-bg-surface);
+  font: var(--patron-type-mono);
+  letter-spacing: var(--patron-type-mono-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+.avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--patron-avatar-user-gradient);
+  font: var(--patron-type-avatar-m);
+  letter-spacing: var(--patron-type-avatar-m-tracking);
+  color: var(--patron-text-on-accent);
+}
+
+/* The search box is the first thing to go when the bar gets tight. */
+@media (max-width: 860px) {
+  .bar {
+    padding: 0 16px;
+  }
+
+  .search {
+    display: none;
+  }
+}
