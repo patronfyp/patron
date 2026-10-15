@@ -111,6 +111,17 @@ class PasswordResetConfirm(BaseModel):
     new_password: str = Field(min_length=8, max_length=72)
 
 
+class PasswordChangeRequest(BaseModel):
+    """What a client sends to POST /auth/password/change.
+
+    The new password follows the registration rules, so a change can never set
+    a password registration would have refused.
+    """
+
+    current_password: str = Field(min_length=1, max_length=72)
+    new_password: str = Field(min_length=8, max_length=72)
+
+
 class PasswordResetRequested(BaseModel):
     """Returned by /password-reset/request - the same body every time."""
 

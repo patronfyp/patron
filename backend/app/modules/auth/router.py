@@ -21,6 +21,7 @@ from .schemas import (
     AddRoleRequest,
     LinkedInAuthorizeResponse,
     LoginRequest,
+    PasswordChangeRequest,
     PasswordResetConfirm,
     PasswordResetRequest,
     PasswordResetRequested,
@@ -219,6 +220,34 @@ async def add_role(
     """
     user = await service.add_user_role(session, current_user, payload.role.value)
     return UserRead.model_validate(user)
+
+
+@router.post(
+    "/password/change",
+    response_model=TokenPair,
+    summary="Change my password",
+    responses={
+        400: {
+            "description": "Current password is wrong, the new one is the same as the current "
+            "one, or the account has no password yet (LinkedIn-only)"
+        },
+        401: {"description": "Missing, invalid or expired access token"},
+        422: {"description": "New password is shorter than 8 or longer than 72 characters"},
+    },
+)
+async def change_password(
+    payload: PasswordChangeRequest, current_user: CurrentUser, session: SessionDep
+) -> TokenPair:
+    """Change the password of the signed-in account - Module 1.8.
+
+    Every other session is signed out. The response is a new token pair for
+    this session, so the user stays signed in here: store it in place of the
+    old tokens. A LinkedIn-only account has no password to change and should
+    use the password-reset flow to set its first one.
+    """
+    return await service.change_password(
+        session, current_user, payload.current_password, payload.new_password
+    )
 
 
 @router.post(
