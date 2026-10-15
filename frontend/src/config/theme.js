@@ -69,6 +69,10 @@ export const tokens = {
     // Not a Figma variable: status/warning at 12%, the "In review" row tile
     // on the All set card (65:790).
     warningTint: 'rgba(219, 138, 14, 0.12)',
+    // Not Figma variables: the row icon tiles on the Notifications Panel
+    // (14:968) use status/success and status/warning at 10% as literal fills.
+    successTile: 'rgba(18, 160, 107, 0.1)',
+    warningTile: 'rgba(219, 138, 14, 0.1)',
   },
 }
 
@@ -200,6 +204,7 @@ export const typography = {
   title: { size: 16, lineHeight: 24, weight: 600, tracking: -0.6 },
   bodyL: { size: 16, lineHeight: 26, weight: 400, tracking: -0.2 },
   body: { size: 14, lineHeight: 22, weight: 400, tracking: -0.1 },
+  bodyMedium: { size: 14, lineHeight: 22, weight: 500, tracking: -0.1 },
   bodySemibold: { size: 14, lineHeight: 22, weight: 600, tracking: -0.2 },
   bodyS: { size: 13, lineHeight: 20, weight: 400, tracking: 0 },
   bodySMedium: { size: 13, lineHeight: 20, weight: 500, tracking: 0 },

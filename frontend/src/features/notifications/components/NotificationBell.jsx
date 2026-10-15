@@ -59,7 +59,8 @@ function NotificationBell() {
         arrow={false}
         classNames={{ container: styles.popover }}
         getPopupContainer={(trigger) => trigger.parentElement}
-        content={<NotificationPanel />}
+        destroyOnHidden
+        content={<NotificationPanel onClose={() => setIsOpen(false)} />}
       >
         <button
           ref={buttonRef}

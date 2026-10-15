@@ -24,6 +24,9 @@ export function useNotifications(params = {}, { enabled = true } = {}) {
     queryKey: notificationKeys.list(params),
     queryFn: () => listNotifications(params),
     enabled,
+    // The list is only mounted while the panel is open: fetch it fresh every
+    // time rather than showing a copy up to staleTime old.
+    refetchOnMount: 'always',
   })
 }
 

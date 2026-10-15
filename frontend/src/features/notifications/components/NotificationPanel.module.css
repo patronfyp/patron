@@ -26,3 +26,30 @@
   letter-spacing: var(--patron-type-title-tracking);
   color: var(--patron-text-primary);
 }
+
+/* "Mark all read": Body S/Medium in accent/text. */
+.markAll {
+  padding: 0;
+  border: none;
+  background: none;
+  font: var(--patron-type-body-s-medium);
+  letter-spacing: var(--patron-type-body-s-medium-tracking);
+  color: var(--patron-accent-text);
+  cursor: pointer;
+}
+
+.markAll:hover:not(:disabled) {
+  color: var(--patron-accent-primary);
+}
+
+.markAll:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-sm);
+}
+
+/* Nothing left to mark: shown dimmed, not removed, so the header stays put. */
+.markAll:disabled {
+  color: var(--patron-text-tertiary);
+  cursor: default;
+}

@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { App as AntApp } from 'antd'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getUnreadCount } from '../api/notifications.api'
+import { getUnreadCount, listNotifications } from '../api/notifications.api'
 
 import NotificationBell from './NotificationBell'
 
@@ -18,7 +20,11 @@ function renderBell() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
-      <NotificationBell />
+      <AntApp>
+        <MemoryRouter>
+          <NotificationBell />
+        </MemoryRouter>
+      </AntApp>
     </QueryClientProvider>,
   )
 }
@@ -26,6 +32,7 @@ function renderBell() {
 describe('NotificationBell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    listNotifications.mockResolvedValue({ items: [], total: 0, limit: 20, offset: 0 })
   })
 
   it('shows the unread count on the bell', async () => {

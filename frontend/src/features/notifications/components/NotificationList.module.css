@@ -1,0 +1,38 @@
+/* The panel body. Figma has the rows (14:967: 4px above, 12px below, 20px
+   sides); the scroll limit and the empty/error states are not drawn there.
+   Colours and text styles are --patron-* variables from config/theme.js. */
+
+.list,
+.region {
+  margin: 0;
+  padding: 4px 20px 12px;
+  list-style: none;
+  /* Tall enough for the five rows Figma draws; more scroll. */
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.skeletonRow {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.skeletonRow:last-child {
+  border-bottom: none;
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.message {
+  margin: 0;
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  color: var(--patron-text-secondary);
+}
