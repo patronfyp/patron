@@ -20,6 +20,10 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0009](0009-access-token-in-memory-refresh-token-in-localstorage.md) | Access token in memory, refresh token in localStorage | Rohan |
 | [0010](0010-separate-user-identities-table-for-multi-provider-auth.md) | Separate `user_identities` table for multi-provider auth | Rafay |
 | [0011](0011-account-linking-only-on-verified-email.md) | Account linking only on a provider-verified email | Rafay |
-| [0012](0012-visual-design-language-for-hero-screens.md) | Visual design language for hero screens | Rafay |
+| [0012](0012-visual-design-language-for-hero-screens.md) | Visual design language for hero screens — **superseded by 0017** | Rafay |
 | [0013](0013-linkedin-self-serve-scopes-only.md) | LinkedIn self-serve scopes only — Modules 1.1 and 2.9 rescoped | Rafay |
 | [0014](0014-no-pkce-for-linkedin-oauth.md) | No PKCE for LinkedIn sign-in | Rafay |
+| [0015](0015-uuid-primary-keys.md) | UUID primary keys instead of integers | Rafay |
+| [0016](0016-multi-role-users-in-a-user-roles-table.md) | Multi-role users in a `user_roles` table | Rafay |
+| [0017](0017-patron-2-0-visual-language-one-theme-file.md) | PATRON 2.0 visual language from Figma, one theme file — supersedes 0012 | Rafay |
+| [0018](0018-local-disk-file-storage-behind-a-filestorage-interface.md) | Local-disk file storage behind a `FileStorage` interface | Rafay |
