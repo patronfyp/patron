@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { App, Button, Form, Input } from 'antd'
 import { Link, useNavigate } from 'react-router-dom'
@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout'
 import RoleCards from '../components/RoleCards'
 import { useRegister } from '../hooks/useAuth'
+import { rememberPickedRole } from '../roleMemory'
 
 // A 422 from Pydantic carries an array of {msg}; our own errors carry a plain
 // string - STANDARDS.md §4.7 says show the backend's reason, so handle both.
@@ -23,6 +24,14 @@ function RegisterPage() {
   // Outside the <Form>: Figma puts the role picker above the LinkedIn button,
   // and it always has a value (Candidate by default), so it needs no rules.
   const [role, setRole] = useState('candidate')
+
+  // Remembered so SelectRolePage can pre-select it after a LinkedIn sign-up
+  // (#75) - LinkedIn itself never tells us what the user picked here. Runs
+  // for the default too, not just a change, in case "Sign up with LinkedIn"
+  // is clicked without touching the cards.
+  useEffect(() => {
+    rememberPickedRole(role)
+  }, [role])
 
   const onFinish = (values) => {
     mutate(

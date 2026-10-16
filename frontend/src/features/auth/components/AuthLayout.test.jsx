@@ -75,4 +75,29 @@ describe('AuthLayout', () => {
       )
     })
   })
+
+  it('shows an error message instead of doing nothing when the authorize request fails', async () => {
+    const user = userEvent.setup()
+    linkedinAuthorize.mockRejectedValue({
+      response: { data: { detail: 'LinkedIn sign-in is not configured.' } },
+    })
+
+    renderLayout()
+    await user.click(screen.getByRole('button', { name: /continue with linkedin/i }))
+
+    expect(await screen.findByText('LinkedIn sign-in is not configured.')).toBeInTheDocument()
+    expect(window.location.href).toBe('')
+  })
+
+  it('falls back to a generic message when the failure has no detail', async () => {
+    const user = userEvent.setup()
+    linkedinAuthorize.mockRejectedValue(new Error('network error'))
+
+    renderLayout()
+    await user.click(screen.getByRole('button', { name: /continue with linkedin/i }))
+
+    expect(
+      await screen.findByText('Could not start LinkedIn sign-in. Please try again.'),
+    ).toBeInTheDocument()
+  })
 })
