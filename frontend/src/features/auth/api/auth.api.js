@@ -69,3 +69,16 @@ export async function confirmPasswordReset({ token, newPassword }) {
   })
   return response.data
 }
+
+/**
+ * POST /api/v1/auth/password/change (#74) - changes the signed-in account's
+ * password. Returns a fresh token pair: changing a password also signs out
+ * every other session, including a stale access token in this one.
+ */
+export async function changePassword({ currentPassword, newPassword }) {
+  const response = await api.post('/api/v1/auth/password/change', {
+    current_password: currentPassword,
+    new_password: newPassword,
+  })
+  return response.data
+}

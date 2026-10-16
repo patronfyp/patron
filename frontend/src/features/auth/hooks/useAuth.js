@@ -4,6 +4,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 
 import {
+  changePassword,
   confirmPasswordReset,
   getCurrentUser,
   linkedinAuthorize,
@@ -82,6 +83,21 @@ export function useRequestPasswordReset() {
 // nothing in the store changes, the user still has to sign in afterwards.
 export function useConfirmPasswordReset() {
   return useMutation({ mutationFn: confirmPasswordReset })
+}
+
+// #74's /password/change returns a fresh token pair (changing a password
+// signs out every other session, including the stale access token in this
+// one) - the user record itself doesn't change, so only the tokens are
+// swapped in, read fresh from the store rather than this render's closure.
+export function useChangePassword() {
+  const setSession = useAuthStore((state) => state.setSession)
+
+  return useMutation({
+    mutationFn: (payload) => changePassword(payload),
+    onSuccess: ({ access_token: accessToken, refresh_token: refreshToken }) => {
+      setSession({ user: useAuthStore.getState().user, accessToken, refreshToken })
+    },
+  })
 }
 
 // Logout is local only - the backend has no session to invalidate (stateless JWTs).

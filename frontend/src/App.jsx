@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Card, Descriptions, Flex, Spin, Typography } from 'antd'
+import { Link } from 'react-router-dom'
 
 import { API_BASE_URL } from './config/env'
 import { useLogout } from './features/auth'
@@ -31,7 +32,12 @@ function App() {
             </Title>
             <Paragraph type="secondary">Vouched, Verified, Hired.</Paragraph>
           </div>
-          <Button onClick={logout}>Log out</Button>
+          <Flex gap={8}>
+            <Link to="/settings">
+              <Button>Settings</Button>
+            </Link>
+            <Button onClick={logout}>Log out</Button>
+          </Flex>
         </Flex>
 
         {isPending && (

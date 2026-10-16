@@ -7,6 +7,7 @@ import {
   RegisterPage,
   ResetPasswordPage,
   SelectRolePage,
+  SettingsPage,
 } from '@/features/auth'
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: 'select-role', element: <SelectRolePage /> },
       { path: 'onboarding', element: <OnboardingPage /> },
       { path: 'onboarding/done', element: <AllSetPage /> },
+      { path: 'settings', element: <SettingsPage /> },
       // Where sign-in and sign-up land; decides between onboarding and home.
       { path: 'start', element: <ResumeOnboardingRedirect /> },
     ],
