@@ -1,6 +1,6 @@
 # ADR 0012: A visual design language for hero screens (starting with auth)
 
-- **Status:** accepted
+- **Status:** superseded by ADR 0017
 - **Date:** 2026-09-27
 - **Decision by:** Rafay
 

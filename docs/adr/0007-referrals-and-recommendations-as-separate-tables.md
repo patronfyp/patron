@@ -1,6 +1,6 @@
 # ADR 0007: Referrals and Recommendations as separate tables, not one table with a type column
 
-- **Status:** accepted
+- **Status:** superseded by ADR 0019
 - **Date:** 2026-09-03
 - **Decision by:** Rafay
 - **Supersedes:** —
