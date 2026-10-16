@@ -15,7 +15,7 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0004](0004-eslint-pinned-to-9.md) | Pin ESLint to 9.x | Rafay |
 | [0005](0005-uv-over-pip-or-poetry.md) | uv over pip or Poetry | Rafay |
 | [0006](0006-react-query-and-zustand-over-redux.md) | React Query + zustand — Redux rejected | Rafay |
-| [0007](0007-referrals-and-recommendations-as-separate-tables.md) | Referrals and Recommendations as separate tables | Rafay |
+| [0007](0007-referrals-and-recommendations-as-separate-tables.md) | Referrals and Recommendations as separate tables — **superseded by 0019** | Rafay |
 | [0008](0008-snake-case-in-json-payloads.md) | snake_case in JSON payloads | Rafay |
 | [0009](0009-access-token-in-memory-refresh-token-in-localstorage.md) | Access token in memory, refresh token in localStorage | Rohan |
 | [0010](0010-separate-user-identities-table-for-multi-provider-auth.md) | Separate `user_identities` table for multi-provider auth | Rafay |
@@ -27,3 +27,4 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0016](0016-multi-role-users-in-a-user-roles-table.md) | Multi-role users in a `user_roles` table | Rafay |
 | [0017](0017-patron-2-0-visual-language-one-theme-file.md) | PATRON 2.0 visual language from Figma, one theme file — supersedes 0012 | Rafay |
 | [0018](0018-local-disk-file-storage-behind-a-filestorage-interface.md) | Local-disk file storage behind a `FileStorage` interface | Rafay |
+| [0019](0019-one-endorsements-table-with-a-type-column.md) | One `endorsements` table with a type column — supersedes 0007 | Rafay |
