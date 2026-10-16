@@ -285,7 +285,7 @@ Also this sprint: create the ESLint boundary rules once `features/` and
 | University verification — email domain or document upload | 1.10, 7.2 | done — #64 |
 | Employer verification — corporate domain or document upload | 1.11, 6.1 | done — #64 |
 | File upload handling (type, size, storage) | — | done — #64 |
-| Notification core — bell, unread count, mark read | 11.1, 11.2, 11.6 | done — #78 |
+| Notification core — bell, unread count, mark read | 11.1, 11.2, 11.6 | done — #78, #81 |
 | Onboarding wizard finished — remaining fields, "All set" screen | 1.5 | done — #65 |
 | **Carried over from Sprint 2:** public profile page, profile edit | 1.6, 1.7 | open — #70 |
 | **Carried over from Sprint 2:** account settings — password change | 1.8 | open — #74 |
