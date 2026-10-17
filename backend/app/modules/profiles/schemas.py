@@ -13,7 +13,14 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 
 from config import get_settings
 
-from .models import ONBOARDING_STEP_COUNT, DesiredRole, PrimaryRole, WorkMode
+from .models import (
+    MONTHLY_REFERRAL_LIMITS,
+    ONBOARDING_STEP_COUNT,
+    DesiredRole,
+    PrimaryRole,
+    ReferralTeam,
+    WorkMode,
+)
 
 # Earliest graduation year we accept. Anything before this is a typo, not an
 # alumnus - the platform is for people who are working or about to.
@@ -86,6 +93,13 @@ class ProfileRead(BaseModel):
     salary_max: int | None
     available_from: date | None
     open_to_referrers: bool
+
+    job_title: str | None
+    team: str | None
+    referral_teams: list[ReferralTeam]
+    monthly_referral_limit: int | None
+    accept_alumni_requests: bool
+    accept_any_verified_requests: bool
 
     onboarding_step: int
     onboarding_completed_at: datetime | None = Field(exclude=True)
@@ -189,9 +203,20 @@ class ProfileUpdate(BaseModel):
     available_from: date | None = None
     open_to_referrers: bool = True
 
+    job_title: str | None = Field(default=None, max_length=150)
+    team: str | None = Field(default=None, max_length=100)
+    referral_teams: list[ReferralTeam] = Field(default_factory=list)
+    monthly_referral_limit: int | None = None
+    accept_alumni_requests: bool = True
+    accept_any_verified_requests: bool = False
+
+    # The upper bound here is the longest wizard; the service checks it
+    # against this user's own wizard.
     onboarding_step: int = Field(default=1, ge=1, le=ONBOARDING_STEP_COUNT)
 
-    @field_validator("headline", "city", "bio", "university", "degree", "employer_name")
+    @field_validator(
+        "headline", "city", "bio", "university", "degree", "employer_name", "job_title", "team"
+    )
     @classmethod
     def _strip_text(cls, value: str | None) -> str | None:
         """Trim whitespace; a field that is only spaces counts as cleared."""
@@ -257,6 +282,20 @@ class ProfileUpdate(BaseModel):
     @classmethod
     def _unique_roles(cls, values: list[DesiredRole]) -> list[DesiredRole]:
         return list(dict.fromkeys(values))
+
+    @field_validator("referral_teams")
+    @classmethod
+    def _unique_teams(cls, values: list[ReferralTeam]) -> list[ReferralTeam]:
+        return list(dict.fromkeys(values))
+
+    @field_validator("monthly_referral_limit")
+    @classmethod
+    def _known_limit(cls, value: int | None) -> int | None:
+        """Only the design's choices; null means "No limit"."""
+        if value is not None and value not in MONTHLY_REFERRAL_LIMITS:
+            choices = ", ".join(str(limit) for limit in MONTHLY_REFERRAL_LIMITS)
+            raise ValueError(f"monthly_referral_limit must be one of {choices}, or null")
+        return value
 
     @field_validator("available_from")
     @classmethod

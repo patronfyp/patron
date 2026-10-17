@@ -15,7 +15,7 @@ from app.modules.verification import repository as verification_repository
 from app.modules.verification.models import VerificationKind
 
 from . import repository
-from .models import ONBOARDING_STEP_COUNT, Profile
+from .models import Profile, onboarding_step_count
 from .schemas import ProfileUpdate, PublicProfileRead, photo_url
 
 _PHOTO_TYPES = {FileKind.JPEG, FileKind.PNG}
@@ -90,6 +90,11 @@ async def update_profile(session: AsyncSession, user: User, payload: ProfileUpda
             f"Cannot move from step {profile.onboarding_step} to step {step}; "
             "finish the steps in between first."
         )
+    # A referrer-only user's wizard is shorter; the schema only knows the
+    # longest one.
+    step_count = onboarding_step_count(user.roles)
+    if step is not None and step > step_count:
+        raise UnprocessableError(f"Your onboarding has only {step_count} steps.")
 
     # Checked against the saved value too, so sending only one end of the
     # range can't leave the minimum above the maximum.
@@ -110,7 +115,7 @@ async def complete_onboarding(session: AsyncSession, user: User) -> Profile:
     profile = await get_or_create_profile(session, user)
     if profile.onboarding_completed_at is not None:
         return profile
-    if profile.onboarding_step != ONBOARDING_STEP_COUNT:
+    if profile.onboarding_step != onboarding_step_count(user.roles):
         raise UnprocessableError("Finish every onboarding step first.")
 
     profile.onboarding_completed_at = datetime.now(UTC)
