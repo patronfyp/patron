@@ -1,0 +1,73 @@
+/* The panel's tabs, from the Figma "Tabs" frame (14:914).
+   Colours, text styles and radii are --patron-* variables from config/theme.js. */
+
+.tabs {
+  display: flex;
+  gap: 24px;
+  margin: 10px 20px 0;
+  border-bottom: 1px solid var(--patron-border-default);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 2px 12px;
+  /* The active tab's 2px underline sits on the strip's own border. */
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: var(--patron-type-body-medium);
+  letter-spacing: var(--patron-type-body-medium-tracking);
+  color: var(--patron-text-tertiary);
+  cursor: pointer;
+}
+
+.tab:hover {
+  color: var(--patron-text-primary);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-sm);
+}
+
+.active {
+  border-bottom-color: var(--patron-text-primary);
+  color: var(--patron-text-primary);
+}
+
+/* Figma's Chip/neutral, and Chip/accent on the active tab. */
+.chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.chipActive {
+  border-color: transparent;
+  background: var(--patron-accent-subtle);
+  color: var(--patron-accent-text);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
