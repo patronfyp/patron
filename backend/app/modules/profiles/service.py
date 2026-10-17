@@ -12,10 +12,10 @@ from app.core.uploads import FileKind, read_upload
 from app.modules.auth import repository as auth_repository
 from app.modules.auth.models import User
 from app.modules.verification import repository as verification_repository
-from app.modules.verification.models import VerificationKind
+from app.modules.verification.models import DocumentStatus, VerificationKind
 
 from . import repository
-from .models import Profile, onboarding_step_count
+from .models import REFERRER_ONBOARDING_STEP_COUNT, Profile, onboarding_step_count
 from .schemas import ProfileUpdate, PublicProfileRead, photo_url
 
 _PHOTO_TYPES = {FileKind.JPEG, FileKind.PNG}
@@ -109,14 +109,38 @@ async def update_profile(session: AsyncSession, user: User, payload: ProfileUpda
     return await repository.save(session, profile)
 
 
+async def _has_employer_proof(session: AsyncSession, user_id: uuid.UUID) -> bool:
+    """A verified work email, or an employment letter that hasn't been
+    rejected - pending ones count, as a person reviews them later."""
+    if await verification_repository.get_latest_verified(
+        session, user_id, VerificationKind.EMPLOYER
+    ):
+        return True
+    documents = await verification_repository.list_documents(session, user_id)
+    return any(
+        doc.kind == VerificationKind.EMPLOYER and doc.status != DocumentStatus.REJECTED
+        for doc in documents
+    )
+
+
 async def complete_onboarding(session: AsyncSession, user: User) -> Profile:
     """The "Finish setup" button. Only allowed from the last step, so the
-    wizard can't be marked done from the middle. Finishing twice is harmless."""
+    wizard can't be marked done from the middle. Finishing twice is harmless.
+
+    A referrer-only user must also have said where they work and proved it:
+    a referral is only worth something from someone who really works there.
+    """
     profile = await get_or_create_profile(session, user)
     if profile.onboarding_completed_at is not None:
         return profile
     if profile.onboarding_step != onboarding_step_count(user.roles):
         raise UnprocessableError("Finish every onboarding step first.")
+
+    if onboarding_step_count(user.roles) == REFERRER_ONBOARDING_STEP_COUNT:
+        if not profile.employer_name or not profile.job_title:
+            raise UnprocessableError("Add your company and job title first.")
+        if not await _has_employer_proof(session, user.id):
+            raise UnprocessableError("Verify your work email or upload an employment letter first.")
 
     profile.onboarding_completed_at = datetime.now(UTC)
     return await repository.save(session, profile)
