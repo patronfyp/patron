@@ -1,0 +1,63 @@
+/* The referrer's Employer step, Figma frame 67:505. Values are --patron-*
+   variables from config/theme.js. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+}
+
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+/* Figma Input/company: a 52px field, radius 10, showing the company's logo,
+   name and details. */
+.companySelect {
+  width: 100%;
+  min-height: 52px;
+  border-radius: var(--patron-radius-button);
+}
+
+.company {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.logo {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--patron-radius-md);
+  background: var(--patron-bg-inverse);
+  font: var(--patron-type-logo-initial-small);
+  letter-spacing: var(--patron-type-logo-initial-small-tracking);
+  color: var(--patron-text-inverse);
+}
+
+.companyText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.companyName {
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.companyMeta {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.error {
+  margin: 16px 0 0;
+  font: var(--patron-type-caption);
+  color: var(--patron-status-danger-text);
+}

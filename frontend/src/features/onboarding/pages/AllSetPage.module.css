@@ -23,6 +23,25 @@
   overflow: hidden;
 }
 
+/* The referrer's card is centred in the space below the progress, with no
+   glow behind it (Figma 67:814). */
+.bodyCentered {
+  align-items: center;
+  padding-top: 32px;
+}
+
+/* Edit settings and Review requests, side by side (67:812). */
+.actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+
+.actions > * {
+  flex: 1;
+  min-width: 0;
+}
+
 /* Figma's soft emerald glow behind the card (the Glow ellipse, 65:792). */
 .glow {
   position: absolute;
