@@ -9,29 +9,3 @@
 .fieldIcon {
   color: var(--patron-text-tertiary);
 }
-
-.upload {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.hint {
-  font: var(--patron-type-caption);
-  color: var(--patron-text-tertiary);
-}
-
-/* !important: antd's Form gives every input[type=file] display: block, with a
-   more specific selector than this class. */
-.fileInput {
-  display: none !important;
-}
-
-.pending {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: var(--patron-radius-lg);
-  background: var(--patron-status-warning-subtle);
-  font: var(--patron-type-body-s);
-  color: var(--patron-status-warning-text);
-}

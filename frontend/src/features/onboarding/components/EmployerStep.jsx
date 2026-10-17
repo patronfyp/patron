@@ -5,26 +5,10 @@ import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import sparkleIcon from '@/assets/icons/sparkle-16.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
+import { COMPANY_OPTIONS, findCompany } from '../companies'
+
 import EmailCodeVerification from './EmailCodeVerification'
 import styles from './EmployerStep.module.css'
-
-// Placeholder data: there is no company lookup API yet, so the companies and
-// their details below are fixed until the backend provides one.
-const COMPANIES = [
-  { name: 'Garner', domain: 'garner.com', size: '400 employees' },
-  { name: 'Systems Limited', domain: 'systemsltd.com', size: '5,000+ employees' },
-  { name: 'Arbisoft', domain: 'arbisoft.com', size: '900 employees' },
-  { name: '10Pearls', domain: '10pearls.com', size: '1,200 employees' },
-  { name: 'NetSol Technologies', domain: 'netsoltech.com', size: '1,800 employees' },
-  { name: 'Careem', domain: 'careem.com', size: '3,000 employees' },
-  { name: 'Afiniti', domain: 'afiniti.com', size: '1,000 employees' },
-  { name: 'Motive', domain: 'gomotive.com', size: '2,500 employees' },
-]
-
-const COMPANY_OPTIONS = COMPANIES.map((company) => ({
-  value: company.name,
-  label: company.name,
-}))
 
 /**
  * Step 4 - the employer and a work-email code (Figma 9:337).
@@ -35,7 +19,7 @@ const COMPANY_OPTIONS = COMPANIES.map((company) => ({
  */
 function EmployerStep({ isRequired, verifiedEmail }) {
   const employerName = Form.useWatch('employer_name')
-  const company = COMPANIES.find((item) => item.name === employerName)
+  const company = findCompany(employerName)
   // Only true once a work email on the company's own domain is verified -
   // choosing the company alone proves nothing.
   const isDomainMatched = Boolean(

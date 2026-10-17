@@ -1,0 +1,38 @@
+/* Figma Chip/accent and Chip/neutral (65:545, 67:591). Values are --patron-*
+   variables from config/theme.js. */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-pill);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-secondary);
+  cursor: pointer;
+}
+
+.chip:hover {
+  border-color: var(--patron-border-strong);
+}
+
+.picked,
+.picked:hover {
+  border-color: transparent;
+  background: var(--patron-accent-subtle);
+  color: var(--patron-accent-text);
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+}

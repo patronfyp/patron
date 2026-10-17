@@ -1,15 +1,12 @@
-import { useRef } from 'react'
-
-import { App, Button, Col, Form, Input, Row, Select } from 'antd'
+import { Col, Form, Input, Row, Select } from 'antd'
 
 import capIcon from '@/assets/icons/cap-16.svg'
 import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import fileIcon from '@/assets/icons/file-18.svg'
 import mailIcon from '@/assets/icons/mail-18.svg'
-import { useUploadVerificationDocument } from '@/features/verification'
-import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import Icon from '@/shared/components/Icon/Icon'
 
+import DocumentUpload from './DocumentUpload'
 import EmailCodeVerification from './EmailCodeVerification'
 import OptionCards from './OptionCards'
 import styles from './UniversityStep.module.css'
@@ -46,50 +43,6 @@ const GRADUATION_YEARS = Array.from({ length: LAST_YEAR - FIRST_YEAR + 1 }, (_, 
   const year = LAST_YEAR - index
   return { value: year, label: String(year) }
 })
-
-function DocumentUpload() {
-  const { message } = App.useApp()
-  const fileInput = useRef(null)
-  const upload = useUploadVerificationDocument()
-
-  function handlePicked(event) {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
-    upload.mutate(
-      { kind: 'university', file },
-      {
-        onError: (error) =>
-          message.error(getApiErrorMessage(error, 'Could not upload the file. Please try again.')),
-      },
-    )
-  }
-
-  if (upload.data) {
-    return (
-      <p className={styles.pending}>
-        <strong>{upload.data.filename}</strong> is uploaded and waiting for review.
-      </p>
-    )
-  }
-
-  return (
-    <div className={styles.upload}>
-      <Button onClick={() => fileInput.current?.click()} loading={upload.isPending}>
-        Upload transcript or degree
-      </Button>
-      <span className={styles.hint}>PDF, JPG or PNG, up to 5 MB.</span>
-      <input
-        ref={fileInput}
-        type="file"
-        accept="application/pdf,image/jpeg,image/png"
-        className={styles.fileInput}
-        onChange={handlePicked}
-        aria-label="Transcript or degree"
-      />
-    </div>
-  )
-}
 
 /**
  * Step 3 - university, degree, year and how to verify it (Figma 9:203).
@@ -185,11 +138,12 @@ function UniversityStep({ defaultEmail, verifiedEmail, hasPendingDocument }) {
       ) : null}
 
       {verificationMethod === 'registrar_record' ? (
-        hasPendingDocument ? (
-          <p className={styles.pending}>Your document is uploaded and waiting for review.</p>
-        ) : (
-          <DocumentUpload />
-        )
+        <DocumentUpload
+          kind="university"
+          buttonLabel="Upload transcript or degree"
+          inputLabel="Transcript or degree"
+          hasPendingDocument={hasPendingDocument}
+        />
       ) : null}
     </div>
   )
