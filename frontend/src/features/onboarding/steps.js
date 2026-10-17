@@ -50,3 +50,32 @@ export const STEPS = [
     subtitle: 'Last step. Tell us the roles and places you want, and we will do the matching.',
   },
 ]
+
+// The referrer's own three steps (Figma 67:505, 67:641), for a user whose only
+// role is referrer - the backend allows them three steps instead of seven.
+export const REFERRER_STEPS = [
+  STEPS[0],
+  {
+    key: 'referrerEmployer',
+    label: 'Employer',
+    title: 'Verify where you work',
+    subtitle:
+      'Referrals carry weight because they come from inside. Confirm your employer once and you are set.',
+  },
+  {
+    key: 'referring',
+    label: 'Referring',
+    title: 'How do you want to refer?',
+    subtitle: 'Set limits so requests never pile up. You can change these any time.',
+  },
+]
+
+/** True for a user who only refers - they get REFERRER_STEPS. */
+export function isReferrerOnly(roles) {
+  return roles?.length === 1 && roles[0] === 'referrer'
+}
+
+/** The wizard's steps for a user with these roles. */
+export function stepsFor(roles) {
+  return isReferrerOnly(roles) ? REFERRER_STEPS : STEPS
+}

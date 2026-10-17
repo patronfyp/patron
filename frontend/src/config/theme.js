@@ -95,7 +95,14 @@ export const trust = {
     tint: 'rgba(138, 71, 171, 0.12)',
     border: 'rgba(138, 71, 171, 0.28)',
   },
-  dv: { base: '#c08a17', subtle: '#fbf4e2', text: '#8a6209' },
+  // dv's badge border is 50%, not 28% - literal on the Referring frame (67:641).
+  dv: {
+    base: '#c08a17',
+    subtle: '#fbf4e2',
+    text: '#8a6209',
+    tint: 'rgba(192, 138, 23, 0.12)',
+    border: 'rgba(192, 138, 23, 0.5)',
+  },
 }
 
 /** Figma's Elevation/1-3 and Glow/Emerald effects, as CSS box-shadows. */
@@ -235,6 +242,8 @@ export const brand = {
   avatarLType: { size: 23, lineHeight: 28, weight: 600, tracking: -1 },
   // The letter in a 44px company logo tile (frame 9:337).
   logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
+  // The letter in a 32px company logo tile, in the referrer's company field (67:425).
+  logoInitialSmallType: { size: 16, lineHeight: 20, weight: 700, tracking: -4 },
   // The percentage inside the profile-strength ring (frame 65:790).
   ringType: { size: 15, lineHeight: 20, weight: 600, tracking: -3 },
   quoteType: { size: 30, lineHeight: 40, weight: 500, tracking: -1.5 },
@@ -296,6 +305,7 @@ export function cssVariables() {
   addType('logoSmall', brand.logoSmallType)
   addType('avatarL', brand.avatarLType)
   addType('logoInitial', brand.logoInitialType)
+  addType('logoInitialSmall', brand.logoInitialSmallType)
   addType('ring', brand.ringType)
   // Avatars without a photo, on and off the dark auth panel.
   vars['--patron-avatar-gradient'] = brand.avatarGradient

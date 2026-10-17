@@ -35,6 +35,12 @@
   color: var(--patron-trust-emp-base);
 }
 
+/* Double-Verified gold, the referrer's "Your reputation" tile (67:637). */
+.dv {
+  background: var(--patron-trust-dv-tint);
+  color: var(--patron-trust-dv-base);
+}
+
 .ai {
   background: var(--patron-ai-tint);
   color: var(--patron-ai-base);
@@ -64,6 +70,20 @@
   color: var(--patron-trust-emp-text);
 }
 
+.trust-dv {
+  border-color: var(--patron-trust-dv-border);
+  background: var(--patron-trust-dv-subtle);
+  color: var(--patron-trust-dv-text);
+}
+
+/* Figma Trust/emp and Trust/dv on the referrer frames: 26px, Caption/Semibold. */
+.trustLarge {
+  gap: 6px;
+  height: 26px;
+  padding: 0 9px;
+  font: var(--patron-type-caption-semibold);
+}
+
 /* The badge icon is the tier's base colour, the text its darker text colour. */
 .trust-alum :global(span[aria-hidden]) {
   color: var(--patron-trust-alum-base);
@@ -71,6 +91,10 @@
 
 .trust-emp :global(span[aria-hidden]) {
   color: var(--patron-trust-emp-base);
+}
+
+.trust-dv :global(span[aria-hidden]) {
+  color: var(--patron-trust-dv-base);
 }
 
 .title {

@@ -1,15 +1,15 @@
-import { DatePicker, Form, Input, Segmented, Select, Switch } from 'antd'
+import { DatePicker, Form, Input, Segmented, Select } from 'antd'
 
 import calendarIcon from '@/assets/icons/calendar.svg'
-import checkIcon from '@/assets/icons/check-12.svg'
 import chevronDownIcon from '@/assets/icons/chevron-down.svg'
-import plusIcon from '@/assets/icons/plus-12.svg'
 import xIcon from '@/assets/icons/x-12.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
 import { SALARY_RANGE_PATTERN } from '../validation'
 
 import styles from './PreferencesStep.module.css'
+import ToggleCard from './ToggleCard'
+import ToggleChips from './ToggleChips'
 
 // DesiredRole and WorkMode in backend/app/modules/profiles/models.py.
 const DESIRED_ROLES = [
@@ -37,54 +37,12 @@ const LOCATIONS = [
   'Remote',
 ].map((city) => ({ value: city, label: city }))
 
-/** Toggle chips - Figma Chip/accent (picked, with a tick) and Chip/neutral (+). */
-function RoleChips({ value = [], onChange, id }) {
-  function toggle(role) {
-    onChange?.(value.includes(role) ? value.filter((item) => item !== role) : [...value, role])
-  }
-
-  return (
-    <div className={styles.roles} id={id} role="group">
-      {DESIRED_ROLES.map((role) => {
-        const isPicked = value.includes(role.value)
-        return (
-          <button
-            key={role.value}
-            type="button"
-            className={`${styles.roleChip} ${isPicked ? styles.picked : ''}`}
-            aria-pressed={isPicked}
-            onClick={() => toggle(role.value)}
-          >
-            <Icon src={isPicked ? checkIcon : plusIcon} size={12} />
-            {role.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}
-
-/** The "Let verified referrers find me" card with its switch (Figma 65:527). */
-function VisibilityToggle({ value, onChange, id }) {
-  return (
-    <label className={styles.visibility} htmlFor={id}>
-      <span className={styles.visibilityText}>
-        <span className={styles.visibilityTitle}>Let verified referrers find me</span>
-        <span className={styles.visibilityHint}>
-          Alumni and employees can invite you to apply. Your current employer never sees you.
-        </span>
-      </span>
-      <Switch id={id} checked={value} onChange={onChange} />
-    </label>
-  )
-}
-
 /** Step 7 - what the user is looking for (Figma 65:545). */
 function PreferencesStep() {
   return (
     <div className={styles.fields}>
       <Form.Item name="desired_roles" label="Roles you want">
-        <RoleChips />
+        <ToggleChips options={DESIRED_ROLES} />
       </Form.Item>
 
       <Form.Item name="work_mode" label="Work mode">
@@ -146,7 +104,10 @@ function PreferencesStep() {
       </div>
 
       <Form.Item name="open_to_referrers" valuePropName="value">
-        <VisibilityToggle />
+        <ToggleCard
+          title="Let verified referrers find me"
+          hint="Alumni and employees can invite you to apply. Your current employer never sees you."
+        />
       </Form.Item>
     </div>
   )
