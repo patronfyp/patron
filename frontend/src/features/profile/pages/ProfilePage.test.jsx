@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -33,7 +34,7 @@ const PROFILE = {
 }
 
 function renderPage(path = '/profile/u-2') {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retryDelay: 0 } } })
   return render(
     <QueryClientProvider client={queryClient}>
       <AntApp>
@@ -155,5 +156,35 @@ describe('ProfilePage', () => {
     expect(screen.getByText('Nothing to verify yet.')).toBeInTheDocument()
     expect(screen.getByText('No skills added yet.')).toBeInTheDocument()
     expect(screen.queryByRole('img', { name: 'Verified' })).not.toBeInTheDocument()
+  })
+
+  it('shows a loading state while the profile loads', () => {
+    getPublicProfile.mockReturnValue(new Promise(() => {}))
+    renderPage()
+
+    expect(screen.getByRole('status', { name: 'Loading profile' })).toBeInTheDocument()
+  })
+
+  it.each([404, 422])('says the profile is not found on a %i', async (status) => {
+    getPublicProfile.mockRejectedValue(Object.assign(new Error('failed'), { response: { status } }))
+    renderPage()
+
+    expect(await screen.findByText('Profile not found')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to home' })).toHaveAttribute('href', '/')
+    expect(screen.queryByRole('button', { name: 'Retry' })).not.toBeInTheDocument()
+  })
+
+  it('offers a retry on a failure that might pass, and shows the profile once it does', async () => {
+    getPublicProfile.mockRejectedValueOnce(
+      Object.assign(new Error('failed'), { response: { status: 503 } }),
+    )
+    getPublicProfile.mockRejectedValueOnce(
+      Object.assign(new Error('failed'), { response: { status: 503 } }),
+    )
+    renderPage()
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Retry' }))
+
+    expect(await screen.findByRole('heading', { name: 'Sarah Chen' })).toBeInTheDocument()
   })
 })
