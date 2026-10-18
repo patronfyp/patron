@@ -10,6 +10,7 @@ import {
   SettingsPage,
 } from '@/features/auth'
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
+import { ProfilePage } from '@/features/profile'
 
 import App from '../../App'
 
@@ -30,6 +31,7 @@ export const router = createBrowserRouter([
       { path: 'onboarding', element: <OnboardingPage /> },
       { path: 'onboarding/done', element: <AllSetPage /> },
       { path: 'settings', element: <SettingsPage /> },
+      { path: 'profile/:userId', element: <ProfilePage /> },
       // Where sign-in and sign-up land; decides between onboarding and home.
       { path: 'start', element: <ResumeOnboardingRedirect /> },
     ],

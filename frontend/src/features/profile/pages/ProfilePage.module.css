@@ -1,0 +1,45 @@
+/* Candidate · Profile, Figma 14:2 (the page area: 28px between the identity
+   card and the columns, 24px between the columns, 20px between their cards).
+   Values are --patron-* variables from config/theme.js. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1188px;
+  margin: 0 auto;
+  padding: 28px 40px 56px;
+}
+
+.columns {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 20px;
+  width: 340px;
+}
+
+@media (max-width: 960px) {
+  .columns {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .side {
+    width: auto;
+  }
+}

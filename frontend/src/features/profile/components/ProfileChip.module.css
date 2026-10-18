@@ -1,0 +1,69 @@
+/* Chips, Figma Candidate · Profile (14:2). Values are --patron-* variables from
+   config/theme.js. */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: var(--patron-radius-sm);
+  font: var(--patron-type-caption-medium);
+  white-space: nowrap;
+}
+
+.large {
+  height: 26px;
+}
+
+/* Trust/alum, Trust/emp: a tinted border and a semibold label. */
+.trust {
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid;
+  font: var(--patron-type-caption-semibold);
+}
+
+.success {
+  background: var(--patron-status-success-subtle);
+  color: var(--patron-status-success-text);
+}
+
+.warning {
+  background: var(--patron-status-warning-subtle);
+  color: var(--patron-status-warning-text);
+}
+
+.accent {
+  background: var(--patron-accent-subtle);
+  color: var(--patron-accent-text);
+}
+
+/* Chip/neutral: a skill. 26px high with a hairline border (14:319). */
+.neutral {
+  padding: 0 9px;
+  border: 1px solid var(--patron-border-default);
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+}
+
+.alum {
+  background: var(--patron-trust-alum-subtle);
+  border-color: var(--patron-trust-alum-border);
+  color: var(--patron-trust-alum-text);
+}
+
+.emp {
+  background: var(--patron-trust-emp-subtle);
+  border-color: var(--patron-trust-emp-border);
+  color: var(--patron-trust-emp-text);
+}
+
+/* The tier icon is the tier's base colour, the label its darker text colour. */
+.alum .icon {
+  color: var(--patron-trust-alum-base);
+}
+
+.emp .icon {
+  color: var(--patron-trust-emp-base);
+}

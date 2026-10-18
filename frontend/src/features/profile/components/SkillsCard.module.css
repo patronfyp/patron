@@ -1,0 +1,15 @@
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.empty {
+  margin: 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  color: var(--patron-text-tertiary);
+}

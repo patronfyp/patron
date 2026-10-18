@@ -1,0 +1,66 @@
+/* Experience rows, Figma Candidate · Profile (14:209). Values are --patron-*
+   variables from config/theme.js. */
+
+.rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  gap: 14px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+/* The company logo tile. Figma tints each one with the company's own colours;
+   there is no logo or colour in the data, so every tile is the dark neutral. */
+.logo {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--patron-radius-logo);
+  background: var(--patron-bg-inverse);
+  font: var(--patron-type-logo-initial);
+  letter-spacing: var(--patron-type-logo-initial-tracking);
+  color: var(--patron-text-inverse);
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+}
+
+.detail {
+  margin: 0;
+  font: var(--patron-type-body-s);
+  color: var(--patron-text-secondary);
+}
+
+.empty {
+  margin: 12px 0 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  color: var(--patron-text-tertiary);
+}
