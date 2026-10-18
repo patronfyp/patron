@@ -4,6 +4,8 @@ import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAuthStore } from '@/features/auth'
+
 import { getPublicProfile } from '../api/profile.api'
 
 import ProfilePage from './ProfilePage'
@@ -51,6 +53,7 @@ const verification = () =>
 describe('ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    useAuthStore.setState({ user: null })
     getPublicProfile.mockResolvedValue(PROFILE)
   })
 
@@ -89,6 +92,21 @@ describe('ProfilePage', () => {
     expect(rows.getByText('Employer · Garner')).toBeInTheDocument()
     expect(rows.getAllByText('Not verified')).toHaveLength(1)
     expect(rows.getAllByText('Verified')).toHaveLength(1)
+  })
+
+  it('offers "Edit profile" on your own profile', async () => {
+    useAuthStore.setState({ user: { id: 'u-2' } })
+    renderPage('/profile/u-2')
+
+    expect(await screen.findByRole('button', { name: 'Edit profile' })).toBeInTheDocument()
+  })
+
+  it('does not offer "Edit profile" on someone else\'s profile', async () => {
+    useAuthStore.setState({ user: { id: 'someone-else' } })
+    renderPage('/profile/u-2')
+
+    await screen.findByRole('heading', { name: 'Sarah Chen' })
+    expect(screen.queryByRole('button', { name: 'Edit profile' })).not.toBeInTheDocument()
   })
 
   it('lists the skills', async () => {

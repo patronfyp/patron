@@ -75,8 +75,10 @@
   padding-bottom: 8px;
 }
 
-/* Button/secondary on this frame: 40px high, radius 8 (14:148). */
-.share {
+/* Button/secondary and Button/dark on this frame: 40px high, radius 8 (14:148,
+   14:157). */
+.share,
+.edit {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -86,6 +88,17 @@
   font: var(--patron-type-body-semibold);
   letter-spacing: var(--patron-type-body-semibold-tracking);
   color: var(--patron-text-primary);
+}
+
+.share {
+  color: var(--patron-text-primary);
+}
+
+/* The dark button stays dark on hover; antd's primary would turn it green. */
+.actions .edit,
+.actions .edit:not(:disabled):hover {
+  background: var(--patron-bg-inverse);
+  color: var(--patron-text-inverse);
 }
 
 .text {

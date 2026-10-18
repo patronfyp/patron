@@ -1,6 +1,8 @@
 import { Alert, Flex, Spin } from 'antd'
 import { useParams } from 'react-router-dom'
 
+import { useAuthStore } from '@/features/auth'
+
 import AboutCard from '../components/AboutCard'
 import ExperienceCard from '../components/ExperienceCard'
 import ProfileHeader from '../components/ProfileHeader'
@@ -13,6 +15,7 @@ import styles from './ProfilePage.module.css'
 /** `/profile/:userId` - someone's public profile (Figma "Candidate · Profile", 14:2). */
 function ProfilePage() {
   const { userId } = useParams()
+  const currentUserId = useAuthStore((state) => state.user?.id)
   const { data: profile, isPending, isError } = usePublicProfile(userId)
 
   if (isPending) {
@@ -33,7 +36,7 @@ function ProfilePage() {
 
   return (
     <div className={styles.page}>
-      <ProfileHeader profile={profile} />
+      <ProfileHeader profile={profile} isOwn={userId === currentUserId} />
       <div className={styles.columns}>
         <div className={styles.main}>
           <AboutCard bio={profile.bio} />

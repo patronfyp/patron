@@ -113,6 +113,8 @@ export const elevation = {
   glow: '0 10px 32px rgba(18, 160, 107, 0.35)',
   // Candidate · Profile (14:2): the hairline under a secondary button and a card.
   button: '0 0 0 rgba(34, 38, 43, 0.04), 0 1px 1px rgba(34, 38, 43, 0.05)',
+  // Button/dark (14:157) and Button/primary: the drop shadow plus a 1px highlight.
+  buttonPrimary: '0 1px 1px rgba(33, 38, 43, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
 }
 
 /** antd ConfigProvider theme - the 2.0 tokens mapped onto antd's seed tokens. */
@@ -163,7 +165,7 @@ export const theme = {
       borderRadiusSM: 10,
       borderRadiusLG: 10,
       fontWeight: 600,
-      primaryShadow: '0 1px 1px rgba(33, 38, 43, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
+      primaryShadow: elevation.buttonPrimary,
       defaultShadow: elevation.button,
     },
     // Figma "Keep me signed in" checkbox: radius 5.

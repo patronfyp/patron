@@ -1,4 +1,5 @@
 import { App, Button } from 'antd'
+import { useNavigate } from 'react-router-dom'
 
 import coverGlow from '@/assets/brand/profile-cover-glow.svg'
 import coverGrid from '@/assets/brand/profile-cover-grid.svg'
@@ -6,6 +7,7 @@ import building14Icon from '@/assets/icons/building-14.svg'
 import capIcon from '@/assets/icons/cap-14.svg'
 import checkIcon from '@/assets/icons/check-14.svg'
 import clock12Icon from '@/assets/icons/clock-12.svg'
+import penIcon from '@/assets/icons/pen-16.svg'
 import shareIcon from '@/assets/icons/share-16.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
@@ -50,9 +52,11 @@ function TrustChips({ profile }) {
  *
  * @param {object} props
  * @param {import('../api/profile.api').PublicProfile} props.profile
+ * @param {boolean} [props.isOwn] - adds "Edit profile", for the signed-in person's own profile
  */
-function ProfileHeader({ profile }) {
+function ProfileHeader({ profile, isOwn = false }) {
   const { message } = App.useApp()
+  const navigate = useNavigate()
   const photo = profilePhoto(profile)
   const isVerified = profile.university_verified || profile.employer_verified
 
@@ -82,6 +86,16 @@ function ProfileHeader({ profile }) {
               <Icon src={shareIcon} size={16} />
               Share profile
             </Button>
+            {isOwn ? (
+              <Button
+                type="primary"
+                className={styles.edit}
+                onClick={() => navigate('/profile/edit')}
+              >
+                <Icon src={penIcon} size={16} />
+                Edit profile
+              </Button>
+            ) : null}
           </div>
         </div>
 
