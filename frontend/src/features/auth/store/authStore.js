@@ -70,7 +70,13 @@ export const useAuthStore = create(
       setAccessToken: (accessToken) => set({ accessToken }),
       // Used after POST /auth/role - only the user record changed, not the tokens.
       setUser: (user) => set({ user }),
-      clearSession: () => set({ user: null, accessToken: null, refreshToken: null }),
+      // persist's own setItem only ever writes the current state, never
+      // removes the key - without clearStorage() a "cleared" session would
+      // still leave a {user: null, refreshToken: null, ...} row behind.
+      clearSession: () => {
+        set({ user: null, accessToken: null, refreshToken: null, keepSignedIn: true })
+        useAuthStore.persist.clearStorage()
+      },
     }),
     {
       name: 'patron-auth',
