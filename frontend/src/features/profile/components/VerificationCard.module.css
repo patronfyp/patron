@@ -1,0 +1,64 @@
+/* Verification rows, Figma Candidate · Profile (14:284). Values are --patron-*
+   variables from config/theme.js. */
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font: var(--patron-type-body-s-semibold);
+  letter-spacing: var(--patron-type-body-s-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.detail {
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+/* The row icon's colour is its state: the Figma icons are these exact colours. */
+.success {
+  color: var(--patron-status-success);
+}
+
+.warning {
+  color: var(--patron-status-warning);
+}
+
+.accent {
+  color: var(--patron-accent-primary);
+}
+
+.empty {
+  margin: 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  color: var(--patron-text-tertiary);
+}

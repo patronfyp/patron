@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { setRole } from '../api/auth.api'
 import { useAuthStore } from '../store/authStore'
@@ -31,6 +31,10 @@ function renderPage() {
 }
 
 describe('SelectRolePage', () => {
+  beforeEach(() => {
+    sessionStorage.clear()
+  })
+
   afterEach(() => {
     useAuthStore.setState({ user: null, accessToken: null, refreshToken: null })
     vi.clearAllMocks()
@@ -47,6 +51,27 @@ describe('SelectRolePage', () => {
 
     const options = screen.getAllByRole('radio').map((radio) => radio.value)
     expect(options).toEqual(['candidate', 'referrer', 'recruiter'])
+  })
+
+  it('pre-selects the role remembered from Create account (#75)', () => {
+    sessionStorage.setItem('patron:picked-role', 'recruiter')
+
+    renderPage()
+
+    expect(screen.getByRole('radio', { name: /hire talent/i })).toBeChecked()
+    expect(screen.getByRole('button', { name: 'Continue' })).toBeEnabled()
+  })
+
+  it('forgets the remembered role once it is saved', async () => {
+    sessionStorage.setItem('patron:picked-role', 'recruiter')
+    const user = userEvent.setup()
+    setRole.mockResolvedValue({ id: 'user-1', email: 'jane@example.com', roles: ['recruiter'] })
+
+    renderPage()
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    await screen.findByText('Home screen')
+    expect(sessionStorage.getItem('patron:picked-role')).toBeNull()
   })
 
   it('saves the chosen role and navigates home', async () => {

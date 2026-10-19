@@ -8,7 +8,7 @@ import styles from './StepAside.module.css'
  *
  * @param {object} props
  * @param {string} props.icon - an imported .svg, drawn in the tile at the top
- * @param {'accent' | 'alum' | 'emp' | 'ai'} [props.tone] - the tile's colour
+ * @param {'accent' | 'alum' | 'emp' | 'dv' | 'ai'} [props.tone] - the tile's colour
  *   family: green, or the trust tier / AI colour the step is about
  * @param {string} props.title
  * @param {string} props.text
@@ -41,13 +41,16 @@ export function AsideChip({ icon, children }) {
  * A trust-tier badge, e.g. "Verified Alumni" in plum (Figma Trust/alum).
  *
  * @param {object} props
- * @param {'alum' | 'emp'} props.tier
+ * @param {'alum' | 'emp' | 'dv'} props.tier
  * @param {string} props.icon
+ * @param {boolean} [props.large] - the 26px badge on the referrer frames (67:491, 67:632)
  */
-export function TrustBadge({ tier, icon, children }) {
+export function TrustBadge({ tier, icon, large = false, children }) {
   return (
-    <span className={`${styles.trust} ${styles[`trust-${tier}`]}`}>
-      <Icon src={icon} size={12} />
+    <span
+      className={`${styles.trust} ${styles[`trust-${tier}`]} ${large ? styles.trustLarge : ''}`}
+    >
+      <Icon src={icon} size={large ? 14 : 12} />
       {children}
     </span>
   )

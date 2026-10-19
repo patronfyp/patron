@@ -13,7 +13,7 @@ const pad = (number) => String(number).padStart(2, '0')
 
 /**
  * The frame every onboarding step sits in - the Figma onboarding frames
- * (65:53 ... 65:545): top bar, 7-step progress, the step's own content, an
+ * (65:53 ... 65:545) and the referrer's (67:505, 67:641): top bar, progress, the step's own content, an
  * info card beside it, and the Back / Continue row.
  *
  * @param {object} props
@@ -28,8 +28,12 @@ const pad = (number) => String(number).padStart(2, '0')
  * @param {() => void} props.onBack
  * @param {() => void} props.onContinue
  * @param {() => void} props.onSaveExit
+ * @param {{ key: string, label: string }[]} [props.steps] - defaults to the candidate's seven
+ * @param {string} [props.chip] - beside the logo, e.g. "Referrer"
  */
 function WizardShell({
+  steps = STEPS,
+  chip,
   step,
   title,
   subtitle,
@@ -42,13 +46,15 @@ function WizardShell({
   onContinue,
   onSaveExit,
 }) {
-  const current = STEPS[step - 1]
+  const current = steps[step - 1]
 
   return (
     <div className={styles.screen}>
       <WizardHeader
+        steps={steps}
+        chip={chip}
         step={step}
-        label={`Step ${step} of ${STEPS.length} · ${current.label}`}
+        label={`Step ${step} of ${steps.length} · ${current.label}`}
         action={
           <Button type="text" size="small" className={styles.ghost} onClick={onSaveExit}>
             Save &amp; exit

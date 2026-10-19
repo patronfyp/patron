@@ -99,7 +99,14 @@ export const trust = {
     tint: 'rgba(138, 71, 171, 0.12)',
     border: 'rgba(138, 71, 171, 0.28)',
   },
-  dv: { base: '#c08a17', subtle: '#fbf4e2', text: '#8a6209' },
+  // dv's badge border is 50%, not 28% - literal on the Referring frame (67:641).
+  dv: {
+    base: '#c08a17',
+    subtle: '#fbf4e2',
+    text: '#8a6209',
+    tint: 'rgba(192, 138, 23, 0.12)',
+    border: 'rgba(192, 138, 23, 0.5)',
+  },
 }
 
 /** Figma's Elevation/1-3 and Glow/Emerald effects, as CSS box-shadows. */
@@ -108,6 +115,10 @@ export const elevation = {
   2: '0 2px 4px rgba(34, 38, 43, 0.04), 0 8px 20px rgba(34, 38, 43, 0.07)',
   3: '0 4px 10px rgba(34, 38, 43, 0.06), 0 24px 48px rgba(34, 38, 43, 0.14)',
   glow: '0 10px 32px rgba(18, 160, 107, 0.35)',
+  // Candidate · Profile (14:2): the hairline under a secondary button and a card.
+  button: '0 0 0 rgba(34, 38, 43, 0.04), 0 1px 1px rgba(34, 38, 43, 0.05)',
+  // Button/dark (14:157) and Button/primary: the drop shadow plus a 1px highlight.
+  buttonPrimary: '0 1px 1px rgba(33, 38, 43, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
 }
 
 /** antd ConfigProvider theme - the 2.0 tokens mapped onto antd's seed tokens. */
@@ -158,8 +169,8 @@ export const theme = {
       borderRadiusSM: 10,
       borderRadiusLG: 10,
       fontWeight: 600,
-      primaryShadow: '0 1px 1px rgba(33, 38, 43, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.16)',
-      defaultShadow: '0 0 0 rgba(34, 38, 43, 0.04), 0 1px 1px rgba(34, 38, 43, 0.05)',
+      primaryShadow: elevation.buttonPrimary,
+      defaultShadow: elevation.button,
     },
     // Figma "Keep me signed in" checkbox: radius 5.
     Checkbox: { borderRadiusSM: 5 },
@@ -218,12 +229,6 @@ export const typography = {
 }
 
 /**
- * The signed-in user's own avatar (Top Navigation, 7:603): accent/brand to
- * accent/text. Other people's avatars use their own colour; see `brand`.
- */
-export const userAvatarGradient = `linear-gradient(135deg, ${tokens.accent.brand} 0%, ${tokens.accent.text} 100%)`
-
-/**
  * Colours for the dark hero panel on the auth screens. Not fed into antd's
  * ConfigProvider: they colour one panel, and antd components must not inherit
  * them.
@@ -238,6 +243,10 @@ export const brand = {
   chipBg: 'rgba(255, 255, 255, 0.08)', // Chip/dark fill
   chipBorder: 'rgba(255, 255, 255, 0.12)', // Chip/dark stroke
   avatarGradient: 'linear-gradient(135deg, rgb(180, 70, 106) 0%, rgb(217, 122, 152) 100%)',
+  // The signed-in user's avatar: Top Navigation (7:603) and Candidate · Profile
+  // (14:147). accent/brand to accent/text.
+  avatarAccentGradient: `linear-gradient(135deg, ${tokens.accent.brand} 0%, ${tokens.accent.text} 100%)`,
+  avatarXlType: { size: 40, lineHeight: 48, weight: 600, tracking: -1 },
   // Text on the panel that doesn't use a named Figma text style.
   logoType: { size: 19, lineHeight: 25, weight: 700, tracking: 4 },
   // The smaller logo in the onboarding top bar (frame 65:53).
@@ -248,6 +257,8 @@ export const brand = {
   avatarMType: { size: 13, lineHeight: 16, weight: 600, tracking: -1 },
   // The letter in a 44px company logo tile (frame 9:337).
   logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
+  // The letter in a 32px company logo tile, in the referrer's company field (67:425).
+  logoInitialSmallType: { size: 16, lineHeight: 20, weight: 700, tracking: -4 },
   // The percentage inside the profile-strength ring (frame 65:790).
   ringType: { size: 15, lineHeight: 20, weight: 600, tracking: -3 },
   quoteType: { size: 30, lineHeight: 40, weight: 500, tracking: -1.5 },
@@ -312,10 +323,12 @@ export function cssVariables() {
   addType('avatarL', brand.avatarLType)
   addType('avatarM', brand.avatarMType)
   addType('logoInitial', brand.logoInitialType)
+  addType('logoInitialSmall', brand.logoInitialSmallType)
   addType('ring', brand.ringType)
+  addType('avatarXl', brand.avatarXlType)
   // Avatars without a photo, on and off the dark auth panel.
   vars['--patron-avatar-gradient'] = brand.avatarGradient
-  vars['--patron-avatar-user-gradient'] = userAvatarGradient
+  vars['--patron-avatar-gradient-accent'] = brand.avatarAccentGradient
   addType('quote', brand.quoteType)
   return vars
 }

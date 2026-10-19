@@ -1,0 +1,32 @@
+/* Card, Figma Candidate · Profile (14:194, 14:317). Values are --patron-*
+   variables from config/theme.js. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--patron-border-default);
+  background: var(--patron-bg-surface);
+}
+
+.main {
+  border-radius: var(--patron-radius-card);
+  box-shadow: var(--patron-elevation-button);
+}
+
+.side {
+  gap: 14px;
+  border-radius: var(--patron-radius-xl);
+}
+
+.tight {
+  gap: 0;
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+}

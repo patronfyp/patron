@@ -1,15 +1,20 @@
 """Tests for GET and PATCH /api/v1/profile/me - Modules 1.4 and 1.5."""
 
+from conftest import MemoryStorage
 from httpx import AsyncClient
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
 PROFILE_URL = "/api/v1/profile/me"
+DOCUMENTS_URL = "/api/v1/verification/documents"
 
 _PASSWORD = "secret123"
+_PDF = b"%PDF-1.7\n" + b"employment-letter"
 
 
-async def _sign_in(client: AsyncClient, email: str = "profile-test@example.com") -> dict:
+async def _sign_in(
+    client: AsyncClient, email: str = "profile-test@example.com", role: str = "candidate"
+) -> dict:
     """Register a user, log in, and return the Authorization header."""
     await client.post(
         REGISTER_URL,
@@ -17,7 +22,7 @@ async def _sign_in(client: AsyncClient, email: str = "profile-test@example.com")
             "email": email,
             "password": _PASSWORD,
             "full_name": "Profile Test",
-            "role": "candidate",
+            "role": role,
         },
     )
     login = await client.post(LOGIN_URL, json={"email": email, "password": _PASSWORD})
@@ -58,6 +63,12 @@ async def test_first_read_returns_an_empty_profile_at_step_one(
         "salary_max": None,
         "available_from": None,
         "open_to_referrers": True,
+        "job_title": None,
+        "team": None,
+        "referral_teams": [],
+        "monthly_referral_limit": 5,
+        "accept_alumni_requests": True,
+        "accept_any_verified_requests": False,
         "onboarding_step": 1,
         "onboarding_completed": False,
     }
@@ -344,6 +355,115 @@ async def test_finishing_onboarding_on_the_last_step(
     assert finished.status_code == 200
     assert finished.json()["onboarding_completed"] is True
     assert again.status_code == 200
+
+
+async def test_referring_settings_are_saved(client: AsyncClient, clean_users_table: None) -> None:
+    headers = await _sign_in(client, role="referrer")
+
+    response = await client.patch(
+        PROFILE_URL,
+        headers=headers,
+        json={
+            "employer_name": "Garner",
+            "job_title": "  Senior Software Engineer ",
+            "team": "Payments Platform",
+            "referral_teams": ["backend", "full_stack", "backend"],
+            "monthly_referral_limit": None,
+            "accept_alumni_requests": False,
+            "accept_any_verified_requests": True,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["job_title"] == "Senior Software Engineer"
+    assert body["team"] == "Payments Platform"
+    assert body["referral_teams"] == ["backend", "full_stack"]
+    assert body["monthly_referral_limit"] is None
+    assert body["accept_alumni_requests"] is False
+    assert body["accept_any_verified_requests"] is True
+
+
+async def test_unknown_referring_choices_are_rejected(
+    client: AsyncClient, clean_users_table: None
+) -> None:
+    headers = await _sign_in(client, role="referrer")
+
+    team = await client.patch(PROFILE_URL, headers=headers, json={"referral_teams": ["sales"]})
+    limit = await client.patch(PROFILE_URL, headers=headers, json={"monthly_referral_limit": 7})
+
+    assert team.status_code == 422
+    assert limit.status_code == 422
+
+
+async def _referrer_on_last_step(client: AsyncClient) -> dict:
+    """A referrer-only user on step 3 who has said where they work."""
+    headers = await _sign_in(client, role="referrer")
+    await client.patch(
+        PROFILE_URL,
+        headers=headers,
+        json={"employer_name": "Garner", "job_title": "Engineer", "onboarding_step": 2},
+    )
+    await client.patch(PROFILE_URL, headers=headers, json={"onboarding_step": 3})
+    return headers
+
+
+async def _upload_employment_letter(client: AsyncClient, headers: dict) -> None:
+    await client.post(
+        DOCUMENTS_URL,
+        headers=headers,
+        data={"kind": "employer"},
+        files={"file": ("letter.pdf", _PDF, "application/pdf")},
+    )
+
+
+async def test_a_referrer_only_wizard_has_three_steps(
+    client: AsyncClient, clean_users_table: None, storage: MemoryStorage
+) -> None:
+    headers = await _referrer_on_last_step(client)
+    await _upload_employment_letter(client, headers)
+
+    too_far = await client.patch(PROFILE_URL, headers=headers, json={"onboarding_step": 4})
+    finished = await client.post(f"{PROFILE_URL}/onboarding/complete", headers=headers)
+
+    assert too_far.status_code == 422
+    assert finished.status_code == 200
+    assert finished.json()["onboarding_completed"] is True
+
+
+async def test_a_referrer_cannot_finish_without_employer_proof(
+    client: AsyncClient, clean_users_table: None
+) -> None:
+    headers = await _referrer_on_last_step(client)
+
+    response = await client.post(f"{PROFILE_URL}/onboarding/complete", headers=headers)
+
+    assert response.status_code == 422
+    assert "work email" in response.json()["detail"]
+
+
+async def test_a_referrer_cannot_finish_without_a_job_title(
+    client: AsyncClient, clean_users_table: None, storage: MemoryStorage
+) -> None:
+    headers = await _referrer_on_last_step(client)
+    await _upload_employment_letter(client, headers)
+    await client.patch(PROFILE_URL, headers=headers, json={"job_title": None})
+
+    response = await client.post(f"{PROFILE_URL}/onboarding/complete", headers=headers)
+
+    assert response.status_code == 422
+
+
+async def test_a_candidate_cannot_finish_on_step_three(
+    client: AsyncClient, clean_users_table: None
+) -> None:
+    headers = await _sign_in(client)
+    for step in (2, 3):
+        await client.patch(PROFILE_URL, headers=headers, json={"onboarding_step": step})
+
+    response = await client.post(f"{PROFILE_URL}/onboarding/complete", headers=headers)
+
+    assert response.status_code == 422
 
 
 async def test_users_only_see_their_own_profile(

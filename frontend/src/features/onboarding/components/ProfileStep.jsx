@@ -8,10 +8,10 @@ import linkedinIcon from '@/assets/icons/linkedin-16.svg'
 import pinIcon from '@/assets/icons/pin.svg'
 import uploadIcon from '@/assets/icons/upload.svg'
 import { useAuthStore } from '@/features/auth'
+import { fileUrl } from '@/shared/api/fileUrl'
 import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { fileUrl } from '../api/onboarding.api'
 import { useRemovePhoto, useUploadPhoto } from '../hooks/useProfile'
 import { LINKEDIN_PATTERN } from '../validation'
 

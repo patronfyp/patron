@@ -1,14 +1,16 @@
 import { useCallback, useMemo, useState } from 'react'
 
 import { App, Button, ConfigProvider, Flex, Form, Result, Spin } from 'antd'
-import dayjs from 'dayjs'
 import { useNavigate } from 'react-router-dom'
 
+import awardIcon from '@/assets/icons/award-20.svg'
 import building12Icon from '@/assets/icons/building-12.svg'
+import building14Icon from '@/assets/icons/building-14.svg'
 import building20Icon from '@/assets/icons/building-20.svg'
 import cap12Icon from '@/assets/icons/cap-12.svg'
 import cap20Icon from '@/assets/icons/cap-20.svg'
 import check11Icon from '@/assets/icons/check-11.svg'
+import diamondIcon from '@/assets/icons/diamond-14.svg'
 import lockIcon from '@/assets/icons/lock-20.svg'
 import shieldIcon from '@/assets/icons/shield-20.svg'
 import sparkleIcon from '@/assets/icons/sparkle-20.svg'
@@ -25,67 +27,17 @@ import CvStep from '../components/CvStep'
 import EmployerStep from '../components/EmployerStep'
 import PreferencesStep from '../components/PreferencesStep'
 import ProfileStep from '../components/ProfileStep'
+import ReferrerEmployerStep from '../components/ReferrerEmployerStep'
+import ReferringStep from '../components/ReferringStep'
 import SkillsStep from '../components/SkillsStep'
 import StepAside, { AsideChecklist, AsideChip, TrustBadge } from '../components/StepAside'
 import UniversityStep from '../components/UniversityStep'
 import WizardShell from '../components/WizardShell'
 import { useCompleteOnboarding, useProfile, useUpdateProfile } from '../hooks/useProfile'
 import { StepControlsContext } from '../hooks/useStepControls'
-import { STEPS } from '../steps'
-import { LINKEDIN_PATTERN, formatSalaryRange, parseSalaryRange } from '../validation'
-
-// The plain fields PATCH /profile/me accepts - it rejects unknown ones, and the
-// form also holds UI-only values (the verification method). `salary_range`
-// and `available_from` need converting, so they are handled separately.
-const PROFILE_FIELDS = [
-  'headline',
-  'city',
-  'phone',
-  'linkedin_url',
-  'bio',
-  'university',
-  'degree',
-  'graduation_year',
-  'employer_name',
-  'skills',
-  'primary_role',
-  'desired_roles',
-  'work_mode',
-  'preferred_locations',
-  'open_to_referrers',
-]
-
-/** The saved profile as the form's starting values. */
-function toFormValues(profile) {
-  return {
-    ...Object.fromEntries(PROFILE_FIELDS.map((field) => [field, profile[field] ?? undefined])),
-    salary_range: formatSalaryRange(profile.salary_min, profile.salary_max),
-    available_from: profile.available_from ? dayjs(profile.available_from) : undefined,
-  }
-}
-
-// Only the fields on screen are in `values`; an emptied one is sent as null
-// so clearing it in the form clears it on the profile too.
-function toProfileChanges(values) {
-  const changes = Object.fromEntries(
-    PROFILE_FIELDS.filter((field) => field in values).map((field) => [
-      field,
-      values[field] === '' ? null : (values[field] ?? null),
-    ]),
-  )
-  if ('salary_range' in values) Object.assign(changes, parseSalaryRange(values.salary_range))
-  if ('available_from' in values) {
-    changes.available_from = values.available_from?.format('YYYY-MM-01') ?? null
-  }
-  // Lists can't be null - an emptied one is sent as [].
-  for (const field of ['skills', 'desired_roles', 'preferred_locations']) {
-    if (field in changes && changes[field] === null) changes[field] = []
-  }
-  if ('open_to_referrers' in changes && changes.open_to_referrers === null) {
-    delete changes.open_to_referrers
-  }
-  return changes
-}
+import { toFormValues, toProfileChanges } from '../profileForm'
+import { isReferrerOnly, stepsFor } from '../steps'
+import { LINKEDIN_PATTERN } from '../validation'
 
 /**
  * @param {object} props
@@ -98,8 +50,12 @@ function OnboardingWizard({ profile }) {
   const updateProfile = useUpdateProfile()
   const completeOnboarding = useCompleteOnboarding()
   const { data: status } = useVerificationStatus()
+  // A referrer-only user gets the three referrer steps; everyone else seven.
+  const roles = useAuthStore((state) => state.user?.roles)
+  const referrerOnly = isReferrerOnly(roles)
+  const flow = stepsFor(roles)
   // Resume where the user left off; after this, the wizard owns the position.
-  const [step, setStep] = useState(profile.onboarding_step)
+  const [step, setStep] = useState(Math.min(profile.onboarding_step, flow.length))
   const [useAccountEmailForUniversity, setUseAccountEmailForUniversity] = useState(true)
   const [beforeContinue, setBeforeContinue] = useState(null)
   const [stepContinueLabel, setStepContinueLabel] = useState(null)
@@ -112,8 +68,8 @@ function OnboardingWizard({ profile }) {
   const headline = Form.useWatch('headline', form)
   const linkedin = Form.useWatch('linkedin_url', form)
 
-  const current = STEPS[step - 1]
-  const isLastStep = step === STEPS.length
+  const current = flow[step - 1]
+  const isLastStep = step === flow.length
   const isSaving = updateProfile.isPending || completeOnboarding.isPending || isCheckingStep
 
   const stepControls = useMemo(
@@ -237,6 +193,43 @@ function OnboardingWizard({ profile }) {
         />
       ),
     },
+    referrerEmployer: {
+      render: () => (
+        <ReferrerEmployerStep
+          verifiedEmail={status?.employer_email?.email ?? null}
+          hasPendingDocument={hasPendingDocument('employer')}
+        />
+      ),
+      aside: (
+        <StepAside
+          icon={building20Icon}
+          tone="emp"
+          title="Why verify your employer?"
+          text="Candidates only trust a referral from someone who really works there. Your Employee badge shows on every referral you send."
+        >
+          <TrustBadge tier="emp" icon={building14Icon} large>
+            Employee Referral
+          </TrustBadge>
+        </StepAside>
+      ),
+    },
+    referring: {
+      render: () => (
+        <ReferringStep verifiedUniversity={status?.university_email ? profile.university : null} />
+      ),
+      aside: (
+        <StepAside
+          icon={awardIcon}
+          tone="dv"
+          title="Your reputation"
+          text="Referrers who reply within 48 hours and refer strong matches earn the Double-Verified gold badge."
+        >
+          <TrustBadge tier="dv" icon={diamondIcon} large>
+            Double-Verified
+          </TrustBadge>
+        </StepAside>
+      ),
+    },
   }
   const view = steps[current.key]
 
@@ -299,6 +292,8 @@ function OnboardingWizard({ profile }) {
     <StepControlsContext.Provider value={stepControls}>
       <ConfigProvider theme={wizardTheme}>
         <WizardShell
+          steps={flow}
+          chip={referrerOnly ? 'Referrer' : undefined}
           step={step}
           title={current.title}
           subtitle={current.subtitle}
@@ -329,8 +324,12 @@ function OnboardingWizard({ profile }) {
 
 function OnboardingPage() {
   const { data: profile, isPending, isError, refetch } = useProfile()
+  // Waited for too: the steps pick their starting verification method from
+  // it (an uploaded document means "document"), and a form's initial values
+  // are only read once. A failed status load doesn't block the wizard.
+  const { isPending: isStatusPending } = useVerificationStatus()
 
-  if (isPending) {
+  if (isPending || isStatusPending) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: '100vh' }}>
         <Spin size="large" />

@@ -507,6 +507,7 @@ becomes a single readable commit.
 | PostgreSQL + SQLAlchemy + Alembic | done — configured, no models yet |
 | Feature modules | not started |
 
-Phase 1 (MVP) scope is Modules 1–8 and 11 from the feature specification.
-Modules 5, 6 and 7 — Recommendation, Employee Referral, Alumni Referral — are
-the product's core differentiator and cannot be cut.
+Phase 1 (MVP) scope is Modules 1–10 (the core loop) from the feature
+specification — see `docs/AGILE_PLAN.md`'s MoSCoW table for the full
+breakdown. Modules 5, 6 and 7 — Recommendation, Employee Referral, Alumni
+Referral — are the product's core differentiator and cannot be cut.

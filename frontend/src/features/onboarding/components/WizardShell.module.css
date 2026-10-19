@@ -17,6 +17,25 @@
   padding: 0 40px;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Chip/neutral beside the logo, e.g. "Referrer" (Figma 67:648). */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-text-secondary);
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -50,7 +69,7 @@
 
 .progress {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--step-count, 7), minmax(0, 1fr));
   gap: 8px;
   margin: 0;
   padding: 0 40px;

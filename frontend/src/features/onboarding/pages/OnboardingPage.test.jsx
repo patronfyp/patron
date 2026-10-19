@@ -57,6 +57,12 @@ function profileAt(step) {
     salary_max: null,
     available_from: null,
     open_to_referrers: true,
+    job_title: null,
+    team: null,
+    referral_teams: [],
+    monthly_referral_limit: 5,
+    accept_alumni_requests: true,
+    accept_any_verified_requests: false,
     onboarding_step: step,
     onboarding_completed: false,
   }
@@ -389,6 +395,177 @@ describe('OnboardingPage', () => {
         }),
       )
       expect(completeOnboarding).toHaveBeenCalled()
+    })
+  })
+
+  describe('Referrer wizard', () => {
+    beforeEach(() => signIn({ roles: ['referrer'] }))
+
+    it('gives a referrer-only user three steps and the Referrer chip', async () => {
+      getProfile.mockResolvedValue(profileAt(2))
+
+      renderPage()
+
+      expect(await screen.findByText(/Step 2 of 3 · Employer/)).toBeInTheDocument()
+      expect(screen.getByText('Referrer')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Verify where you work' })).toBeInTheDocument()
+    })
+
+    it('requires the company and job title', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 3/)
+
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      expect(await screen.findByText('Select the company you work at')).toBeInTheDocument()
+      expect(screen.getByText('Enter your job title')).toBeInTheDocument()
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('saves the employer, title and team once a work email there is verified', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
+      getVerificationStatus.mockResolvedValue({
+        email: EMAIL,
+        email_verified: true,
+        university_email: null,
+        employer_email: { email: 'jane@garner.com' },
+        documents: [],
+      })
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 3/)
+
+      await user.click(screen.getByLabelText('Where do you work?'))
+      await user.click(await screen.findByTitle('Garner'))
+      await user.type(screen.getByLabelText('Job title'), 'Senior Software Engineer')
+      await user.type(screen.getByLabelText('Team'), 'Payments')
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(updateProfile).toHaveBeenCalledWith({
+          employer_name: 'Garner',
+          job_title: 'Senior Software Engineer',
+          team: 'Payments',
+          onboarding_step: 3,
+        }),
+      )
+    })
+
+    it('blocks Continue without proof of employment at the chosen company', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
+      // Verified - but at a different company, so it proves nothing for Garner.
+      getVerificationStatus.mockResolvedValue({
+        email: EMAIL,
+        email_verified: true,
+        university_email: null,
+        employer_email: { email: 'jane@careem.com' },
+        documents: [],
+      })
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 3/)
+
+      await user.click(screen.getByLabelText('Where do you work?'))
+      await user.click(await screen.findByTitle('Garner'))
+      await user.type(screen.getByLabelText('Job title'), 'Engineer')
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Verify your work email or upload an employment letter to continue.',
+      )
+      expect(updateProfile).not.toHaveBeenCalled()
+    })
+
+    it('accepts an employment letter waiting for review as proof', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
+      getVerificationStatus.mockResolvedValue({
+        email: EMAIL,
+        email_verified: true,
+        university_email: null,
+        employer_email: null,
+        documents: [{ kind: 'employer', status: 'pending' }],
+      })
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 3/)
+
+      expect(screen.getByRole('radio', { name: /employment letter/i })).toBeChecked()
+      await user.click(screen.getByLabelText('Where do you work?'))
+      await user.click(await screen.findByTitle('Garner'))
+      await user.type(screen.getByLabelText('Job title'), 'Engineer')
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(updateProfile).toHaveBeenCalledWith(
+          expect.objectContaining({ employer_name: 'Garner', onboarding_step: 3 }),
+        ),
+      )
+    })
+
+    it('offers an employment letter instead of a work email', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 3/)
+
+      expect(screen.getByLabelText('Work email')).toBeInTheDocument()
+
+      await user.click(screen.getByRole('radio', { name: /employment letter/i }))
+
+      expect(screen.queryByLabelText('Work email')).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /upload employment letter/i })).toBeVisible()
+    })
+
+    it('saves the referring settings and finishes', async () => {
+      const user = userEvent.setup()
+      getProfile.mockResolvedValue(profileAt(3))
+      renderPage()
+      await screen.findByText(/Step 3 of 3 · Referring/)
+
+      await user.click(screen.getByRole('button', { name: 'Backend' }))
+      await user.click(screen.getByText('No limit'))
+      await user.click(screen.getByRole('switch'))
+      await user.click(screen.getByRole('button', { name: /finish setup/i }))
+
+      expect(await screen.findByText('All set screen')).toBeInTheDocument()
+      expect(updateProfile).toHaveBeenCalledWith({
+        referral_teams: ['backend'],
+        monthly_referral_limit: null,
+        accept_any_verified_requests: true,
+        onboarding_step: 3,
+      })
+      expect(completeOnboarding).toHaveBeenCalled()
+    })
+
+    it('shows the alumni toggle only once the university email is verified', async () => {
+      getVerificationStatus.mockResolvedValue({
+        email: EMAIL,
+        email_verified: true,
+        university_email: { email: 'jane@lums.edu.pk' },
+        employer_email: null,
+        documents: [],
+      })
+      getProfile.mockResolvedValue({
+        ...profileAt(3),
+        university: 'Lahore University of Management Sciences (LUMS)',
+      })
+
+      renderPage()
+
+      expect(await screen.findByText('Accept requests from LUMS alumni')).toBeInTheDocument()
+      expect(screen.getAllByRole('switch')).toHaveLength(2)
+    })
+
+    it('hides the alumni toggle without a verified university', async () => {
+      getProfile.mockResolvedValue(profileAt(3))
+
+      renderPage()
+
+      await screen.findByText(/Step 3 of 3/)
+      expect(screen.queryByText(/alumni$/)).not.toBeInTheDocument()
+      expect(screen.getAllByRole('switch')).toHaveLength(1)
     })
   })
 

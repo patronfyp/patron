@@ -9,28 +9,33 @@ import styles from './WizardShell.module.css'
 const pad = (number) => String(number).padStart(2, '0')
 
 /**
- * The top bar and 7-step progress shared by the wizard and the All set screen.
+ * The top bar and step progress shared by the wizard and the All set screen.
  *
  * @param {object} props
- * @param {number} props.step - 1-based current step; STEPS.length + 1 marks every step done
+ * @param {number} props.step - 1-based current step; steps.length + 1 marks every step done
  * @param {string} props.label - centre text, e.g. "Step 2 of 7 · Profile"
  * @param {import('react').ReactNode} props.action - the button on the right
+ * @param {{ key: string, label: string }[]} [props.steps] - defaults to the candidate's seven
+ * @param {string} [props.chip] - shown beside the logo, e.g. "Referrer" (Figma 67:648)
  */
-function WizardHeader({ step, label, action }) {
+function WizardHeader({ step, label, action, steps = STEPS, chip }) {
   return (
     <>
       <header className={styles.topBar}>
-        <span className={styles.logo}>
-          <img src={markImage} width="26" height="26" alt="" />
-          PATRON
+        <span className={styles.brand}>
+          <span className={styles.logo}>
+            <img src={markImage} width="26" height="26" alt="" />
+            PATRON
+          </span>
+          {chip ? <span className={styles.chip}>{chip}</span> : null}
         </span>
         <span className={styles.stepLabel}>{label}</span>
         {action}
       </header>
 
       <nav aria-label="Onboarding progress">
-        <ol className={styles.progress}>
-          {STEPS.map((item, index) => {
+        <ol className={styles.progress} style={{ '--step-count': steps.length }}>
+          {steps.map((item, index) => {
             const number = index + 1
             const isDone = number < step
             const isCurrent = number === step
