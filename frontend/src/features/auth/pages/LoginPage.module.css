@@ -1,0 +1,40 @@
+/* "Keep me signed in" row and the security note box, from the Figma "Sign
+   in" frame (9:3, nodes 9:121 and 9:129). Colours and radii come from
+   config/theme.js's --patron-* variables. */
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: -8px;
+  margin-bottom: 20px;
+}
+
+/* Figma's checkbox is 18px; antd's Checkbox theme (config/theme.js) already
+   sets the radius to 5 and the accent fill - only the size differs. */
+.checkbox :global(.ant-checkbox-inner) {
+  width: 18px;
+  height: 18px;
+}
+
+.note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 14px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-lg);
+  background: var(--patron-bg-subtle);
+}
+
+.note img {
+  flex: none;
+  margin-top: 1px;
+}
+
+.note p {
+  margin: 0;
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-text-secondary);
+}

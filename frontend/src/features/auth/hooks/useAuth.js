@@ -38,14 +38,16 @@ export function useRegister() {
 }
 
 // /auth/login only returns tokens, so the user's profile is fetched separately.
+// `keepSignedIn` (#71) decides whether the refresh token survives closing the
+// browser (see authStore.js) - it's never sent to the backend.
 export function useLogin() {
   const setSession = useAuthStore((state) => state.setSession)
 
   return useMutation({
-    mutationFn: async (payload) => {
+    mutationFn: async ({ keepSignedIn, ...payload }) => {
       const { access_token: accessToken, refresh_token: refreshToken } = await login(payload)
       const user = await getCurrentUser(accessToken)
-      setSession({ user, accessToken, refreshToken })
+      setSession({ user, accessToken, refreshToken, keepSignedIn })
     },
   })
 }

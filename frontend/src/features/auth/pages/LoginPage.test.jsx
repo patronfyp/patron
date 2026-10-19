@@ -3,9 +3,10 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getCurrentUser, login } from '../api/auth.api'
+import { useAuthStore } from '../store/authStore'
 
 import LoginPage from './LoginPage'
 
@@ -35,6 +36,18 @@ describe('LoginPage', () => {
     vi.clearAllMocks()
   })
 
+  afterEach(() => {
+    useAuthStore.setState({ user: null, accessToken: null, refreshToken: null, keepSignedIn: true })
+    // Some CI/local environments' jsdom doesn't implement localStorage at all
+    // (Node's own global can shadow it) - clearing is best-effort.
+    try {
+      localStorage.clear()
+      sessionStorage.clear()
+    } catch {
+      // Nothing to clear if storage was never reachable.
+    }
+  })
+
   it('renders the login form', () => {
     renderPage()
 
@@ -55,6 +68,47 @@ describe('LoginPage', () => {
 
     expect(await screen.findByText('Protected home')).toBeVisible()
     expect(login).toHaveBeenCalledWith({ email: 'jane@example.com', password: 'password123' })
+  })
+
+  it('shows the security note', () => {
+    renderPage()
+
+    expect(
+      screen.getByText(
+        'PATRON never posts to LinkedIn and never shares your profile without consent.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('keeps "Keep me signed in" checked by default, and passes it through on login', async () => {
+    const user = userEvent.setup()
+    login.mockResolvedValue({ access_token: 'access-1', refresh_token: 'refresh-1' })
+    getCurrentUser.mockResolvedValue({ id: 1, email: 'jane@example.com' })
+    renderPage()
+
+    expect(screen.getByRole('checkbox', { name: /keep me signed in/i })).toBeChecked()
+
+    await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    await screen.findByText('Protected home')
+    expect(login).toHaveBeenCalledWith({ email: 'jane@example.com', password: 'password123' })
+  })
+
+  it('unchecking "Keep me signed in" carries false into the session', async () => {
+    const user = userEvent.setup()
+    login.mockResolvedValue({ access_token: 'access-1', refresh_token: 'refresh-1' })
+    getCurrentUser.mockResolvedValue({ id: 1, email: 'jane@example.com' })
+    renderPage()
+
+    await user.click(screen.getByRole('checkbox', { name: /keep me signed in/i }))
+    await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.click(screen.getByRole('button', { name: 'Sign in' }))
+
+    await screen.findByText('Protected home')
+    expect(useAuthStore.getState().keepSignedIn).toBe(false)
   })
 
   it('links to the forgot-password page', () => {
