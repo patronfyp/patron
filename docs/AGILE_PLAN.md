@@ -287,9 +287,10 @@ Also this sprint: create the ESLint boundary rules once `features/` and
 | File upload handling (type, size, storage) | — | done — #64 |
 | Notification core — bell, unread count, mark read | 11.1, 11.2, 11.6 | done — #78, #81 |
 | Onboarding wizard finished — remaining fields, "All set" screen | 1.5 | done — #65 |
-| **Carried over from Sprint 2:** public profile page, profile edit | 1.6, 1.7 | open — #70 |
-| **Carried over from Sprint 2:** account settings — password change | 1.8 | open — #74 |
-| Referrer onboarding (own wizard) | — | open — #68 |
+| **Carried over from Sprint 2:** public profile page, profile edit | 1.6, 1.7 | done — #88 |
+| **Carried over from Sprint 2:** account settings — password change | 1.8 | done — #83 |
+| Referrer onboarding (own wizard) | — | done — #87 |
+| Sign-in and create-account forms match Figma field by field | 1.2, 1.13 | open — #91 |
 
 Verification gates Referral and Alumni Referral eligibility, so it has to exist
 before those engines. Manual admin review of documents is deferred (Module 13);
@@ -314,6 +315,8 @@ each connection is.
 | **Connection type tagging** — Professional / Alumni / Both | **3.9** |
 | Mutual connections | 3.5 |
 | Recruiter onboarding (own wizard) — moved from Sprint 3, #69 | — |
+| **Follow-up from Sprint 3 review:** job title on the public profile | 1.6, #92 |
+| **Follow-up from Sprint 3 review:** referrer fields on Edit profile | 1.7, #93 |
 
 3.9 is the critical one — it decides which endorsement types are possible
 between any two people. Everything in Sprints 7, 9 and 11 reads it.
