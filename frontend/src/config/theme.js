@@ -69,6 +69,10 @@ export const tokens = {
     // Not a Figma variable: status/warning at 12%, the "In review" row tile
     // on the All set card (65:790).
     warningTint: 'rgba(219, 138, 14, 0.12)',
+    // Not Figma variables: the row icon tiles on the Notifications Panel
+    // (14:968) use status/success and status/warning at 10% as literal fills.
+    successTile: 'rgba(18, 160, 107, 0.1)',
+    warningTile: 'rgba(219, 138, 14, 0.1)',
   },
 }
 
@@ -211,6 +215,7 @@ export const typography = {
   title: { size: 16, lineHeight: 24, weight: 600, tracking: -0.6 },
   bodyL: { size: 16, lineHeight: 26, weight: 400, tracking: -0.2 },
   body: { size: 14, lineHeight: 22, weight: 400, tracking: -0.1 },
+  bodyMedium: { size: 14, lineHeight: 22, weight: 500, tracking: -0.1 },
   bodySemibold: { size: 14, lineHeight: 22, weight: 600, tracking: -0.2 },
   bodyS: { size: 13, lineHeight: 20, weight: 400, tracking: 0 },
   bodySMedium: { size: 13, lineHeight: 20, weight: 500, tracking: 0 },
@@ -238,9 +243,9 @@ export const brand = {
   chipBg: 'rgba(255, 255, 255, 0.08)', // Chip/dark fill
   chipBorder: 'rgba(255, 255, 255, 0.12)', // Chip/dark stroke
   avatarGradient: 'linear-gradient(135deg, rgb(180, 70, 106) 0%, rgb(217, 122, 152) 100%)',
-  // The profile photo's fallback on Candidate · Profile (14:147): accent/brand
-  // to a deeper green, with the initials at 40px.
-  avatarAccentGradient: 'linear-gradient(135deg, rgb(18, 160, 107) 0%, rgb(10, 107, 71) 100%)',
+  // The signed-in user's avatar: Top Navigation (7:603) and Candidate · Profile
+  // (14:147). accent/brand to accent/text.
+  avatarAccentGradient: `linear-gradient(135deg, ${tokens.accent.brand} 0%, ${tokens.accent.text} 100%)`,
   avatarXlType: { size: 40, lineHeight: 48, weight: 600, tracking: -1 },
   // Text on the panel that doesn't use a named Figma text style.
   logoType: { size: 19, lineHeight: 25, weight: 700, tracking: 4 },
@@ -248,6 +253,8 @@ export const brand = {
   logoSmallType: { size: 16, lineHeight: 20, weight: 700, tracking: 4 },
   // Initials in the 64px onboarding avatar (frame 65:198).
   avatarLType: { size: 23, lineHeight: 28, weight: 600, tracking: -1 },
+  // Initials in the 36px top navigation avatar (frame 7:603).
+  avatarMType: { size: 13, lineHeight: 16, weight: 600, tracking: -1 },
   // The letter in a 44px company logo tile (frame 9:337).
   logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
   // The letter in a 32px company logo tile, in the referrer's company field (67:425).
@@ -298,6 +305,8 @@ export function cssVariables() {
     sheet: '20px',
     logo: '11px',
     pill: '16px',
+    // The ⌘K key hint in the top navigation's search box (7:595).
+    key: '5px',
   })
 
   // --patron-type-h2 (a `font` shorthand) + --patron-type-h2-tracking (em).
@@ -312,6 +321,7 @@ export function cssVariables() {
   addType('logo', brand.logoType)
   addType('logoSmall', brand.logoSmallType)
   addType('avatarL', brand.avatarLType)
+  addType('avatarM', brand.avatarMType)
   addType('logoInitial', brand.logoInitialType)
   addType('logoInitialSmall', brand.logoInitialSmallType)
   addType('ring', brand.ringType)

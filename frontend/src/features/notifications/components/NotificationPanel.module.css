@@ -1,0 +1,55 @@
+/* The notifications panel, from the Figma "Notifications Panel" frame (14:968).
+   Colours, text styles, radii and shadows are --patron-* variables from
+   config/theme.js. */
+
+.panel {
+  width: 420px;
+  max-width: calc(100vw - 32px);
+  overflow: hidden;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-xl);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-3);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+}
+
+/* "Mark all read": Body S/Medium in accent/text. */
+.markAll {
+  padding: 0;
+  border: none;
+  background: none;
+  font: var(--patron-type-body-s-medium);
+  letter-spacing: var(--patron-type-body-s-medium-tracking);
+  color: var(--patron-accent-text);
+  cursor: pointer;
+}
+
+.markAll:hover:not(:disabled) {
+  color: var(--patron-accent-primary);
+}
+
+.markAll:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-sm);
+}
+
+/* Nothing left to mark: shown dimmed, not removed, so the header stays put. */
+.markAll:disabled {
+  color: var(--patron-text-tertiary);
+  cursor: default;
+}

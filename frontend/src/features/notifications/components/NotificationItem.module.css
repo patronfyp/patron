@@ -1,0 +1,101 @@
+/* One notification row, from the Figma "Activity" rows (14:925 ...).
+   Colours and text styles are --patron-* variables from config/theme.js. */
+
+.item {
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.row {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-md);
+}
+
+/* The 32px round tile. Its icon takes the tile's `color`. */
+.tile {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--patron-radius-pill);
+}
+
+.success {
+  background: var(--patron-status-success-tile);
+  color: var(--patron-status-success);
+}
+
+.warning {
+  background: var(--patron-status-warning-tile);
+  color: var(--patron-status-warning);
+}
+
+/* A type this panel has no style for yet. */
+.neutral {
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-tertiary);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.message {
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.title {
+  color: var(--patron-text-primary);
+}
+
+.time {
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+/* The unread dot sits level with the first line of the message. */
+.dot {
+  flex: none;
+  margin-top: 6px;
+  color: var(--patron-accent-primary);
+}
+
+/* Said by a screen reader, not shown: the dot alone would be colour-only. */
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
