@@ -1,0 +1,147 @@
+/* Identity card, Figma Candidate · Profile (14:191). Values are --patron-*
+   variables from config/theme.js. */
+
+.card {
+  overflow: hidden;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sheet);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-1);
+}
+
+/* The glow and grid are positioned in px as in Figma (14:105, 14:106). */
+.cover {
+  position: relative;
+  height: 150px;
+  overflow: hidden;
+  background: var(--patron-bg-inverse);
+}
+
+.glow {
+  position: absolute;
+  top: -200px;
+  left: 500px;
+  width: 700px;
+  height: 500px;
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  width: 1108px;
+  max-width: none;
+  height: 150px;
+}
+
+.identity {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 28px 24px;
+}
+
+.top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+/* The 112px photo in a 5px ring of the card's colour (14:147). */
+.avatar {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  overflow: hidden;
+  border: 5px solid var(--patron-bg-surface);
+  border-radius: 50%;
+  background: var(--patron-avatar-gradient-accent);
+  font: var(--patron-type-avatar-xl);
+  letter-spacing: var(--patron-type-avatar-xl-tracking);
+  color: var(--patron-text-inverse);
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  padding-bottom: 8px;
+}
+
+/* Button/secondary and Button/dark on this frame: 40px high, radius 8 (14:148,
+   14:157). */
+.share,
+.edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--patron-radius-md);
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.share {
+  color: var(--patron-text-primary);
+}
+
+/* The dark button stays dark on hover; antd's primary would turn it green. */
+.actions .edit,
+.actions .edit:not(:disabled):hover {
+  background: var(--patron-bg-inverse);
+  color: var(--patron-text-inverse);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name {
+  margin: 0;
+  font: var(--patron-type-h2);
+  letter-spacing: var(--patron-type-h2-tracking);
+  color: var(--patron-text-primary);
+}
+
+.tick {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--patron-accent-brand);
+  color: var(--patron-text-inverse);
+}
+
+.headline {
+  margin: 0;
+  font: var(--patron-type-body-l);
+  letter-spacing: var(--patron-type-body-l-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-top: 6px;
+}

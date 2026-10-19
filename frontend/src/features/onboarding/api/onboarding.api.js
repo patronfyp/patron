@@ -1,4 +1,3 @@
-import { API_BASE_URL } from '@/config/env'
 import { api } from '@/shared/api/client'
 
 /**
@@ -15,7 +14,7 @@ import { api } from '@/shared/api/client'
  * @property {string | null} phone - "+923001234567"
  * @property {string | null} linkedin_url
  * @property {string | null} bio
- * @property {string | null} photo_url - an API path; pass it through `fileUrl`
+ * @property {string | null} photo_url - an API path; pass it through `fileUrl` (shared/api/fileUrl.js)
  * @property {string | null} university
  * @property {string | null} degree
  * @property {number | null} graduation_year
@@ -33,11 +32,6 @@ import { api } from '@/shared/api/client'
  * @property {number} onboarding_step - 1..7, the step the wizard resumes at
  * @property {boolean} onboarding_completed - true once "Finish setup" was pressed
  */
-
-/** A file path the API returned (e.g. `photo_url`) as a full URL. */
-export function fileUrl(path) {
-  return path ? `${API_BASE_URL}${path}` : null
-}
 
 /** GET /api/v1/profile/me - the signed-in user's profile; created empty on first read. */
 export async function getProfile() {

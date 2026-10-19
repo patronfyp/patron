@@ -1,0 +1,13 @@
+.text,
+.empty {
+  margin: 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  color: var(--patron-text-secondary);
+  /* A bio keeps the line breaks the person typed. */
+  white-space: pre-line;
+}
+
+.empty {
+  color: var(--patron-text-tertiary);
+}

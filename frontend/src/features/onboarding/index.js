@@ -1,4 +1,8 @@
+export { default as PreferencesStep } from './components/PreferencesStep'
+export { default as ProfileStep } from './components/ProfileStep'
+export { default as SkillsStep } from './components/SkillsStep'
 export { useProfile, useUpdateProfile } from './hooks/useProfile'
 export { default as AllSetPage } from './pages/AllSetPage'
 export { default as OnboardingPage } from './pages/OnboardingPage'
 export { default as ResumeOnboardingRedirect } from './pages/ResumeOnboardingRedirect'
+export { toFormValues, toProfileChanges } from './profileForm'
