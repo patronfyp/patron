@@ -1,0 +1,47 @@
+/* Password strength meter and terms checkbox, from the Figma "Create
+   account" frame (64:2, nodes 64:185 and 64:115). Colours and radii come
+   from config/theme.js's --patron-* variables. */
+
+.strength {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.bars {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--patron-border-default);
+}
+
+.barFilled {
+  background: var(--patron-accent-primary);
+}
+
+.strengthLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font: var(--patron-type-caption);
+  color: var(--patron-text-tertiary);
+}
+
+.strengthStrong {
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-accent-text);
+}
+
+/* Figma's checkbox is 18px; antd's Checkbox theme (config/theme.js) already
+   sets the radius to 5 and the accent fill - only the size differs. */
+.checkbox :global(.ant-checkbox-inner) {
+  width: 18px;
+  height: 18px;
+}

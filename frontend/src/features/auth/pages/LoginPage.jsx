@@ -1,10 +1,15 @@
 import { useEffect, useRef } from 'react'
 
-import { App, Button, Form, Input } from 'antd'
+import { App, Button, Checkbox, Form, Input } from 'antd'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
+import lockIcon from '../../../assets/icons/lock.svg'
+import mailIcon from '../../../assets/icons/mail.svg'
+import shieldIcon from '../../../assets/icons/shield.svg'
 import AuthLayout from '../components/AuthLayout'
 import { useLogin } from '../hooks/useAuth'
+
+import styles from './LoginPage.module.css'
 
 // A 422 from Pydantic carries an array of {msg}; our own errors carry a plain
 // string - STANDARDS.md §4.7 says show the backend's reason, so handle both.
@@ -50,7 +55,11 @@ function LoginPage() {
 
   const onFinish = (values) => {
     mutate(
-      { email: values.email, password: values.password },
+      {
+        email: values.email,
+        password: values.password,
+        keepSignedIn: values.keepSignedIn,
+      },
       {
         onSuccess: () => navigate('/start', { replace: true }),
         onError: (error) => message.error(getErrorMessage(error)),
@@ -69,7 +78,13 @@ function LoginPage() {
         </>
       }
     >
-      <Form layout="vertical" onFinish={onFinish} disabled={isPending} autoComplete="off">
+      <Form
+        layout="vertical"
+        requiredMark={false}
+        onFinish={onFinish}
+        disabled={isPending}
+        autoComplete="off"
+      >
         <Form.Item
           name="email"
           label="Email"
@@ -78,7 +93,10 @@ function LoginPage() {
             { type: 'email', message: 'Enter a valid email address' },
           ]}
         >
-          <Input placeholder="jane@example.com" />
+          <Input
+            prefix={<img src={mailIcon} width={16} height={16} alt="" />}
+            placeholder="jane@example.com"
+          />
         </Form.Item>
 
         <Form.Item
@@ -86,16 +104,27 @@ function LoginPage() {
           label="Password"
           rules={[{ required: true, message: 'Password is required' }]}
         >
-          <Input.Password placeholder="Your password" />
+          <Input.Password
+            prefix={<img src={lockIcon} width={16} height={16} alt="" />}
+            placeholder="Your password"
+          />
         </Form.Item>
 
-        <div style={{ textAlign: 'right', marginTop: -12, marginBottom: 16 }}>
+        <div className={styles.row}>
+          <Form.Item name="keepSignedIn" valuePropName="checked" initialValue={true} noStyle>
+            <Checkbox className={styles.checkbox}>Keep me signed in</Checkbox>
+          </Form.Item>
           <Link to="/forgot-password">Forgot password?</Link>
         </div>
 
         <Button type="primary" htmlType="submit" size="large" loading={isPending} block>
           Sign in
         </Button>
+
+        <div className={styles.note}>
+          <img src={shieldIcon} width={16} height={16} alt="" />
+          <p>PATRON never posts to LinkedIn and never shares your profile without consent.</p>
+        </div>
       </Form>
     </AuthLayout>
   )
