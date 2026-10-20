@@ -126,6 +126,33 @@ async def test_fetch_userinfo_rejects_a_non_200_response() -> None:
             await linkedin._fetch_userinfo(client, access_token="bad-token")
 
 
+async def test_a_bad_token_response_never_logs_the_id_token(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    transport = _mock_transport(token_response={"id_token": "secret-id-token"})
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        with pytest.raises(UnauthorizedError):
+            await linkedin._exchange_code_for_access_token(client, code="the-code")
+
+    assert "id_token" in caplog.text
+    assert "secret-id-token" not in caplog.text
+
+
+async def test_a_userinfo_without_sub_never_logs_personal_data(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    transport = _mock_transport(userinfo_response={"email": "jane@example.com", "name": "Jane Doe"})
+
+    async with httpx.AsyncClient(transport=transport) as client:
+        with pytest.raises(UnauthorizedError):
+            await linkedin._fetch_userinfo(client, access_token="tok-123")
+
+    assert "email" in caplog.text
+    assert "jane@example.com" not in caplog.text
+    assert "Jane Doe" not in caplog.text
+
+
 async def test_get_linkedin_account_chains_both_calls(monkeypatch: pytest.MonkeyPatch) -> None:
     transport = _mock_transport(
         token_response={"access_token": "tok-123"},

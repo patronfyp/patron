@@ -101,9 +101,11 @@ async def _exchange_code_for_access_token(client: httpx.AsyncClient, *, code: st
         )
         raise UnauthorizedError(_GENERIC_FAILURE)
 
-    access_token = response.json().get("access_token")
+    data = response.json()
+    access_token = data.get("access_token")
     if not access_token:
-        logger.warning("LinkedIn token response had no access_token: body=%s", response.text)
+        # Field names only - the body can hold an id_token with the user's email.
+        logger.warning("LinkedIn token response had no access_token: fields=%s", sorted(data))
         raise UnauthorizedError(_GENERIC_FAILURE)
     return access_token
 
@@ -124,7 +126,8 @@ async def _fetch_userinfo(client: httpx.AsyncClient, *, access_token: str) -> Li
     data = response.json()
     provider_user_id = data.get("sub")
     if not provider_user_id:
-        logger.warning("LinkedIn userinfo response had no sub claim: body=%s", response.text)
+        # Field names only - the body holds the user's name and email.
+        logger.warning("LinkedIn userinfo response had no sub claim: fields=%s", sorted(data))
         raise UnauthorizedError(_GENERIC_FAILURE)
 
     return LinkedInAccount(
