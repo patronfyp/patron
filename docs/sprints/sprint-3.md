@@ -19,20 +19,16 @@
   — completes specs 1.6 and 1.7 end to end (closes #70)
 - #83 Change password from account settings — completes spec 1.8 end to
   end (closes #74)
+- #91 Sign-in and create-account forms match Figma field by field — field
+  icons, "Keep me signed in" (unchecked keeps the session for this browser
+  session only), the security note, a password-strength meter and a
+  required terms checkbox (specs 1.2, 1.13; closes #71)
 
 The sprint goal is met, and then some: verification (the sprint's actual
 goal) landed in the first three days, and every Sprint-2 carry-over (1.6,
 1.7, 1.8) landed too.
 
 ## Not delivered
-- **1.2, 1.13 Sign-in and create-account forms matching Figma field by
-  field** — #91 is open (mail/lock/user field icons, the "Keep me signed
-  in" checkbox and its actual session-storage behaviour, the security
-  note box, a password-strength meter, the required terms checkbox), CI
-  green, awaiting review. The Sprint 3 table in AGILE_PLAN.md keeps this
-  row as **open** rather than done until #91 merges - the table should be
-  updated to "done — #91" the day it does, rather than waiting for a
-  future sprint report to catch it up.
 - **Recruiter onboarding** — planned for this sprint, moved to Sprint 4
   before the sprint started (#69; see the Sprint 2 report and the note
   already in this file's Sprint 3 section of AGILE_PLAN.md).
@@ -48,8 +44,7 @@ shipped and these are new, separable pieces of work.
 
 ## Capacity
 Plan estimate was ~75–90 person-hours per sprint (AGILE_PLAN §3). Sprint 3
-closed 7 of 8 planned items end to end, with the eighth (#91) in review
-rather than dropped. Three Sprint-2 carry-overs (1.6, 1.7, 1.8) landed in
+closed all 8 planned items end to end. Three Sprint-2 carry-overs (1.6, 1.7, 1.8) landed in
 the same window as Sprint 3's own goal (verification) plus notifications
 and referrer onboarding - a heavier sprint than Sprint 2's capacity note
 assumed, worth factoring into Sprint 4's planning rather than treating as

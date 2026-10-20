@@ -290,7 +290,7 @@ Also this sprint: create the ESLint boundary rules once `features/` and
 | **Carried over from Sprint 2:** public profile page, profile edit | 1.6, 1.7 | done — #88 |
 | **Carried over from Sprint 2:** account settings — password change | 1.8 | done — #83 |
 | Referrer onboarding (own wizard) | — | done — #87 |
-| Sign-in and create-account forms match Figma field by field | 1.2, 1.13 | open — #91 |
+| Sign-in and create-account forms match Figma field by field | 1.2, 1.13 | done — #91 |
 
 Verification gates Referral and Alumni Referral eligibility, so it has to exist
 before those engines. Manual admin review of documents is deferred (Module 13);
