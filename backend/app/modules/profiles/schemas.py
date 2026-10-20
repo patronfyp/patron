@@ -1,9 +1,5 @@
-"""Request/response shapes for the profiles module.
-
-Separate Update/Read schemas, always - STANDARDS.md §3.4. A client can set only
-the fields listed in ProfileUpdate; `id`, `user_id`, file keys and timestamps
-are never accepted from the outside.
-"""
+"""Request/response shapes for profiles. Clients can set only ProfileUpdate's
+fields - never ids, file keys or timestamps (STANDARDS.md §3.4)."""
 
 import re
 import uuid
@@ -22,22 +18,18 @@ from .models import (
     WorkMode,
 )
 
-# Earliest graduation year we accept. Anything before this is a typo, not an
-# alumnus - the platform is for people who are working or about to.
+# Graduation years outside 1950..(now + 8) are typos.
 _MIN_GRADUATION_YEAR = 1950
-# A student can be several years from graduating, but not decades.
 _MAX_YEARS_AHEAD = 8
 
 _MAX_SKILLS = 30
 _MAX_LOCATIONS = 10
-# Monthly PKR. High enough for any real offer, low enough to catch a typo
-# with three extra zeros.
+# Monthly PKR - catches a typo with three extra zeros.
 _MAX_SALARY = 10_000_000
 
-# "+92 300 1234567", "0300-1234567" -> digits only, then a + and 10-15 digits.
+# After normalising: a + and 10-15 digits.
 _PHONE_PATTERN = re.compile(r"^\+\d{10,15}$")
-# Public profile URLs only: linkedin.com/in/<slug>, with or without the
-# scheme and www.
+# linkedin.com/in/<slug>, with or without scheme and subdomain.
 _LINKEDIN_PATTERN = re.compile(
     r"^(?:https?://)?(?:[a-z]{2,3}\.)?linkedin\.com/in/([A-Za-z0-9\-_%]{3,100})/?$",
     re.IGNORECASE,
@@ -45,8 +37,7 @@ _LINKEDIN_PATTERN = re.compile(
 
 
 def photo_url(photo_key: str | None) -> str | None:
-    """The API path a photo is served from, or None. Relative to the API
-    origin, so it stays right whatever host the API runs on."""
+    """The photo's API path (relative, so it works on any host), or None."""
     if photo_key is None:
         return None
     filename = photo_key.split("/", 1)[1]
@@ -127,21 +118,18 @@ class ProfileRead(BaseModel):
 
 
 class PublicProfileRead(BaseModel):
-    """Returned by GET /profile/{user_id} - what any signed-in user may see.
+    """GET /profile/{user_id}: what any signed-in user may see.
 
-    Deliberately leaves out everything private: phone, CV, salary, the rest of
-    the job preferences and onboarding progress. Built field by field in the
-    service, never straight from the model, so a new private column can't leak
-    by default.
+    No phone, CV, salary, preferences or onboarding progress. Built field by
+    field in the service, so a new private column can't leak.
     """
 
     user_id: uuid.UUID
     full_name: str
     roles: list[str]
-    # Our uploaded photo (an API path, like ProfileRead.photo_url), else None.
+    # Our uploaded photo (an API path), else None.
     photo_url: str | None
-    # The LinkedIn picture, for users who signed up with LinkedIn and have no
-    # photo of their own yet. A full URL.
+    # The LinkedIn picture (a full URL), used when there's no photo_url.
     avatar_url: str | None
     headline: str | None
     city: str | None
@@ -171,14 +159,9 @@ def _dedupe(values: list[str]) -> list[str]:
 
 
 class ProfileUpdate(BaseModel):
-    """What a client sends to PATCH /profile/me.
+    """PATCH /profile/me. Only fields sent change; null clears text, `[]` a list."""
 
-    Every field is optional: only the ones sent are changed. Sending a text
-    field as null clears it; send `[]` to clear a list. `onboarding_step`
-    cannot be cleared, only moved.
-    """
-
-    # A typo like `universty` should fail loudly, not be silently ignored.
+    # A typo like `universty` fails loudly instead of being ignored.
     model_config = ConfigDict(extra="forbid")
 
     headline: str | None = Field(default=None, max_length=120)
@@ -210,8 +193,7 @@ class ProfileUpdate(BaseModel):
     accept_alumni_requests: bool = True
     accept_any_verified_requests: bool = False
 
-    # The upper bound here is the longest wizard; the service checks it
-    # against this user's own wizard.
+    # Bounded by the longest wizard; the service checks this user's own.
     onboarding_step: int = Field(default=1, ge=1, le=ONBOARDING_STEP_COUNT)
 
     @field_validator(

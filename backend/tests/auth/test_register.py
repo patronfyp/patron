@@ -1,9 +1,4 @@
-"""Tests for POST /api/v1/auth/register.
-
-Every test starts from an empty users table (the `clean_users_table` fixture),
-so none of them depend on another having run first, or on what was in the
-database before pytest started.
-"""
+"""Tests for POST /auth/register. Each starts from an empty users table."""
 
 from httpx import AsyncClient
 

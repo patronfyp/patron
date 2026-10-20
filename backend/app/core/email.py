@@ -1,11 +1,5 @@
-"""Sending email, behind one small interface.
-
-Services ask for an `EmailSender` and call `send()`; they never know whether
-the message went to a real inbox or to the log. That keeps every flow that
-emails someone - verification codes (#49), password reset (#50) - buildable
-and testable before a real provider is chosen, and makes adding one a new
-class here rather than a change in every service.
-"""
+"""Sending email behind one interface: services call `EmailSender.send()` and
+never know which provider is behind it."""
 
 import logging
 from typing import Protocol
@@ -24,12 +18,8 @@ class EmailSender(Protocol):
 
 
 class ConsoleEmailSender:
-    """Writes the email to the log instead of sending it.
-
-    The default in development: a developer reads the verification code from
-    the terminal running uvicorn. Never select this in production - the log
-    would then hold working codes and reset links.
-    """
+    """Logs the email instead of sending it. Development only - the log would
+    hold working codes and reset links."""
 
     async def send(self, to: str, subject: str, body: str) -> None:
         logger.warning(
@@ -46,12 +36,8 @@ class EmailDeliveryError(Exception):
 
 
 class ResendEmailSender:
-    """Sends through Resend's HTTP API (https://resend.com/docs/api-reference).
-
-    Until a domain is verified in Resend, it only delivers *to the address
-    the Resend account was created with*, and only *from*
-    `onboarding@resend.dev` - fine for testing, not for real users.
-    """
+    """Sends through Resend. Until our domain is verified there, it only
+    delivers to the Resend account's own address."""
 
     _URL = "https://api.resend.com/emails"
 
@@ -71,18 +57,13 @@ class ResendEmailSender:
                 },
             )
         if response.is_error:
-            # Resend's error body names the problem (bad key, unverified
-            # domain, recipient not allowed) - log it, since the user only
-            # sees a generic failure. It never contains the email body.
+            # Resend's body names the cause; the user only sees a generic error.
             logger.error("Resend rejected an email (%s): %s", response.status_code, response.text)
             raise EmailDeliveryError(f"Resend returned {response.status_code}")
 
 
 def get_email_sender() -> EmailSender:
-    """FastAPI dependency returning the configured sender.
-
-    Tests swap it out with `app.dependency_overrides[get_email_sender]`.
-    """
+    """FastAPI dependency: the configured sender. Tests override it."""
     settings = get_settings()
     if settings.email_backend == "console":
         return ConsoleEmailSender()
@@ -90,6 +71,5 @@ def get_email_sender() -> EmailSender:
         if not settings.resend_api_key:
             raise RuntimeError("EMAIL_BACKEND=resend but RESEND_API_KEY is empty in .env")
         return ResendEmailSender(settings.resend_api_key)
-    # Unreachable while `email_backend` is a Literal of the values above; here
-    # so that adding a value without a class here fails loudly.
+    # Unreachable today; fails loudly if a new backend value gets no class.
     raise RuntimeError(f"Unknown EMAIL_BACKEND: {settings.email_backend!r}")

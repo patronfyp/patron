@@ -1,8 +1,4 @@
-"""Database queries for the verification module. The only place SQL lives.
-
-Functions here just fetch and store rows - no decisions about whether
-something is allowed. That belongs in service.py.
-"""
+"""Database queries for verification - no business decisions here."""
 
 import uuid
 from datetime import datetime
@@ -16,11 +12,7 @@ from .models import EmailVerification, VerificationDocument
 async def get_latest(
     session: AsyncSession, user_id: uuid.UUID, email: str, kind: str
 ) -> EmailVerification | None:
-    """The most recent code sent to this address for this purpose.
-
-    Only the latest one counts: sending a new code makes every older one for
-    the same address unusable.
-    """
+    """The latest code for this address and kind - the only one that counts."""
     stmt = (
         select(EmailVerification)
         .where(

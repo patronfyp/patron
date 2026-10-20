@@ -1,9 +1,6 @@
-"""Storing uploaded files, behind one small interface.
+"""Uploaded files behind one interface, keyed like `cvs/<uuid>.pdf`.
 
-Services ask for a `FileStorage` and call `save()` / `read()` / `delete()`
-with a key like `cvs/<uuid>.pdf`; they never know where the bytes live. Local
-disk is the only backend for now - moving to S3 or Cloudinary later is a new
-class here, not a change in every service. Same idea as app/core/email.py.
+Local disk for now; a cloud backend would be a new class here.
 """
 
 import asyncio
@@ -13,9 +10,7 @@ from typing import Protocol
 
 from app.core.config import get_settings
 
-# A key is one folder and one file name, both from a small safe alphabet - so
-# a key built from user input can never climb out of the storage root
-# (`../../etc/passwd`) or name a hidden file.
+# One folder and one file name from a safe alphabet - no `../` escapes.
 _KEY_PATTERN = re.compile(r"^[a-z]+/[A-Za-z0-9-]+\.[a-z0-9]+$")
 
 
@@ -35,11 +30,7 @@ def _check_key(key: str) -> None:
 
 
 class LocalFileStorage:
-    """Keeps files in a folder on this machine (UPLOAD_DIR, default `uploads/`).
-
-    Fine for development and a single server. Files are lost if the server's
-    disk is - so production should switch to a cloud backend.
-    """
+    """Files in UPLOAD_DIR on this machine. Fine for one server, not for scale."""
 
     def __init__(self, root: Path) -> None:
         self._root = root
@@ -64,8 +55,5 @@ class LocalFileStorage:
 
 
 def get_file_storage() -> FileStorage:
-    """FastAPI dependency returning the configured storage.
-
-    Tests swap it out with `app.dependency_overrides[get_file_storage]`.
-    """
+    """FastAPI dependency: the configured storage. Tests override it."""
     return LocalFileStorage(Path(get_settings().upload_dir))

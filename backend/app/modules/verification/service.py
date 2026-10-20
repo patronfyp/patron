@@ -1,13 +1,5 @@
-"""Business rules for proving who a user is.
-
-Email codes (Module 1.9): send a 6-digit code to the address, the user types
-it back, the address is marked verified. Everything that makes that safe lives
-here: hashing, expiry, single use, the wrong-guess limit, the resend limit,
-and checking the address belongs to the right institution.
-
-Documents (Modules 1.10, 1.11): an uploaded transcript or employment letter,
-stored as pending until admin review exists.
-"""
+"""Proving who a user is: 6-digit email codes (Module 1.9) and uploaded
+documents, stored as pending until admin review exists (1.10, 1.11)."""
 
 import hashlib
 import hmac
@@ -39,9 +31,7 @@ from .schemas import VerificationStatus, VerifiedEmailRead
 
 _DOCUMENT_TYPES = {FileKind.PDF, FileKind.JPEG, FileKind.PNG}
 
-# The kinds that earn a badge, and how a notification names them. The account
-# email has no badge, so it gets no notification - the user is looking at the
-# screen that confirmed it.
+# Kinds that earn a badge get a notification; the account email doesn't.
 _BADGE_TITLES = {
     VerificationKind.UNIVERSITY: "University",
     VerificationKind.EMPLOYER: "Work",
@@ -53,16 +43,12 @@ _DOCUMENT_TITLES = {
 
 CODE_TTL = timedelta(minutes=10)
 RESEND_COOLDOWN = timedelta(seconds=60)
-# After this many wrong guesses the code stops working and a new one must be
-# sent. With the resend cooldown, this caps guessing at a few attempts a minute
-# against a million possible codes.
+# Wrong guesses before the code dies. With the cooldown, that's a few tries a
+# minute against a million codes.
 MAX_ATTEMPTS = 5
 
-# Universities we can verify by email domain, matched against the university
-# saved on the user's profile (case-insensitive). Subdomains count, so a
-# student address like `x@seecs.nust.edu.pk` matches `nust.edu.pk`.
-# A stopgap until universities get their own table; a university missing here
-# goes through the registrar-record route instead.
+# Profile university (lowercased) -> email domain; subdomains count. Until
+# universities get a table; any other university uses the document route.
 UNIVERSITY_DOMAINS: dict[str, str] = {
     "lahore university of management sciences (lums)": "lums.edu.pk",
     "national university of sciences and technology (nust)": "nust.edu.pk",
@@ -72,9 +58,7 @@ UNIVERSITY_DOMAINS: dict[str, str] = {
     "information technology university (itu)": "itu.edu.pk",
 }
 
-# There is no company table yet, so a work address cannot be matched to a
-# specific employer's domain. Until there is, the best available check is that
-# it is not a personal mailbox anyone can sign up for.
+# No company table yet, so a work email is only checked not to be a free mailbox.
 FREE_EMAIL_DOMAINS = frozenset(
     {
         "gmail.com",
@@ -93,9 +77,7 @@ _INVALID_CODE = "That code is wrong or has expired. Request a new one and try ag
 
 
 def _hash_code(code: str) -> str:
-    """Keyed hash of the code. Keyed with SECRET_KEY so a leaked table alone
-    cannot be brute-forced offline - all million codes would hash differently
-    without the key."""
+    """HMAC with SECRET_KEY, so a leaked table can't be brute-forced offline."""
     key = get_settings().secret_key.encode()
     return hmac.new(key, code.encode(), hashlib.sha256).hexdigest()
 
@@ -113,8 +95,7 @@ async def _check_domain(session: AsyncSession, user: User, email: str, kind: str
     domain = email.rsplit("@", 1)[1]
 
     if kind == VerificationKind.ACCOUNT:
-        # Only the address on the account - this proves the sign-up, it is not
-        # a way to attach a new address.
+        # Proves the sign-up address only; not a way to add a new one.
         if email != user.email:
             raise UnprocessableError("Verify the email address you signed up with.")
         if user.is_email_verified:
@@ -140,11 +121,7 @@ async def _check_domain(session: AsyncSession, user: User, email: str, kind: str
 async def send_code(
     session: AsyncSession, user: User, email: str, kind: str, sender: EmailSender
 ) -> None:
-    """Create a fresh code for this address and email it.
-
-    Raises 422 if the address is the wrong kind of address, 429 if a code was
-    sent to it less than RESEND_COOLDOWN ago.
-    """
+    """Email a fresh code. 422 for the wrong kind of address, 429 within the cooldown."""
     email = email.strip().lower()
     await _check_domain(session, user, email, kind)
 
@@ -175,8 +152,7 @@ async def send_code(
             ),
         )
     except EmailDeliveryError as exc:
-        # The code never reached the user, so it must not count: leaving the
-        # row would block a retry for RESEND_COOLDOWN with nothing to show.
+        # Undelivered - drop it so the cooldown doesn't block a retry.
         await repository.delete(session, row)
         raise ServiceUnavailableError(
             "We couldn't send the email right now. Please try again in a moment."
@@ -186,11 +162,9 @@ async def send_code(
 async def confirm_code(
     session: AsyncSession, user: User, email: str, kind: str, code: str
 ) -> EmailVerification:
-    """Mark the address verified if `code` matches the latest one sent.
+    """Verify the address if `code` matches the latest one sent.
 
-    Every failure - no code sent, expired, already used, too many wrong
-    guesses, or simply wrong - is the same 400 with the same message, so the
-    response never tells a guesser which of those it hit.
+    Every failure is the same 400, so a guesser learns nothing.
     """
     email = email.strip().lower()
     row = await repository.get_latest(session, user.id, email, kind)
@@ -230,11 +204,7 @@ async def confirm_code(
 async def upload_document(
     session: AsyncSession, user: User, kind: str, file: UploadFile, storage: FileStorage
 ) -> VerificationDocument:
-    """Store a transcript, degree or employment letter as pending review.
-
-    Only university and employer documents - the account email is proven by
-    code alone.
-    """
+    """Store a university or employer document as pending review."""
     if kind == VerificationKind.ACCOUNT:
         raise UnprocessableError("Documents are only for university or employer verification.")
 

@@ -1,9 +1,5 @@
-"""End-to-end tests for LinkedIn sign-in (#25): GET /auth/linkedin/authorize
-and GET /auth/linkedin/callback, exercised the same way every other auth
-behaviour in this codebase is tested - through the HTTP layer, against the
-real (test) database. LinkedIn itself is mocked at get_linkedin_account -
-the one seam between our code and the outside world.
-"""
+"""End-to-end tests for LinkedIn sign-in (/authorize and /callback).
+LinkedIn itself is mocked at get_linkedin_account."""
 
 from urllib.parse import parse_qs, urlparse
 

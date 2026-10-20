@@ -77,12 +77,7 @@ async def _token_rows() -> list[PasswordResetToken]:
 
 
 def _token_issued_seconds_ago(user_id: uuid.UUID, kind: str, seconds: int) -> str:
-    """A token like the ones login hands out, but issued in the past.
-
-    `iat` has one-second resolution, so a token from a real login in the same
-    second as the reset would legitimately survive it. Backdating makes the
-    "issued before the reset" case certain instead of timing-dependent.
-    """
+    """A login-style token issued in the past, so "before the reset" isn't timing-dependent."""
     issued = datetime.now(UTC) - timedelta(seconds=seconds)
     payload = {
         "sub": str(user_id),

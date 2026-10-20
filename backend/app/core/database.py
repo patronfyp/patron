@@ -1,8 +1,4 @@
-"""Database engine, session factory, and the per-request session dependency.
-
-Every ORM model inherits from `Base`, and every endpoint that touches the
-database asks for a session via `Depends(get_session)`.
-"""
+"""Database engine, session factory, ORM `Base`, and `get_session`."""
 
 from collections.abc import AsyncGenerator
 
@@ -13,8 +9,7 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-# One engine per process. It owns the connection pool, so it must not be
-# created per request.
+# One per process - it owns the connection pool.
 engine = create_async_engine(
     settings.database_url,
     echo=settings.debug,  # log every SQL statement while DEBUG=true
@@ -25,18 +20,13 @@ SessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     autoflush=False,
-    # Keeps attributes readable after commit(), which would otherwise expire
-    # them and trigger a surprise query (or fail) when the response is built.
+    # Attributes stay readable after commit, with no surprise query.
     expire_on_commit=False,
 )
 
 
 class Base(DeclarativeBase):
-    """Base class for all ORM models.
-
-    Alembic reads `Base.metadata` to work out which tables should exist, so any
-    model that is not imported before Alembic runs is invisible to migrations.
-    """
+    """Base for all ORM models. Alembic only sees models imported in migrations/env.py."""
 
 
 async def get_session() -> AsyncGenerator[AsyncSession]:

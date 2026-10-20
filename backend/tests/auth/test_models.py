@@ -19,12 +19,7 @@ from app.modules.auth.models import AuthProvider, SignupRole, User, UserRole
     ],
 )
 def test_email_is_normalised_on_assignment(given: str, expected: str) -> None:
-    """Email is lowercased and trimmed before it can reach the database.
-
-    Without this the unique constraint does not actually hold - `Ali@x.com` and
-    `ali@x.com` would become two accounts and password reset would stop making
-    sense. The rule lives on the model so no code path can bypass it.
-    """
+    """Email is trimmed and lowercased on the model, before it reaches the database."""
     user = User(email=given, full_name="Ali")
 
     assert user.email == expected

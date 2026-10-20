@@ -1,8 +1,4 @@
-"""Application configuration.
-
-Single source of truth for settings. Nothing else in the codebase should read
-`os.environ` directly - import `get_settings()` instead.
-"""
+"""Settings - the only place env vars are read. Use `get_settings()`."""
 
 from functools import lru_cache
 from typing import Literal
@@ -11,11 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Settings read from environment variables, falling back to `.env`.
-
-    Names are matched case-insensitively, so `APP_NAME` in `.env` fills
-    `app_name` here.
-    """
+    """From env vars, then `.env`. Case-insensitive: `APP_NAME` fills `app_name`."""
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
@@ -28,41 +20,30 @@ class Settings(BaseSettings):
     # Comma-separated in `.env`; read it through `cors_origin_list`.
     cors_origins: str = "http://localhost:5173"
 
-    # These two deliberately have no defaults, so a missing `.env` fails loudly
-    # at startup instead of silently using a well-known key or database.
+    # No defaults: a missing `.env` must fail at startup, not use a known key.
     secret_key: str
     database_url: str
 
-    # Module 1.13 - short-lived access token, longer-lived refresh token.
+    # Module 1.13.
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 7
 
-    # Module 1.1 - LinkedIn OAuth (#25). Empty defaults rather than no
-    # default: unlike secret_key/database_url, every other route works fine
-    # without these, so a dev not touching this feature shouldn't have their
-    # whole API refuse to start over it.
+    # LinkedIn OAuth (Module 1.1). Empty by default so the rest of the API
+    # still starts without them.
     linkedin_client_id: str = ""
     linkedin_client_secret: str = ""
     linkedin_redirect_uri: str = ""
 
-    # Where the browser is sent after /auth/linkedin/callback finishes - the
-    # frontend's own origin, not this API's.
+    # The frontend origin LinkedIn's callback redirects back to.
     frontend_url: str = "http://localhost:5173"
 
-    # Email (#49, #50). "console" logs messages instead of sending them;
-    # "resend" sends for real through Resend. Each value has a class in
-    # app/core/email.py.
+    # "console" prints emails; "resend" sends them. See app/core/email.py.
     email_backend: Literal["console", "resend"] = "console"
-    # Resend only accepts onboarding@resend.dev as the sender until our own
-    # domain is verified there.
+    # Resend only allows this sender until our own domain is verified.
     email_from: str = "PATRON <onboarding@resend.dev>"
-    # Empty default for the same reason as the LinkedIn keys: only needed
-    # when email_backend is "resend".
     resend_api_key: str = ""
 
-    # Where uploaded files (CVs, profile photos, verification documents) are
-    # kept by the local storage backend in app/core/storage.py. Relative to
-    # the directory uvicorn is started from, i.e. backend/.
+    # Local upload folder, relative to backend/.
     upload_dir: str = "uploads"
 
     @property

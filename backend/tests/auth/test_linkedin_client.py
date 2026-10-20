@@ -1,10 +1,5 @@
-"""Unit tests for the CSRF-state helpers and the LinkedIn API client behind
-LinkedIn OAuth (#25). No PKCE - see ADR 0014.
-
-No database or network involved - these are pure functions, or use
-httpx.MockTransport in place of the real LinkedIn API. The full authorize/
-callback flow is covered separately in tests/test_auth_linkedin.py.
-"""
+"""Unit tests for the LinkedIn state token and API client - no database or
+network. The full flow is in test_linkedin_signin.py."""
 
 from datetime import UTC, datetime, timedelta
 

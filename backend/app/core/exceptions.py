@@ -1,9 +1,4 @@
-"""Our own exception hierarchy.
-
-Services raise these; a single handler in main.py turns them into HTTP
-responses, so no route ever builds an error response by hand and every error
-looks the same shape on the wire. STANDARDS.md §3.7.
-"""
+"""Errors services raise; app/main.py turns each into `{detail, code}` (STANDARDS.md §3.7)."""
 
 
 class AppError(Exception):

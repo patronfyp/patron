@@ -1,9 +1,4 @@
-"""Tests for GET /api/v1/auth/me and the get_current_user dependency behind it.
-
-These are the tests that matter most in the whole auth module: every future
-protected endpoint in every module reuses get_current_user, so a bug here is
-a bug everywhere at once.
-"""
+"""Tests for GET /auth/me and get_current_user, which every protected endpoint uses."""
 
 import uuid
 from datetime import UTC, datetime, timedelta

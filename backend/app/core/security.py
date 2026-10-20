@@ -1,14 +1,6 @@
-"""Password hashing.
+"""Password hashing and JWTs - the only place bcrypt and jwt are used.
 
-Nothing else touches bcrypt directly - every code path that needs to hash or
-check a password goes through these two functions, so the algorithm can be
-changed in one place later if needed.
-
-We use the `bcrypt` library directly rather than passlib. passlib's bcrypt
-wrapper has been broken since bcrypt 4.1 (it probes `bcrypt.__about__`, which
-that release removed) and passlib itself has had no release since 2020 - so
-"the standard way to do this in Python" is no longer a safe assumption to
-build on. Direct use of `bcrypt` is what current guidance recommends instead.
+`bcrypt` directly, not passlib: passlib is unmaintained and broken on bcrypt 4.1+.
 """
 
 import uuid
@@ -21,10 +13,7 @@ import jwt
 
 from app.core.config import get_settings
 
-# bcrypt silently truncates any input past 72 bytes - a password entered past
-# that point would be ignored rather than rejected, which is worse than just
-# refusing it. Enforced in RegisterRequest (schemas.py) as `max_length=72` on
-# the ASCII case; comfortably above what any real password needs.
+# bcrypt ignores bytes past 72; the schemas reject longer passwords instead.
 _BCRYPT_MAX_BYTES = 72
 
 _JWT_ALGORITHM = "HS256"
@@ -44,13 +33,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 class TokenType(StrEnum):
-    """The `type` claim inside our JWTs.
-
-    Both token kinds are signed with the same secret and would otherwise be
-    interchangeable, which would let a stolen access token (short-lived, but
-    handled by far more code paths) be replayed against /auth/refresh to mint
-    fresh access tokens indefinitely. Checking this claim is what stops that.
-    """
+    """The JWT `type` claim - stops an access token being used as a refresh token."""
 
     ACCESS = "access"
     REFRESH = "refresh"
@@ -81,12 +64,7 @@ def create_refresh_token(user_id: uuid.UUID) -> str:
 
 
 def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
-    """Decode and validate a token, including that it is the expected kind.
-
-    Raises `jwt.PyJWTError` (or a subclass) on anything wrong - expired,
-    tampered signature, or wrong token type. Callers turn that into a 401;
-    nothing here talks HTTP.
-    """
+    """Decode a token of the expected type; raises `jwt.PyJWTError` if anything's wrong."""
     settings = get_settings()
     payload = jwt.decode(token, settings.secret_key, algorithms=[_JWT_ALGORITHM])
     if payload.get("type") != expected_type.value:
@@ -95,12 +73,7 @@ def decode_token(token: str, *, expected_type: TokenType) -> dict[str, Any]:
 
 
 def token_user_id(payload: dict[str, Any]) -> uuid.UUID:
-    """The user id in a decoded token's `sub` claim.
-
-    Raises `jwt.InvalidTokenError` if it isn't a UUID - e.g. a token minted
-    before ids became UUIDs, whose `sub` is "1" - so callers turn it into the
-    same 401 as any other bad token instead of a 500.
-    """
+    """The user id in `sub`. A non-UUID (an old token) raises, so it becomes a 401."""
     try:
         return uuid.UUID(payload["sub"])
     except (KeyError, TypeError, ValueError) as exc:
@@ -108,12 +81,9 @@ def token_user_id(payload: dict[str, Any]) -> uuid.UUID:
 
 
 def issued_before(payload: dict[str, Any], moment: datetime | None) -> bool:
-    """True if a decoded token was issued before `moment`.
+    """True if the token predates `moment` (a password change, Module 1.12).
 
-    Used to revoke every token from before a password reset (Module 1.12).
-    `iat` is stored in whole seconds, so `moment` is floored to the second
-    too - otherwise a token issued in the same second as the reset, i.e. the
-    user's fresh login right after it, would be refused.
+    Compared in whole seconds, like `iat`, so a login in the same second still works.
     """
     if moment is None:
         return False

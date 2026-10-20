@@ -1,9 +1,6 @@
-"""Profile model: what we know about a person beyond their login.
+"""Profile: everything about a person beyond their login (Modules 1.4, 1.5).
 
-Kept apart from `User` on purpose. `User` is the account and is read on every
-authenticated request; the profile is filled in gradually through onboarding
-(Modules 1.4, 1.5) and will keep growing, so it lives in its own table and
-changes to it never touch the auth tables.
+Separate from `User`, which is read on every request; this one keeps growing.
 """
 
 import uuid
@@ -15,12 +12,9 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
 
-# Onboarding has seven steps (Account, Profile, University, Employer, CV,
-# Skills, Preferences). The wizard itself lives in the frontend; the backend
-# only remembers how far the user got, and whether they finished.
+# Account, Profile, University, Employer, CV, Skills, Preferences.
 ONBOARDING_STEP_COUNT = 7
-# A user who is only a referrer gets a shorter wizard instead: Account,
-# Employer, Referring. Anyone who is also a candidate keeps the seven steps.
+# Referrer-only users: Account, Employer, Referring.
 REFERRER_ONBOARDING_STEP_COUNT = 3
 
 
@@ -72,10 +66,10 @@ MONTHLY_REFERRAL_LIMITS = (3, 5, 10)
 
 
 class Profile(Base):
-    """One row per user, created the first time it is read.
+    """One row per user, created on first read.
 
-    Enum-like columns are plain strings with the classes above as the source
-    of truth, like `UserRole` - adding an option needs no migration.
+    Choice columns are plain strings checked against the enums above, so a new
+    option needs no migration.
     """
 
     __tablename__ = "profiles"
@@ -94,8 +88,7 @@ class Profile(Base):
     phone: Mapped[str | None] = mapped_column(String(20), default=None)
     linkedin_url: Mapped[str | None] = mapped_column(String(255), default=None)
     bio: Mapped[str | None] = mapped_column(String(280), default=None)
-    # Storage key (app/core/storage.py) of the uploaded photo, e.g.
-    # "photos/<uuid>.jpg". Never a URL - ProfileRead builds that.
+    # Storage key, e.g. "photos/<uuid>.jpg" - never a URL; ProfileRead builds that.
     photo_key: Mapped[str | None] = mapped_column(String(100), default=None)
 
     # Institutional fields - Module 1.4. A candidate may skip the employer step.
@@ -104,23 +97,20 @@ class Profile(Base):
     graduation_year: Mapped[int | None] = mapped_column(default=None)
     employer_name: Mapped[str | None] = mapped_column(String(200), default=None)
 
-    # The CV step. Only the owner and, later, people they send a referral
-    # request to may read the file.
+    # The CV step. Readable only by the owner (and later, referrers they ask).
     cv_key: Mapped[str | None] = mapped_column(String(100), default=None)
     cv_filename: Mapped[str | None] = mapped_column(String(255), default=None)
     cv_size_bytes: Mapped[int | None] = mapped_column(default=None)
     cv_uploaded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
-    # The Skills step. Typed by the user for now; AI suggestions from the CV
-    # come later (Module 9).
+    # The Skills step. Typed by the user; AI suggestions come in Module 9.
     skills: Mapped[list[str]] = mapped_column(
         ARRAY(String(50)), default=list, server_default=text("'{}'")
     )
     # Values come from PrimaryRole.
     primary_role: Mapped[str | None] = mapped_column(String(20), default=None)
 
-    # The Preferences step.
-    # Values come from DesiredRole.
+    # The Preferences step. Values come from DesiredRole.
     desired_roles: Mapped[list[str]] = mapped_column(
         ARRAY(String(30)), default=list, server_default=text("'{}'")
     )
@@ -145,8 +135,7 @@ class Profile(Base):
     referral_teams: Mapped[list[str]] = mapped_column(
         ARRAY(String(20)), default=list, server_default=text("'{}'")
     )
-    # One of MONTHLY_REFERRAL_LIMITS, or null for "No limit". 5 is the
-    # design's default choice.
+    # One of MONTHLY_REFERRAL_LIMITS, or null for "No limit". Figma defaults to 5.
     monthly_referral_limit: Mapped[int | None] = mapped_column(default=5, server_default=text("5"))
     # Both toggles default to what the design shows: alumni on, anyone off.
     accept_alumni_requests: Mapped[bool] = mapped_column(default=True, server_default=text("true"))
@@ -154,11 +143,9 @@ class Profile(Base):
         default=False, server_default=text("false")
     )
 
-    # The step the user is currently on, 1..onboarding_step_count(). Lets the
-    # wizard resume where "Save & exit" left off - Module 1.5.
+    # Current step, so "Save & exit" can resume (Module 1.5).
     onboarding_step: Mapped[int] = mapped_column(default=1, server_default=text("1"))
-    # Set when the user presses "Finish setup". Being on the last step is not
-    # the same as having finished it.
+    # Set by "Finish setup" - being on the last step isn't the same as finishing.
     onboarding_completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )

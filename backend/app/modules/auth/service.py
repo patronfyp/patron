@@ -1,8 +1,4 @@
-"""Business rules for the auth module.
-
-Routes call these functions and nothing else - no SQL and no HTTP status codes
-belong here, only decisions. STANDARDS.md §2.3.
-"""
+"""Business rules for sign-up, sign-in, sessions and passwords."""
 
 import hashlib
 import logging
@@ -33,24 +29,13 @@ from .schemas import AccessTokenResponse, RegisterRequest, TokenPair
 
 logger = logging.getLogger(__name__)
 
-# Same message for every login failure - see STANDARDS.md §6, rule 10.
-# Confirming *which* part was wrong tells an attacker whether an account
-# exists for a given email.
+# One message for every login failure, so it never reveals which emails exist.
 _INVALID_CREDENTIALS = "Invalid email or password"
 
 
 async def register_user(session: AsyncSession, payload: RegisterRequest) -> User:
-    """Create a new account from an email + password.
-
-    This is the fallback sign-up path (Module 1.2) - LinkedIn (Module 1.1,
-    Sprint 2) will call create_user directly with no password and a
-    user_identities row of its own; the duplicate-email rule here is specific
-    to this path.
-    """
-    # RegisterRequest.email is a Pydantic EmailStr, not yet normalised - the
-    # lowercasing happens on the User model (see models.py), but the
-    # duplicate check has to compare against the same normalised form or a
-    # differently-cased duplicate would slip through.
+    """Create an account from email + password (Module 1.2). 409 if taken."""
+    # Lowercased here too, so the duplicate check matches what the model stores.
     normalised_email = payload.email.strip().lower()
 
     existing = await repository.get_by_email(session, normalised_email)
@@ -62,14 +47,7 @@ async def register_user(session: AsyncSession, payload: RegisterRequest) -> User
 
 
 def create_session(user: User) -> TokenPair:
-    """Issue a fresh access + refresh token pair for an already-authenticated
-    user.
-
-    Deliberately takes just a `User`, not credentials - this is what LinkedIn
-    sign-in (#25) will call too, once a user has been found or created via a
-    provider identity rather than a password. Nothing here assumes a password
-    was involved.
-    """
+    """A fresh token pair for a user already authenticated - by password or LinkedIn."""
     return TokenPair(
         access_token=create_access_token(user.id),
         refresh_token=create_refresh_token(user.id),
@@ -77,13 +55,7 @@ def create_session(user: User) -> TokenPair:
 
 
 async def authenticate_user(session: AsyncSession, email: str, password: str) -> User:
-    """Verify credentials and return the matching user, or raise.
-
-    A user with no password set (a future LinkedIn-only account, Module 1.1)
-    fails this the same way a wrong password does - `verify_password` never
-    runs, and either way the caller gets a plain 401, not a crash or a hint
-    about which case applies.
-    """
+    """The user for these credentials, or 401. A LinkedIn-only user fails the same way."""
     user = await repository.get_by_email(session, email.strip().lower())
 
     if user is None or user.password is None or not verify_password(password, user.password):
@@ -93,18 +65,12 @@ async def authenticate_user(session: AsyncSession, email: str, password: str) ->
 
 
 async def login_with_linkedin(session: AsyncSession, account: LinkedInAccount) -> User:
-    """The account-linking rule (#25, ADR - account-linking).
+    """Find, link or create the user for a LinkedIn sign-in (ADR 0011).
 
-        identity exists for (linkedin, sub)? -> yes -> log in
-        no -> user exists with this email?
-            no  -> create user + identity, log in
-            yes -> LinkedIn reported email_verified?
-                yes -> attach identity to that user, log in
-                no  -> refuse
-
-    The refusal case matters: trusting an unverified provider email would let
-    anyone create a LinkedIn account claiming a victim's address and take
-    over their existing Patron account.
+    known LinkedIn id        -> log in
+    new email                -> create user + identity
+    existing email, verified -> link identity to that user
+    existing email, not      -> refuse (else anyone could take over the account)
     """
     identity = await repository.get_identity(
         session, AuthProvider.LINKEDIN.value, account.provider_user_id
@@ -147,25 +113,16 @@ async def login_with_linkedin(session: AsyncSession, account: LinkedInAccount) -
 
 
 async def add_user_role(session: AsyncSession, user: User, role: str) -> User:
-    """POST /auth/role - add a role to the account.
-
-    A LinkedIn sign-up uses this for its first role, since LinkedIn never
-    tells us what someone wants to do on Patron. Adding a role the user
-    already holds is a no-op rather than an error, so a double-submitted form
-    or a retried request is harmless.
-    """
+    """Add a role (a LinkedIn sign-up's first one). Already held is a no-op."""
     if role in user.roles:
         return user
     return await repository.add_role(session, user, role)
 
 
 async def refresh_access_token(session: AsyncSession, refresh_token: str) -> AccessTokenResponse:
-    """Exchange a valid, unexpired refresh token for a new access token.
+    """A new access token for a valid refresh token.
 
-    Re-checks the user against the database rather than trusting the token's
-    `sub` claim alone - otherwise a banned or deleted account (Module 13.2)
-    keeps minting fresh access tokens for as long as its refresh token has
-    left to live, up to 7 days.
+    Re-checks the user, so a banned account can't keep minting tokens.
     """
     try:
         payload = decode_token(refresh_token, expected_type=TokenType.REFRESH)
@@ -176,8 +133,7 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str) -> Acc
     user = await repository.get_by_id(session, user_id)
     if user is None or not user.is_active:
         raise UnauthorizedError("Invalid or expired refresh token")
-    # Refresh tokens are not stored, so a password reset revokes them by
-    # date: anything issued before the reset is refused.
+    # Tokens aren't stored, so a password change revokes them by date.
     if issued_before(payload, user.password_changed_at):
         raise UnauthorizedError("Invalid or expired refresh token")
 
@@ -190,12 +146,9 @@ async def refresh_access_token(session: AsyncSession, refresh_token: str) -> Acc
 async def change_password(
     session: AsyncSession, user: User, current_password: str, new_password: str
 ) -> TokenPair:
-    """Change a signed-in user's password and sign out every other session.
+    """Change the password, sign out every other session, return new tokens.
 
-    Wrong current password is a 400, not a 401: the user *is* signed in, and
-    a 401 would make the frontend try to refresh the session. Returns a fresh
-    token pair, because recording the change also invalidates the tokens of
-    the session making it.
+    A wrong current password is 400, not 401 - a 401 would trigger a token refresh.
     """
     if user.password is None:
         raise BadRequestError(
@@ -213,26 +166,21 @@ async def change_password(
 # --- Password reset - Module 1.12 -------------------------------------------
 
 RESET_TOKEN_TTL = timedelta(minutes=30)
-# One link per minute per account. Stops anyone from flooding a person's
-# inbox through this form - see request_password_reset for why it is silent.
+# One link per minute per account, so the form can't flood an inbox.
 RESET_REQUEST_COOLDOWN = timedelta(seconds=60)
 
 _INVALID_RESET_TOKEN = "This reset link is invalid or has expired. Request a new one."  # noqa: S105 -- a user-facing message, not a secret
 
 
 def _hash_reset_token(token: str) -> str:
-    """Plain SHA-256 is enough here, unlike passwords or 6-digit codes: the
-    token is 256 random bits, so there is nothing to brute-force."""
+    """Plain SHA-256 is enough: the token is 256 random bits."""
     return hashlib.sha256(token.encode()).hexdigest()
 
 
 async def request_password_reset(session: AsyncSession, email: str, sender: EmailSender) -> None:
     """Email a reset link if an active account has this address.
 
-    Returns normally in *every* case - unknown email, inactive account, inside
-    the cooldown, or even the email provider failing - so the 202 the caller
-    gets says nothing about whether an account exists. A 429 or 503 here would
-    leak exactly that, so those cases are logged instead of raised.
+    Never raises - any error would reveal whether the account exists.
     """
     user = await repository.get_by_email(session, email.strip().lower())
     if user is None or not user.is_active:
@@ -264,22 +212,15 @@ async def request_password_reset(session: AsyncSession, email: str, sender: Emai
             ),
         )
     except EmailDeliveryError:
-        # Remove the token so the cooldown doesn't block a retry for a link
-        # that never arrived.
+        # Undelivered - drop it so the cooldown doesn't block a retry.
         logger.exception("Password reset email could not be sent for user %s", user.id)
         await repository.delete_reset_token(session, row)
 
 
 async def confirm_password_reset(session: AsyncSession, token: str, new_password: str) -> None:
-    """Set a new password from a valid reset link, and sign out everywhere.
+    """Set a new password from a reset link and sign out everywhere.
 
-    Every token problem - unknown, expired, already used or replaced - is the
-    same 400. Recording `password_changed_at` is what makes every access and
-    refresh token issued before now stop working.
-
-    A LinkedIn-only account (no password yet) can use this too: proving it
-    owns the email is the same proof LinkedIn gave us, and afterwards the user
-    can also sign in with email and password.
+    Every bad token is the same 400. Also lets a LinkedIn-only user set a password.
     """
     row = await repository.get_reset_token_by_hash(session, _hash_reset_token(token))
     now = datetime.now(UTC)
