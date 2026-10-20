@@ -32,6 +32,7 @@ async function fillValidForm(user) {
   await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
   await user.type(screen.getByLabelText('Password'), 'password123')
   await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+  await user.click(screen.getByRole('checkbox', { name: /terms of service/i }))
 }
 
 describe('RegisterPage', () => {
@@ -113,6 +114,37 @@ describe('RegisterPage', () => {
     await user.click(screen.getByText('Refer others'))
 
     expect(sessionStorage.getItem('patron:picked-role')).toBe('referrer')
+  })
+
+  it('blocks submit until the terms checkbox is checked', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    await user.type(screen.getByLabelText(/full name/i), 'Jane Doe')
+    await user.type(screen.getByLabelText(/email/i), 'jane@example.com')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    // Deliberately not checking the terms checkbox.
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    expect(
+      await screen.findByText('You must agree to the Terms of Service and Privacy Policy'),
+    ).toBeInTheDocument()
+    expect(register).not.toHaveBeenCalled()
+  })
+
+  it('shows a password strength label and hint once typing starts', async () => {
+    const user = userEvent.setup()
+    renderPage()
+
+    expect(screen.queryByText('12+ chars, a number, a symbol')).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Password'), 'weak')
+    expect(await screen.findByText('Too short')).toBeInTheDocument()
+    expect(screen.getByText('12+ chars, a number, a symbol')).toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('Password'), 'pass1234!longer12')
+    expect(await screen.findByText('Strong password')).toBeInTheDocument()
   })
 
   it('shows the server error on a duplicate email', async () => {
