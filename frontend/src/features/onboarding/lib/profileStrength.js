@@ -3,8 +3,8 @@
  * user has really done, worked out from their saved profile and verification
  * status. Nothing here is estimated or made up.
  *
- * @param {import('./api/onboarding.api').Profile} profile
- * @param {import('../verification/api/verification.api').VerificationStatus | undefined} status
+ * @param {import('../api/onboarding.api').Profile} profile
+ * @param {import('@/features/verification/api/verification.api').VerificationStatus | undefined} status
  * @returns {{ percent: number, nextStep: string | null, isOneAway: boolean }}
  *   `nextStep` names the first thing still missing (null when everything is
  *   done); `isOneAway` is true when it is the only thing missing

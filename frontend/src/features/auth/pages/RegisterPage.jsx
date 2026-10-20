@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react'
 import { App, Button, Checkbox, Form, Input } from 'antd'
 import { Link, useNavigate } from 'react-router-dom'
 
-import lockIcon from '../../../assets/icons/lock.svg'
-import mailIcon from '../../../assets/icons/mail.svg'
-import userIcon from '../../../assets/icons/user.svg'
+import lockIcon from '@/assets/icons/lock.svg'
+import mailIcon from '@/assets/icons/mail.svg'
+import userIcon from '@/assets/icons/user.svg'
+import Icon from '@/shared/components/Icon/Icon'
+
 import AuthLayout from '../components/AuthLayout'
 import RoleCards from '../components/RoleCards'
 import { useRegister } from '../hooks/useAuth'
@@ -13,8 +15,8 @@ import {
   getPasswordStrength,
   PASSWORD_STRENGTH_HINT,
   PASSWORD_STRENGTH_SEGMENTS,
-} from '../passwordStrength'
-import { rememberPickedRole } from '../roleMemory'
+} from '../lib/passwordStrength'
+import { rememberPickedRole } from '../lib/roleMemory'
 
 import styles from './RegisterPage.module.css'
 
@@ -113,7 +115,7 @@ function RegisterPage() {
           rules={[{ required: true, message: 'Full name is required' }]}
         >
           <Input
-            prefix={<img src={userIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={userIcon} className={styles.fieldIcon} />}
             placeholder="Jane Doe"
           />
         </Form.Item>
@@ -127,7 +129,7 @@ function RegisterPage() {
           ]}
         >
           <Input
-            prefix={<img src={mailIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={mailIcon} className={styles.fieldIcon} />}
             placeholder="jane@example.com"
           />
         </Form.Item>
@@ -142,7 +144,7 @@ function RegisterPage() {
           ]}
         >
           <Input.Password
-            prefix={<img src={lockIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={lockIcon} className={styles.fieldIcon} />}
             placeholder="At least 8 characters"
           />
         </Form.Item>
@@ -164,7 +166,7 @@ function RegisterPage() {
           ]}
         >
           <Input.Password
-            prefix={<img src={lockIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={lockIcon} className={styles.fieldIcon} />}
             placeholder="Re-enter your password"
           />
         </Form.Item>

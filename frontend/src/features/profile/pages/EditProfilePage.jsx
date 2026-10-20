@@ -17,7 +17,7 @@ import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 
 import ProfileCard from '../components/ProfileCard'
 import { profileKeys } from '../hooks/usePublicProfile'
-import { fieldErrorsFrom } from '../saveErrors'
+import { fieldErrorsFrom } from '../lib/saveErrors'
 
 import styles from './EditProfilePage.module.css'
 

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 
 import RoleCards from '../components/RoleCards'
 import { useSetRole } from '../hooks/useAuth'
-import { forgetPickedRole, getRememberedRole } from '../roleMemory'
+import { forgetPickedRole, getRememberedRole } from '../lib/roleMemory'
 
 const { Title, Paragraph } = Typography
 

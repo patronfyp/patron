@@ -11,7 +11,7 @@ import {
   useNotifications,
   useUnreadCount,
 } from '../hooks/useNotifications'
-import { filterByTab, isAppPath, TABS } from '../notificationMeta'
+import { filterByTab, isAppPath, TABS } from '../lib/notificationMeta'
 
 import NotificationList from './NotificationList'
 import styles from './NotificationPanel.module.css'

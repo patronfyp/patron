@@ -2,8 +2,8 @@ import bellIcon from '@/assets/icons/bell-17.svg'
 import dotIcon from '@/assets/icons/dot-8.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { formatNotificationTime } from '../formatNotificationTime'
-import { getTypeMeta } from '../notificationMeta'
+import { formatNotificationTime } from '../lib/formatNotificationTime'
+import { getTypeMeta } from '../lib/notificationMeta'
 
 import styles from './NotificationItem.module.css'
 

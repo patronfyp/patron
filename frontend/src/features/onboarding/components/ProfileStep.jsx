@@ -13,7 +13,7 @@ import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import Icon from '@/shared/components/Icon/Icon'
 
 import { useRemovePhoto, useUploadPhoto } from '../hooks/useProfile'
-import { LINKEDIN_PATTERN } from '../validation'
+import { LINKEDIN_PATTERN } from '../lib/validation'
 
 import styles from './ProfileStep.module.css'
 

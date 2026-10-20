@@ -11,7 +11,13 @@ import penIcon from '@/assets/icons/pen-16.svg'
 import shareIcon from '@/assets/icons/share-16.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { headlineLine, initials, profilePhoto, shortUniversity, shortYear } from '../profileView'
+import {
+  headlineLine,
+  initials,
+  profilePhoto,
+  shortUniversity,
+  shortYear,
+} from '../lib/profileView'
 
 import ProfileChip from './ProfileChip'
 import styles from './ProfileHeader.module.css'

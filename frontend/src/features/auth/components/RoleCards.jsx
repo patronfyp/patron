@@ -1,4 +1,4 @@
-import { SIGNUP_ROLES } from '../roles'
+import { SIGNUP_ROLES } from '../lib/roles'
 
 import styles from './RoleCards.module.css'
 

@@ -7,8 +7,8 @@ import fileIcon from '@/assets/icons/file-18.svg'
 import mailIcon from '@/assets/icons/mail-18.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { COMPANY_OPTIONS, findCompany } from '../companies'
 import { useStepControls } from '../hooks/useStepControls'
+import { COMPANY_OPTIONS, findCompany } from '../lib/companies'
 
 import DocumentUpload from './DocumentUpload'
 import EmailCodeVerification from './EmailCodeVerification'

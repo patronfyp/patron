@@ -1,4 +1,4 @@
-import { TABS } from '../notificationMeta'
+import { TABS } from '../lib/notificationMeta'
 
 import styles from './NotificationTabs.module.css'
 

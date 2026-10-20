@@ -19,8 +19,8 @@ import Icon from '@/shared/components/Icon/Icon'
 import { TrustBadge } from '../components/StepAside'
 import WizardHeader from '../components/WizardHeader'
 import { useProfile } from '../hooks/useProfile'
-import { profileStrength } from '../profileStrength'
-import { REFERRER_STEPS, STEPS, isReferrerOnly } from '../steps'
+import { profileStrength } from '../lib/profileStrength'
+import { REFERRER_STEPS, STEPS, isReferrerOnly } from '../lib/steps'
 
 import styles from './AllSetPage.module.css'
 

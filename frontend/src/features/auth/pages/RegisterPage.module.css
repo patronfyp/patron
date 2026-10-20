@@ -2,6 +2,10 @@
    account" frame (64:2, nodes 64:185 and 64:115). Colours and radii come
    from config/theme.js's --patron-* variables. */
 
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
 .strength {
   display: flex;
   flex-direction: column;

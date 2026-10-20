@@ -5,7 +5,7 @@ import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import sparkleIcon from '@/assets/icons/sparkle-16.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { COMPANY_OPTIONS, findCompany } from '../companies'
+import { COMPANY_OPTIONS, findCompany } from '../lib/companies'
 
 import EmailCodeVerification from './EmailCodeVerification'
 import styles from './EmployerStep.module.css'

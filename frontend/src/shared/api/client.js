@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import { API_BASE_URL } from '../../config/env'
+import { API_BASE_URL } from '@/config/env'
 
 /**
  * Single axios instance for every call to the Patron backend.

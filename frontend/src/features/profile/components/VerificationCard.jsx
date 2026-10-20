@@ -3,7 +3,7 @@ import clockIcon from '@/assets/icons/clock-16.svg'
 import linkIcon from '@/assets/icons/link-16.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { safeWebUrl, shortUniversity } from '../profileView'
+import { safeWebUrl, shortUniversity } from '../lib/profileView'
 
 import ProfileCard from './ProfileCard'
 import ProfileChip from './ProfileChip'

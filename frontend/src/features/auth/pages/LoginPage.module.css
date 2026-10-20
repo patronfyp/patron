@@ -28,9 +28,14 @@
   background: var(--patron-bg-subtle);
 }
 
-.note img {
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+.noteIcon {
   flex: none;
   margin-top: 1px;
+  color: var(--patron-accent-brand);
 }
 
 .note p {

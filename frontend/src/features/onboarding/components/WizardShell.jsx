@@ -4,7 +4,7 @@ import arrowLeftIcon from '@/assets/icons/arrow-left.svg'
 import arrowRightIcon from '@/assets/icons/arrow-right.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { STEPS } from '../steps'
+import { STEPS } from '../lib/steps'
 
 import WizardHeader from './WizardHeader'
 import styles from './WizardShell.module.css'

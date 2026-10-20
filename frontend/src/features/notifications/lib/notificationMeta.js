@@ -32,7 +32,7 @@ export function getTypeMeta(type) {
 /**
  * The notifications a tab shows.
  *
- * @param {import('./api/notifications.api').Notification[]} items
+ * @param {import('../api/notifications.api').Notification[]} items
  * @param {string} tabKey
  */
 export function filterByTab(items, tabKey) {

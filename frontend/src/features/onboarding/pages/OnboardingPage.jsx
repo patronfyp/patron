@@ -35,9 +35,9 @@ import UniversityStep from '../components/UniversityStep'
 import WizardShell from '../components/WizardShell'
 import { useCompleteOnboarding, useProfile, useUpdateProfile } from '../hooks/useProfile'
 import { StepControlsContext } from '../hooks/useStepControls'
-import { toFormValues, toProfileChanges } from '../profileForm'
-import { isReferrerOnly, stepsFor } from '../steps'
-import { LINKEDIN_PATTERN } from '../validation'
+import { toFormValues, toProfileChanges } from '../lib/profileForm'
+import { isReferrerOnly, stepsFor } from '../lib/steps'
+import { LINKEDIN_PATTERN } from '../lib/validation'
 
 /**
  * @param {object} props

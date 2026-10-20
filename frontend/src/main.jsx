@@ -7,10 +7,10 @@ import { App as AntApp, ConfigProvider } from 'antd'
 import { RouterProvider } from 'react-router-dom'
 
 import './index.css'
-import AuthProvider from './app/providers/AuthProvider'
-import { router } from './app/router/routes'
-import { cssVariables, theme } from './config/theme'
-import { setupAuthClient } from './features/auth'
+import AuthProvider from '@/app/providers/AuthProvider'
+import { router } from '@/app/router/routes'
+import { cssVariables, theme } from '@/config/theme'
+import { setupAuthClient } from '@/features/auth'
 
 // Exposes config/theme.js to plain CSS as --patron-* variables, so CSS files
 // never carry their own copy of a colour or font.

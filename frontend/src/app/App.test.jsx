@@ -19,14 +19,15 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { useAuthStore } from '@/features/auth'
+import { api } from '@/shared/api/client'
+
 import App from './App'
-import { useAuthStore } from './features/auth'
-import { api } from './shared/api/client'
 
 // Replace the real axios client with a fake one. Tests must never hit the
 // network: a test that needs the backend running is not a unit test, it is a
 // second way for the suite to fail.
-vi.mock('./shared/api/client', () => ({
+vi.mock('@/shared/api/client', () => ({
   api: { get: vi.fn() },
 }))
 
