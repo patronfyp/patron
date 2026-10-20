@@ -422,7 +422,7 @@ strict ESLint rules.
 
 **Mitigation**
 - JSDoc typedefs for all shared shapes are mandatory (STANDARDS.md §4.5).
-- API response shapes are documented in shared/types/.
+- API response shapes are documented as typedefs in each feature's api/ file.
 
 ## Alternatives considered
 - **TypeScript** — rejected for now on learning-curve grounds, not technical

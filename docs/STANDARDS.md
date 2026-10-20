@@ -50,7 +50,10 @@ behind these rules — go there when you need it, not before.
 | a piece of UI used in two+ features | — | `shared/components/` |
 | an HTTP call | — | `features/<domain>/api/<domain>.api.js` |
 | data fetching + caching | — | `features/<domain>/hooks/use<Domain>.js` |
-| a date formatter, a validator | `app/core/` | `shared/lib/` |
+| a helper, constant or validator for one feature | in that module's `service.py` | `features/<domain>/lib/` |
+| a helper used across the app | `app/core/` | `shared/lib/` |
+| a call to an outside service (LinkedIn, email) | `app/modules/<domain>/<service>.py`, or `app/core/` if shared | — |
+| a test | `tests/<domain>/test_<topic>.py` | next to the file: `<Name>.test.jsx` |
 
 Use the same domain name on both sides: `modules/jobs/` ↔ `features/jobs/`.
 
@@ -106,13 +109,6 @@ Then walk the **[Definition of Done](#11-definition-of-done)** checklist.
 - Where this document and the existing code disagree, the document wins — and
   the code is a bug to fix.
 
-### A note on the current state of the repo
-
-The backend is currently flat: `main.py`, `config.py`, `db.py`. That is
-deliberate — we agreed to add folders when a feature actually needs them, not
-upfront. Section 2 describes the structure we grow **into**. The first person to
-build a real module creates its folder, following section 2 exactly.
-
 ---
 
 ## 1. Principles
@@ -151,33 +147,31 @@ allowed to see this?".
 
 ```
 backend/
-├── main.py                    creates the app, mounts routers. No business logic.
+├── main.py                    creates the app, mounts every module's router. No logic.
 ├── config.py                  Settings from .env. The only place env vars are read.
 ├── db.py                      engine, session factory, Base, get_session
 ├── app/
-│   ├── core/                  cross-cutting concerns
-│   │   ├── security.py        password hashing, JWT encode/decode
-│   │   ├── exceptions.py      our exception classes + handlers
-│   │   └── logging.py         log configuration
 │   ├── api/
-│   │   ├── deps.py            shared dependencies (get_current_user, ...)
-│   │   └── v1/
-│   │       ├── router.py      collects every v1 router
-│   │       └── routes/        endpoints that don't belong to one module
-│   └── modules/               one package per domain
+│   │   └── deps.py            shared dependencies: CurrentUser, SessionDep
+│   ├── core/                  used by more than one module
+│   │   ├── exceptions.py      AppError and its subclasses, mapped to HTTP codes
+│   │   ├── security.py        password hashing, JWT encode/decode
+│   │   ├── email.py           sending email
+│   │   ├── storage.py         FileStorage (local disk today)
+│   │   └── uploads.py         file type and size checks
+│   └── modules/               one package per domain (section 2.3)
 │       ├── auth/
 │       ├── profiles/
-│       ├── cv/
-│       ├── connections/
-│       ├── jobs/
-│       ├── recommendations/
-│       ├── referrals/
-│       ├── alumni/
-│       ├── companies/
+│       ├── verification/
 │       └── notifications/
-├── migrations/                Alembic
+├── migrations/versions/       one Alembic file per schema change
 └── tests/
+    ├── conftest.py            shared fixtures (client, session, storage)
+    └── <module>/              mirrors app/modules/: tests/auth/test_login.py
 ```
+
+New domains (jobs, referrals, alumni, companies, ...) are added as new folders
+under `modules/`, each with the same five files.
 
 ### 2.3 Anatomy of a backend module
 
@@ -215,6 +209,10 @@ models.py        the table
 Never upward. `repository.py` does not call `service.py`. `router.py` does not
 touch the database.
 
+**One extra file is allowed:** code that talks to an outside service lives next
+to the five, named after the service — `auth/linkedin.py`. Nothing else goes in
+a module folder.
+
 #### What belongs in each file
 
 | File | Does | Must not |
@@ -242,39 +240,34 @@ That last row is the one that will bite this team first.
 
 ```
 frontend/src/
-├── main.jsx                   entry: providers only
-├── app/
-│   ├── App.jsx                the shell
-│   ├── providers/             QueryProvider, ThemeProvider, AuthProvider
-│   ├── router/                routes, ProtectedRoute, RoleRoute
-│   └── layouts/               AuthLayout, AppLayout, DashboardLayout
-├── features/                  one folder per domain — mirrors backend modules
+├── main.jsx                   entry: theme, React Query, router. Nothing else.
+├── index.css                  global resets only
+├── app/                       wires the features together
+│   ├── App.jsx                the shell around every route
+│   ├── providers/             AuthProvider
+│   ├── router/                routes.jsx, ProtectedRoute
+│   └── layouts/               AppLayout, TopNavigation (used by many features)
+├── config/
+│   ├── env.js                 the only place import.meta.env is read
+│   └── theme.js               every colour, font, radius and shadow, from Figma
+├── assets/
+│   ├── brand/                 logo, illustrations
+│   └── icons/                 Figma icons, named <name>-<size>.svg
+├── features/                  one folder per domain, mirrors backend modules
 │   ├── auth/
-│   ├── profile/
-│   ├── cv-builder/
-│   ├── connections/
-│   ├── jobs/
-│   ├── recommendations/
-│   ├── referrals/
-│   ├── alumni/
-│   ├── company/
+│   ├── onboarding/
+│   ├── profile/               ↔ modules/profiles
+│   ├── verification/
 │   └── notifications/
-├── shared/                    reusable, feature-agnostic
-│   ├── api/                   axios client + interceptors
-│   ├── components/
-│   │   ├── ui/                thin wrappers over antd
-│   │   ├── feedback/          Loader, ErrorState, EmptyState
-│   │   └── layout/            Page, Section, Toolbar
-│   ├── hooks/
-│   ├── lib/                   formatters, validators, date helpers
-│   ├── constants/
-│   └── types/                 JSDoc typedefs
-├── config/                    env.js — the only place import.meta.env is read
-└── styles/                    theme tokens, global.css
+├── shared/                    used by two or more features, imports no feature
+│   ├── api/                   axios client, fileUrl, getApiErrorMessage
+│   ├── components/            Icon, OtpInput (one folder per component)
+│   └── lib/                   helpers with no React and no feature knowledge
+└── test/                      test setup and fakes
 ```
 
-> `src/lib/api.js` exists today from the health-check work. Move it to
-> `src/shared/api/` when `shared/` is created.
+Folders are created when the first file needs them — never empty, never
+`.gitkeep`.
 
 ### 2.5 Anatomy of a frontend feature
 
@@ -290,16 +283,24 @@ features/jobs/
 ├── pages/
 │   ├── JobListPage.jsx   route targets. Compose, don't compute.
 │   └── JobDetailPage.jsx
+├── lib/                  (optional) helpers, constants, validation: no React
+│   └── salary.js
 ├── store/                (optional) feature-local zustand slice
 └── index.js              the feature's PUBLIC API
 ```
+
+Nothing sits loose in a feature's root except `index.js`. A file that isn't
+an API call, a hook, a component, a page or a store goes in `lib/`.
+
+A component's CSS module and test sit beside it with the same name:
+`JobCard.jsx`, `JobCard.module.css`, `JobCard.test.jsx`.
 
 `index.js` is a barrel — it re-exports only what other features are allowed to
 use:
 
 ```js
 // features/jobs/index.js
-export { JobCard } from './components/JobCard'
+export { default as JobCard } from './components/JobCard'
 export { useJobs, useJob } from './hooks/useJobs'
 ```
 
@@ -316,12 +317,11 @@ export { useJobs, useJob } from './hooks/useJobs'
 | Rule | ✅ Allowed | ❌ Not allowed |
 |---|---|---|
 | Cross-feature imports go through the barrel | `import { JobCard } from '@/features/jobs'` | `import JobCard from '@/features/jobs/components/JobCard'` |
-| Inside the same feature, use relative paths | `import { JobCard } from '../components/JobCard'` | `import { JobCard } from '@/features/jobs'` (circular) |
+| Inside the same feature, use relative paths | `import JobCard from '../components/JobCard'` | `import { JobCard } from '@/features/jobs'` (circular) |
 | `shared/` is independent | `shared/lib/formatDate.js` imports nothing from features | `shared/components/JobBadge.jsx` importing from `features/jobs` |
 | `app/` wires things together | `app/router` imports pages from features | a feature importing from `app/` |
 
-The first and third rules are enforced by ESLint. When you add `features/` and
-`shared/`, restore these to `frontend/eslint.config.js`:
+The first and third rules are enforced by ESLint, in `frontend/eslint.config.js`:
 
 ```js
 'no-restricted-imports': ['error', {
@@ -353,6 +353,10 @@ Frontend features and backend modules use the same names.
 | Domain | Frontend | Backend |
 |---|---|---|
 | Authentication | `features/auth/` | `modules/auth/` |
+| Profiles | `features/profile/` | `modules/profiles/` |
+| Verification | `features/verification/` | `modules/verification/` |
+| Notifications | `features/notifications/` | `modules/notifications/` |
+| Onboarding | `features/onboarding/` | uses `modules/profiles/` |
 | Jobs | `features/jobs/` | `modules/jobs/` |
 | Referrals | `features/referrals/` | `modules/referrals/` |
 | Alumni | `features/alumni/` | `modules/alumni/` |
@@ -755,20 +759,26 @@ let it propagate.
 
 ```jsx
 // features/jobs/pages/JobListPage.jsx
-import { Flex } from 'antd'
+import { Button, Flex, Result, Spin } from 'antd'
 
-import { ErrorState, Loader } from '@/shared/components/feedback'
-
-import { JobCard } from '../components/JobCard'
-import { JobFilters } from '../components/JobFilters'
+import JobCard from '../components/JobCard'
+import JobFilters from '../components/JobFilters'
 import { useJobs } from '../hooks/useJobs'
 
-export function JobListPage() {
-  const { data, isPending, isError, error, refetch } = useJobs()
+function JobListPage() {
+  const { data, isPending, isError, refetch } = useJobs()
 
-  if (isPending) return <Loader label="Loading jobs" />
-  if (isError) return <ErrorState error={error} onRetry={refetch} />
-  if (!data.items.length) return <EmptyState message="No jobs yet" />
+  if (isPending) return <Spin size="large" />
+  if (isError) {
+    return (
+      <Result
+        status="error"
+        title="Could not load jobs"
+        extra={<Button onClick={() => refetch()}>Retry</Button>}
+      />
+    )
+  }
+  if (!data.items.length) return <Result title="No jobs yet" />
 
   return (
     <Flex vertical gap={16}>
@@ -779,6 +789,8 @@ export function JobListPage() {
     </Flex>
   )
 }
+
+export default JobListPage
 ```
 
 The page has no `fetch`, no `useEffect`, no filtering logic. It picks which
@@ -903,7 +915,7 @@ search can be shared, bookmarked and survives a refresh — for free.
 | Rule | ✅ | ❌ |
 |---|---|---|
 | One component per file, named after the file | `JobCard.jsx` exports `JobCard` | three components in `stuff.jsx` |
-| Named exports | `export function JobCard()` | `export default function()` |
+| A named function, default-exported at the end | `function JobCard()` … `export default JobCard` | `export default function()` (anonymous) |
 | Destructure props in the signature | `function JobCard({ job, onSave })` | `function JobCard(props)` then `props.job` everywhere |
 | Under ~150 lines | split into smaller components | a 600-line component |
 | Document props with JSDoc | see below | guess what `data` is |
@@ -916,18 +928,21 @@ what a prop is. This is not optional:
  * A single job in the listing feed.
  *
  * @param {object} props
- * @param {import('@/shared/types').Job} props.job
+ * @param {import('../api/jobs.api').Job} props.job
  * @param {(jobId: number) => void} [props.onSave] - omit to hide the save button
  */
-export function JobCard({ job, onSave }) {
+function JobCard({ job, onSave }) {
   // ...
 }
+
+export default JobCard
 ```
 
-Define the shared shapes once in `shared/types/`:
+Define each API response shape once, as a typedef in the feature's API file
+(see `features/onboarding/api/onboarding.api.js`):
 
 ```js
-// shared/types/job.js
+// features/jobs/api/jobs.api.js
 /**
  * @typedef {object} Job
  * @property {number} id
@@ -937,7 +952,6 @@ Define the shared shapes once in `shared/types/`:
  * @property {boolean} isOpen
  * @property {string} createdAt - ISO 8601
  */
-export {}
 ```
 
 ### 4.6 Every screen handles four states
@@ -951,8 +965,9 @@ A screen that only handles the happy path is not finished.
 | **Empty** | "No jobs yet" plus, if useful, an action to create one |
 | **Success** | the data |
 
-Build these three once in `shared/components/feedback/` and reuse them
-everywhere, so they look and behave the same.
+Use antd's `Spin` for loading and `Result` (with a Retry button) for errors and
+empty states, as the existing pages do. If the same wrapper appears in a
+second feature, move it to `shared/components/`.
 
 Error messages people can act on:
 
@@ -969,17 +984,18 @@ Use antd's `Form` — it gives validation, error display and accessible labels.
 ```jsx
 import { App, Button, Form, Input } from 'antd'
 
+import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
+
 import { useCreateJob } from '../hooks/useJobs'
 
-export function JobForm() {
+function JobForm() {
   const { message } = App.useApp()
   const { mutate, isPending } = useCreateJob()
 
   const onFinish = (values) => {
     mutate(values, {
       onSuccess: () => message.success('Job posted'),
-      onError: (error) =>
-        message.error(error.response?.data?.detail ?? 'Could not post the job'),
+      onError: (error) => message.error(getApiErrorMessage(error, 'Could not post the job')),
     })
   }
 
@@ -1002,6 +1018,8 @@ export function JobForm() {
     </Form>
   )
 }
+
+export default JobForm
 ```
 
 | Rule | Why |
@@ -1112,20 +1130,31 @@ Write a comment when:
 - a business rule comes from the spec (cite the module number)
 - something looks wrong but is deliberate
 
-Delete a comment when it describes the line beneath it. Never leave commented-out
-code — git remembers it.
+**Keep it short.** One or two lines. If it needs a paragraph, the reasoning
+belongs in an ADR or the PR description, and the comment points there:
+`# Access token stays in memory - ADR 0009.`
 
-Docstrings on every public function, service and endpoint. FastAPI puts endpoint
-docstrings straight into `/docs`, so they are user-facing documentation:
+| ❌ Delete | Why |
+|---|---|
+| a comment that repeats the line beneath it | the code already says it |
+| history: "used to be X, changed in #52 because…" | git and the PR remember it |
+| a paragraph re-explaining a decision | one line + a link to the ADR |
+| commented-out code | git remembers it |
+
+Docstrings on every service function and endpoint — **one line** saying what
+it does, plus at most one line for a rule the caller must know. FastAPI shows
+endpoint docstrings in `/docs`:
 
 ```python
 async def create_referral(...):
     """Refer a candidate into a job at your own company.
 
-    Requires verified employment at the hiring company. The candidate must
-    consent before the referral reaches the company's pipeline (Module 6.5).
+    Needs verified employment there and the candidate's consent (Module 6.5).
     """
 ```
+
+Frontend: a one-line JSDoc on each component and hook; `@param` lines only
+where the prop isn't obvious from its name.
 
 ### 5.4 Configuration
 
@@ -1217,7 +1246,7 @@ embarrassing to get wrong.
 **Backend**
 
 ```python
-# tests/modules/test_jobs_service.py
+# tests/jobs/test_posting.py
 import pytest
 
 from app.core.exceptions import ForbiddenError
@@ -1237,7 +1266,7 @@ async def test_unverified_company_cannot_post_a_job(session, unverified_company,
 // features/jobs/components/JobCard.test.jsx
 import { render, screen } from '@testing-library/react'
 
-import { JobCard } from './JobCard'
+import JobCard from './JobCard'
 
 it('hides the save button when no handler is given', () => {
   render(<JobCard job={makeJob()} />)
