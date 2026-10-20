@@ -2,10 +2,8 @@ import styles from './AppLayout.module.css'
 import TopNavigation from './TopNavigation'
 
 /**
- * The frame around a signed-in page: the top navigation, then the page.
- *
- * The Figma pages also have a left sidebar; it is not built yet. Until it is,
- * the top bar spans the full width.
+ * The frame around a signed-in page: top navigation, then the page.
+ * Figma's left sidebar isn't built yet.
  *
  * @param {object} props
  * @param {import('react').ReactNode} props.children - the page

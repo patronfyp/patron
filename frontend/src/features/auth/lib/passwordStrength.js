@@ -1,7 +1,5 @@
-// Scores a password for the strength bar on Create account (#71, Figma node
-// 64:185). The backend's own rule (8-72 chars, schemas.py) is the only thing
-// that actually blocks submission - this is UI guidance on top of it, not a
-// second source of truth for what's allowed.
+// The strength bar on Create account (Figma 64:185). Guidance only - the
+// backend's 8-72 rule is what blocks.
 const LABELS = ['Too short', 'Weak password', 'Good password', 'Strong password']
 
 export const PASSWORD_STRENGTH_SEGMENTS = LABELS.length

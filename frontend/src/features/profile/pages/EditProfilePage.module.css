@@ -1,6 +1,4 @@
-/* Edit profile. No Figma frame: the cards are the profile page's own, and the
-   fields are the onboarding steps'. Values are --patron-* variables from
-   config/theme.js. */
+/* Edit profile - no Figma frame; profile cards around onboarding fields. */
 
 .page {
   max-width: 760px;

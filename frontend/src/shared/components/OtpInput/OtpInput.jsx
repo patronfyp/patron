@@ -4,20 +4,11 @@ import { Input } from 'antd'
 
 import styles from './OtpInput.module.css'
 
-// antd's Input.OTP formats the whole string on every keystroke, with a
-// literal space standing in for each not-yet-filled box (see its
-// patchValue) - stripping spaces here would collapse that padding and
-// break which box is "next". Only non-digit, non-space characters are
-// rejected.
+// Spaces are kept: antd pads empty boxes with them.
 const NOT_DIGIT_OR_SPACE = /[^0-9 ]/g
 
 /**
- * A row of digit boxes for a 6-digit email verification code.
- *
- * Auto-advance, full-code paste and backspace-to-previous-box all come from
- * antd's `Input.OTP` - this wraps it so every call site (university step,
- * employer step, forgot-password flow, ...) gets the same digit-only
- * formatting, group label and autofocus behaviour instead of repeating them.
+ * Digit boxes for a verification code - antd's Input.OTP, digits only.
  *
  * @param {object} props
  * @param {number} [props.length] - how many digits, default 6
@@ -43,9 +34,7 @@ function OtpInput({
   size = 'default',
 }) {
   const otpRef = useRef(null)
-  // Reaching for focus() on mount rather than antd's own autoFocus prop: that
-  // prop focuses the first box on every re-render with autoFocus set, which
-  // would steal focus back after the user has already moved on.
+  // Once on mount: antd's autoFocus refocuses on every render.
   const hasAutoFocused = useRef(false)
 
   useEffect(() => {

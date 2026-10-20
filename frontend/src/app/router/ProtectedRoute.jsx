@@ -5,10 +5,7 @@ import { useAuthStore } from '@/features/auth'
 const SELECT_ROLE_PATH = '/select-role'
 
 /**
- * Redirects to /login when there is no session, and to /select-role when
- * there is one but no role yet - a LinkedIn sign-up (#25) reaches here with
- * no roles, since LinkedIn never tells us what someone wants to do on
- * Patron. Nested routes render via <Outlet />.
+ * No session -> /login; no role yet (a LinkedIn sign-up) -> /select-role.
  */
 function ProtectedRoute() {
   const accessToken = useAuthStore((state) => state.accessToken)

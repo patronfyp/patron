@@ -2,9 +2,8 @@ import dayjs from 'dayjs'
 
 import { formatSalaryRange, parseSalaryRange } from './validation'
 
-// The plain fields PATCH /profile/me accepts - it rejects unknown ones, and the
-// form also holds UI-only values (the verification method). `salary_range`
-// and `available_from` need converting, so they are handled separately.
+// Fields PATCH /profile/me accepts (it rejects others). Salary and date are
+// converted separately.
 export const PROFILE_FIELDS = [
   'headline',
   'city',

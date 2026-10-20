@@ -6,8 +6,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '@/features/auth'
-// The test mocks the HTTP calls under the verification hooks, so it imports
-// that module directly - app code goes through '@/features/verification'.
+// Imported directly to mock it; app code uses the barrel.
 // eslint-disable-next-line no-restricted-imports
 import {
   confirmVerificationCode,

@@ -1,6 +1,4 @@
-/* The panel body. Figma has the rows (14:967: 4px above, 12px below, 20px
-   sides); the scroll limit and the empty/error states are not drawn there.
-   Colours and text styles are --patron-* variables from config/theme.js. */
+/* The panel body (Figma 14:967). Scroll limit and empty/error states aren't in Figma. */
 
 .list,
 .region {

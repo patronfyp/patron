@@ -1,6 +1,4 @@
-/* Candidate · Profile, Figma 14:2 (the page area: 28px between the identity
-   card and the columns, 24px between the columns, 20px between their cards).
-   Values are --patron-* variables from config/theme.js. */
+/* Candidate · Profile, Figma 14:2. */
 
 .page {
   display: flex;

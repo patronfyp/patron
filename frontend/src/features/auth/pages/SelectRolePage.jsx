@@ -9,16 +9,11 @@ import { forgetPickedRole, getRememberedRole } from '../lib/roleMemory'
 
 const { Title, Paragraph } = Typography
 
-// LinkedIn never tells us what someone wants to do on Patron (ADR 0011) - a
-// LinkedIn sign-up reaches this page with no roles and picks one here, once,
-// before the rest of the app (ProtectedRoute enforces the "before"). More
-// roles can be added later.
+// A LinkedIn sign-up has no role yet; it picks one here before the app.
 function SelectRolePage() {
   const { message } = App.useApp()
   const navigate = useNavigate()
-  // Pre-selects the role picked on Create account, if a LinkedIn sign-up
-  // carried one over (#75) - the user still has to press Continue, this
-  // just saves re-picking what they already chose.
+  // Pre-selects the role picked on Create account, if any.
   const [role, setRole] = useState(() => getRememberedRole())
   const { mutate, isPending } = useSetRole()
 

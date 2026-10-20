@@ -28,10 +28,7 @@ function LoginPage() {
   const location = useLocation()
   const { mutate, isPending } = useLogin()
   const [searchParams, setSearchParams] = useSearchParams()
-  // StrictMode double-invokes this effect in development; clearing the query
-  // param doesn't take effect before the second run reads it again, which
-  // would show the message twice - see LinkedInCallbackPage for the same
-  // pattern.
+  // Refs, so StrictMode's second effect run doesn't show a message twice.
   const hasShownLinkedinError = useRef(false)
   const hasShownResetSuccess = useRef(false)
 

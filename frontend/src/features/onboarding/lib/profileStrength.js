@@ -1,7 +1,5 @@
 /**
- * Profile strength for the All set screen - the share of these items the
- * user has really done, worked out from their saved profile and verification
- * status. Nothing here is estimated or made up.
+ * Profile strength for the All set screen, from what the user really did.
  *
  * @param {import('../api/onboarding.api').Profile} profile
  * @param {import('@/features/verification/api/verification.api').VerificationStatus | undefined} status

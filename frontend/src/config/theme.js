@@ -1,14 +1,8 @@
 /**
- * PATRON 2.0 design tokens - copied from the Figma file "PATRON 2.0 · Product
- * Design" (Foundations → Brand & design system). Figma is the source of truth:
- * when a value changes there, change it here, nowhere else.
+ * PATRON 2.0 design tokens, from the Figma file - the only place theme values
+ * live. Light mode only for now.
  *
- * Light mode only for now. Figma already has the dark-mode values; when dark
- * mode lands this is the only file that needs a second palette.
- *
- * Colours are literal hex values, not CSS custom properties: antd derives
- * hover/active/border shades from each seed token using colour math, which
- * needs a real colour to compute from, not a `var(--accent)` reference.
+ * Literal hex, not CSS variables: antd computes hover shades from real colours.
  */
 
 const FONT_SANS = "'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
@@ -77,9 +71,7 @@ export const tokens = {
 }
 
 /**
- * One colour family per endorsement tier, so a recruiter can tell them apart
- * at a glance. Emerald is reserved for "verified" and primary actions, so no
- * tier uses it.
+ * One colour per endorsement tier. Emerald stays for "verified" and actions.
  */
 export const trust = {
   rec: { base: '#5c6573', subtle: '#eff1f3', text: '#3d4450' },
@@ -142,9 +134,7 @@ export const theme = {
     colorBorder: tokens.border.default,
     colorBorderSecondary: tokens.border.subtle,
 
-    // Figma has no radius variables - these are read off the Sign in frame
-    // (9:3): chip 6, input field 8, callout card 12. Buttons (10) and the
-    // checkbox (5) differ, so they are set per component below.
+    // Read off the Sign in frame (9:3); buttons and checkbox differ, set below.
     borderRadiusSM: 6,
     borderRadius: 8,
     borderRadiusLG: 12,
@@ -229,11 +219,8 @@ export const typography = {
 }
 
 /**
- * Colours for the dark hero panel on the auth screens. Not fed into antd's
- * ConfigProvider: they colour one panel, and antd components must not inherit
- * them.
- *
- * Values from the Figma "Sign in" frame's Brand Panel (node 9:4).
+ * The dark brand panel on the auth screens (Figma 9:4). Kept out of antd's
+ * theme so no component inherits them.
  */
 export const brand = {
   deep: '#141619', // Brand Panel fill (charcoal/900)
@@ -271,10 +258,8 @@ const fontShorthand = ({ size, lineHeight, weight }, family = FONT_SANS) =>
 export const fontMono = FONT_MONO
 
 /**
- * Every token above as a CSS custom property (`--patron-bg-canvas`, ...), so
- * plain CSS files read the same values as antd. main.jsx sets these on
- * <html> once at startup - CSS never hard-codes a colour, font, text size or
- * radius.
+ * Every token as a `--patron-*` CSS variable, set on <html> by main.jsx, so
+ * CSS never hard-codes a value.
  */
 export function cssVariables() {
   const vars = {

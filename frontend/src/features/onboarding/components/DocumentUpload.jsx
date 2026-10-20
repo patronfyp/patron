@@ -8,9 +8,8 @@ import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import styles from './DocumentUpload.module.css'
 
 /**
- * Upload a document for a person to review - the University step's
- * transcript and the referrer's employment letter. Shows "waiting for review"
- * once one is uploaded, in this visit or an earlier one.
+ * Upload a transcript or employment letter for review; shows "waiting for
+ * review" once one exists.
  *
  * @param {object} props
  * @param {'university' | 'employer'} props.kind

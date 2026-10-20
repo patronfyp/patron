@@ -3,9 +3,8 @@ import { Switch } from 'antd'
 import styles from './ToggleCard.module.css'
 
 /**
- * A card with a title, a hint and a switch - the Preferences step's
- * "Let verified referrers find me" (65:527) and the referrer's request
- * toggles (67:620, 67:626). Use inside a Form.Item with valuePropName="value".
+ * A card with a title, hint and switch (Figma 65:527, 67:620). Use in a
+ * Form.Item with valuePropName="value".
  *
  * @param {object} props
  * @param {string} props.title

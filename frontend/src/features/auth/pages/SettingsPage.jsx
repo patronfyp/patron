@@ -20,9 +20,7 @@ function ChangePasswordForm() {
           message.success('Your password has been changed.')
           form.resetFields()
         },
-        // The backend's own message already says exactly what went wrong -
-        // wrong current password, same as the current one, or a
-        // LinkedIn-only account with no password yet to change (#74).
+        // The backend's message already says what went wrong.
         onError: (error) =>
           message.error(
             getApiErrorMessage(error, 'Could not change your password. Please try again.'),

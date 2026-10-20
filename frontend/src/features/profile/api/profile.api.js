@@ -1,9 +1,7 @@
 import { api } from '@/shared/api/client'
 
 /**
- * What any signed-in user may see of another (the backend's PublicProfileRead).
- * Phone, CV, salary, job preferences and onboarding progress are never in it;
- * they stay on the owner's own `GET /profile/me`.
+ * What any signed-in user may see of another - never phone, CV or salary.
  *
  * @typedef {object} PublicProfile
  * @property {string} user_id

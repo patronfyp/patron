@@ -24,10 +24,8 @@ const PAGE_SIZE = 20
 const isUnread = (notification) => notification.read_at === null
 
 /**
- * The dropdown under the bell (Figma "Notifications Panel", 14:968): header
- * with "Mark all read", the tabs, and the notifications.
- *
- * Choosing a notification marks it read and, if it has a link, goes there.
+ * The dropdown under the bell (Figma 14:968). Choosing a notification marks
+ * it read and follows its link.
  *
  * @param {object} props
  * @param {() => void} props.onClose - called after following a link

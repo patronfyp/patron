@@ -212,10 +212,8 @@ function referrerRows(profile, status) {
 }
 
 /**
- * "You are ready to refer" - the end of the referrer's onboarding (Figma
- * 67:714). Figma's "12 verified candidates already match" line is left out:
- * there is no matching yet to count them. Review requests goes home until a
- * requests page exists.
+ * "You are ready to refer" (Figma 67:714). No made-up candidate count;
+ * Review requests goes home until that page exists.
  */
 function ReferrerAllSet({ profile, status, firstName }) {
   const navigate = useNavigate()

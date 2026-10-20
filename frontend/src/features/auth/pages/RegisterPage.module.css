@@ -1,6 +1,4 @@
-/* Password strength meter and terms checkbox, from the Figma "Create
-   account" frame (64:2, nodes 64:185 and 64:115). Colours and radii come
-   from config/theme.js's --patron-* variables. */
+/* Strength meter and terms checkbox, Figma 64:185 and 64:115. */
 
 .fieldIcon {
   color: var(--patron-text-tertiary);

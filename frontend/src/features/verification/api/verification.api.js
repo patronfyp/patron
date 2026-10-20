@@ -1,10 +1,7 @@
 import { api } from '@/shared/api/client'
 
 /**
- * POST /api/v1/verification/email/send - emails a 6-digit code to the sign-up
- * address (`kind: "account"`), a university address (`kind: "university"`)
- * or a work address (`kind: "employer"`). Returns the two numbers the resend
- * countdown is built from, never the code.
+ * POST /api/v1/verification/email/send. Returns the resend countdown, never the code.
  */
 export async function sendVerificationCode({ email, kind }) {
   const response = await api.post('/api/v1/verification/email/send', { email, kind })
@@ -12,10 +9,7 @@ export async function sendVerificationCode({ email, kind }) {
 }
 
 /**
- * POST /api/v1/verification/email/confirm - checks `code` against the latest
- * one sent to `email`. Wrong, expired, already used and locked-after-5-tries
- * all come back as the same 400 on purpose (service.py) - there is nothing to
- * branch on client side beyond "it failed".
+ * POST /api/v1/verification/email/confirm. Every failure is the same 400.
  */
 export async function confirmVerificationCode({ email, kind, code }) {
   const response = await api.post('/api/v1/verification/email/confirm', { email, kind, code })

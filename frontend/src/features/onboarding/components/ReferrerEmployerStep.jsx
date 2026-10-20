@@ -43,13 +43,8 @@ function isCompanyEmail(email, company) {
 }
 
 /**
- * The referrer's step 2 - where they work and how to prove it (Figma 67:505).
- * Figma's second option, "LinkedIn current position", is an employment letter
- * here: LinkedIn's self-serve API doesn't return positions (ADR 0013).
- *
- * A referrer can't move on without proof - a work email at the chosen company
- * or an employment letter waiting for review. The backend checks the same
- * before it lets them finish.
+ * The referrer's step 2 - where they work, and proof (Figma 67:505).
+ * An employment letter replaces Figma's LinkedIn option (ADR 0013).
  *
  * @param {object} props
  * @param {string | null} [props.verifiedEmail] - a work email already verified

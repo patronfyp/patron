@@ -3,10 +3,8 @@ import Icon from '@/shared/components/Icon/Icon'
 import styles from './OptionCards.module.css'
 
 /**
- * Radio buttons drawn as cards - the University step's verification method
- * (Figma 9:172, 9:184). Real <input type="radio">s underneath, so arrow keys,
- * Tab and screen readers behave exactly like a native radio group; plugs into
- * antd's Form.Item via `value` / `onChange`.
+ * Radio buttons drawn as cards (Figma 9:172). Real radios underneath, so the
+ * keyboard and screen readers work.
  *
  * @param {object} props
  * @param {string} props.name

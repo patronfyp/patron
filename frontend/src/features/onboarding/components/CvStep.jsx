@@ -18,9 +18,8 @@ function formatSize(bytes) {
 }
 
 /**
- * Step 5 - upload a CV (Figma 65:354). The file is saved the moment it is
- * dropped or picked. The "PATRON AI read your CV" box from the design waits
- * for the AI module (Module 9).
+ * Step 5 - upload a CV (Figma 65:354), saved as soon as it's picked.
+ * The AI box waits for Module 9.
  *
  * @param {object} props
  * @param {import('../api/onboarding.api').Profile} props.profile

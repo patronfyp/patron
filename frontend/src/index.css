@@ -1,6 +1,4 @@
-/* Global baseline only.
-   antd's ConfigProvider owns component styling - keeping this file minimal
-   stops the two from fighting over fonts, colours and sizes. */
+/* Global baseline only - antd's ConfigProvider owns component styling. */
 
 *,
 *::before,

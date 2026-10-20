@@ -35,11 +35,7 @@
   outline-offset: 2px;
 }
 
-/* Figma's Chip/accent (the "5" beside "All" on the panel's tabs): 20px tall,
-   accent/subtle fill, accent/text label. Figma has no badge on the bell
-   itself, so this style sits on its top-right corner. The ring keeps it
-   readable where it overlaps the button's border. It is high enough that a
-   wide "99+" still clears the top of the bell. */
+/* Figma's Chip/accent, on the bell's corner (Figma has no bell badge). */
 .badge {
   position: absolute;
   top: -11px;

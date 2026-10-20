@@ -5,11 +5,8 @@ import { api } from '@/shared/api/client'
 const originalAdapter = api.defaults.adapter
 
 /**
- * Replaces the network for the shared API client with a function, so tests
- * never hit a server. `respond(config, callNumber)` returns a response (see
- * `ok`) or throws one (see `unauthorized`). Returns the list of requests seen,
- * with the Authorization header captured at the moment each was sent - axios
- * reuses one config object across a retry, so reading it later would lie.
+ * Swaps the API client's network for `respond(config, callNumber)`. Records
+ * each request's Authorization header when sent - axios reuses the config.
  */
 export function fakeNetwork(respond) {
   const requests = []

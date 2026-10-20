@@ -62,10 +62,7 @@ function RegisterPage() {
   // and it always has a value (Candidate by default), so it needs no rules.
   const [role, setRole] = useState('candidate')
 
-  // Remembered so SelectRolePage can pre-select it after a LinkedIn sign-up
-  // (#75) - LinkedIn itself never tells us what the user picked here. Runs
-  // for the default too, not just a change, in case "Sign up with LinkedIn"
-  // is clicked without touching the cards.
+  // Remembered for SelectRolePage after a LinkedIn sign-up - the default too.
   useEffect(() => {
     rememberPickedRole(role)
   }, [role])

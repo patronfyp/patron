@@ -25,9 +25,7 @@ export function useUploadVerificationDocument() {
   })
 }
 
-// Same shape as LoginPage's getErrorMessage - a 422/429/503 from this module
-// carries a plain string in `detail` (app/core/exceptions.py), a 422 from
-// Pydantic itself carries an array of {msg}.
+// `detail` is a string from our errors, or an array of {msg} from Pydantic.
 export function getVerificationErrorMessage(error) {
   const detail = error.response?.data?.detail
   if (typeof detail === 'string') return detail
@@ -51,14 +49,8 @@ export function useConfirmVerificationCode() {
 }
 
 /**
- * Counts a "Resend in 0:42" button down to zero, in whole seconds.
- *
- * `resend_after_seconds` is a fixed value from the backend's config
- * (verification/service.py's RESEND_COOLDOWN) - it is the same 60 on every
- * send, so it can't be used as a change signal on its own. `sendResult`
- * (the whole `useSendVerificationCode().data` object) is a fresh object
- * reference each time a send succeeds, so comparing *that* is what notices a
- * second resend and restarts the countdown.
+ * Counts "Resend in 0:42" down. Restarts on each new `sendResult` object -
+ * the seconds value alone is always 60.
  *
  * @param {{ resend_after_seconds: number } | undefined} sendResult
  * @returns {{ secondsLeft: number, isActive: boolean }}
@@ -68,9 +60,7 @@ export function useResendCountdown(sendResult) {
   const [trackedResult, setTrackedResult] = useState(sendResult)
   const [secondsLeft, setSecondsLeft] = useState(targetSeconds)
 
-  // Derived-state-reset pattern (react.dev "Adjusting state when a prop
-  // changes") rather than an effect: a new send result means a new
-  // countdown, synchronously, before this render commits.
+  // Reset during render, not in an effect (react.dev "Adjusting state").
   if (sendResult !== trackedResult) {
     setTrackedResult(sendResult)
     setSecondsLeft(targetSeconds)

@@ -9,9 +9,7 @@ import ProfileCard from './ProfileCard'
 import ProfileChip from './ProfileChip'
 
 /**
- * The employer and the degree as Figma's Experience rows. The API holds no job
- * title, dates or description, so a row is the name, its chip and, for the
- * degree, "University · year".
+ * Employer and degree as Figma's Experience rows; the API has no dates yet.
  */
 function experienceRows(profile) {
   const rows = []

@@ -3,9 +3,8 @@ import { Flex, Spin } from 'antd'
 import { useSessionBootstrap } from '@/features/auth'
 
 /**
- * Blocks rendering the router until useSessionBootstrap's silent refresh
- * (ADR 0009) has resolved, so a protected route never flashes a redirect to
- * /login before a valid session has had a chance to restore itself.
+ * Waits for the silent session refresh (ADR 0009) before rendering routes,
+ * so a valid session never flashes a redirect to /login.
  *
  * @param {object} props
  * @param {import('react').ReactNode} props.children

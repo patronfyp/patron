@@ -5,9 +5,7 @@ import Icon from '@/shared/components/Icon/Icon'
 import styles from './ToggleChips.module.css'
 
 /**
- * Multi-select chips - Figma Chip/accent (picked, with a tick) and
- * Chip/neutral (+). The Preferences step's roles (65:545) and the referrer's
- * teams (67:591). Plugs into antd's Form.Item via `value` / `onChange`.
+ * Multi-select chips - Figma Chip/accent (picked) and Chip/neutral (+).
  *
  * @param {object} props
  * @param {{ value: string, label: string }[]} props.options
