@@ -11,7 +11,7 @@ import re
 from pathlib import Path
 from typing import Protocol
 
-from config import get_settings
+from app.core.config import get_settings
 
 # A key is one folder and one file name, both from a small safe alphabet - so
 # a key built from user input can never climb out of the storage root

@@ -139,8 +139,8 @@ async def test_no_user_identities_row_is_created(
     not create one. See issue #14 and ADR 0009."""
     from sqlalchemy import func, select
 
+    from app.core.database import SessionLocal
     from app.modules.auth.models import UserIdentity
-    from db import SessionLocal
 
     response = await client.post(REGISTER_URL, json=_payload())
     assert response.status_code == 201

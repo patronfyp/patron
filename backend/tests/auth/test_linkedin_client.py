@@ -12,9 +12,9 @@ import httpx
 import jwt
 import pytest
 
+from app.core.config import get_settings
 from app.core.exceptions import UnauthorizedError
 from app.modules.auth import linkedin
-from config import get_settings
 
 
 def test_state_token_round_trips() -> None:

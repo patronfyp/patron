@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
-from db import get_session
+from app.core.database import get_session
 
 from . import service
 from .schemas import NotificationPage, NotificationRead, PageParams, UnreadCount

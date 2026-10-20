@@ -6,9 +6,9 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from httpx import AsyncClient
 
+from app.core.config import get_settings
+from app.core.database import SessionLocal
 from app.modules.auth.models import User
-from config import get_settings
-from db import SessionLocal
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

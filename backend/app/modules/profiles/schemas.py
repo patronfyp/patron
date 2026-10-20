@@ -11,7 +11,7 @@ from datetime import UTC, date, datetime
 
 from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 
-from config import get_settings
+from app.core.config import get_settings
 
 from .models import (
     MONTHLY_REFERRAL_LIMITS,

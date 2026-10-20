@@ -13,7 +13,7 @@ from enum import StrEnum
 from sqlalchemy import ARRAY, Date, DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db import Base
+from app.core.database import Base
 
 # Onboarding has seven steps (Account, Profile, University, Employer, CV,
 # Skills, Preferences). The wizard itself lives in the frontend; the backend

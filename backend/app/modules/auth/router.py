@@ -10,10 +10,10 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.config import get_settings
+from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
 from app.core.exceptions import AppError
-from config import get_settings
-from db import get_session
 
 from . import linkedin, service
 from .schemas import (

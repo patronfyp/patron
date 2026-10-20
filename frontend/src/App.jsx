@@ -56,7 +56,7 @@ function App() {
               <>
                 <div>{error.message}</div>
                 <Text type="secondary">
-                  Start the API with <Text code>uv run uvicorn main:app --reload</Text>
+                  Start the API with <Text code>uv run uvicorn app.main:app --reload</Text>
                 </Text>
               </>
             }

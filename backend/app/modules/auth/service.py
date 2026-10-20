@@ -12,6 +12,7 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.email import EmailDeliveryError, EmailSender
 from app.core.exceptions import BadRequestError, ConflictError, UnauthorizedError
 from app.core.security import (
@@ -24,7 +25,6 @@ from app.core.security import (
     token_user_id,
     verify_password,
 )
-from config import get_settings
 
 from . import repository
 from .linkedin import LinkedInAccount

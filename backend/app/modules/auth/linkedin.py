@@ -24,8 +24,8 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 
+from app.core.config import get_settings
 from app.core.exceptions import UnauthorizedError
-from config import get_settings
 
 _GENERIC_FAILURE = "Could not sign in with LinkedIn"
 

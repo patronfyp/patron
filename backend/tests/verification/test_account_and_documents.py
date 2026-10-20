@@ -5,11 +5,11 @@ import re
 from collections.abc import AsyncIterator
 
 import pytest
-from conftest import MemoryStorage
 from httpx import AsyncClient
 
 from app.core.email import get_email_sender
-from main import app
+from app.main import app
+from tests.fakes import MemoryStorage
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

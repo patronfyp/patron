@@ -9,11 +9,11 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database import get_session
 from app.core.exceptions import UnauthorizedError
 from app.core.security import TokenType, decode_token, issued_before, token_user_id
 from app.modules.auth import repository
 from app.modules.auth.models import User
-from db import get_session
 
 _INVALID_CREDENTIALS = "Could not validate credentials"
 

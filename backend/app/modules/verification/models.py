@@ -17,7 +17,7 @@ from enum import StrEnum
 from sqlalchemy import DateTime, ForeignKey, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db import Base
+from app.core.database import Base
 
 
 class VerificationKind(StrEnum):

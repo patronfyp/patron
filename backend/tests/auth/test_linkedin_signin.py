@@ -10,9 +10,9 @@ from urllib.parse import parse_qs, urlparse
 import pytest
 from httpx import AsyncClient
 
+from app.core.config import get_settings
 from app.modules.auth import linkedin as linkedin_module
 from app.modules.auth.linkedin import LinkedInAccount
-from config import get_settings
 
 AUTHORIZE_URL = "/api/v1/auth/linkedin/authorize"
 CALLBACK_URL = "/api/v1/auth/linkedin/callback"

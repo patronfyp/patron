@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
 from app.core.storage import FileStorage, get_file_storage
-from db import get_session
 
 from . import service
 from .models import VerificationKind

@@ -10,11 +10,11 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, update
 
+from app.core.config import get_settings
+from app.core.database import SessionLocal
 from app.core.email import EmailDeliveryError, get_email_sender
+from app.main import app
 from app.modules.auth.models import PasswordResetToken, User
-from config import get_settings
-from db import SessionLocal
-from main import app
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

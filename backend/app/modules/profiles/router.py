@@ -10,9 +10,9 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.database import get_session
 from app.core.storage import FileStorage, get_file_storage
 from app.core.uploads import CONTENT_TYPES
-from db import get_session
 
 from . import service
 from .schemas import ProfileRead, ProfileUpdate, PublicProfileRead

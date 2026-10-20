@@ -19,7 +19,7 @@ from typing import Any
 import bcrypt
 import jwt
 
-from config import get_settings
+from app.core.config import get_settings
 
 # bcrypt silently truncates any input past 72 bytes - a password entered past
 # that point would be ignored rather than rejected, which is worse than just

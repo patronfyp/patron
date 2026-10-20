@@ -5,16 +5,16 @@ import uuid
 from collections.abc import AsyncIterator
 
 import pytest
-from conftest import MemoryStorage
 from httpx import AsyncClient
 from sqlalchemy import select
 
+from app.core.database import SessionLocal
 from app.core.email import get_email_sender
+from app.main import app
 from app.modules.auth.models import User
 from app.modules.notifications import service
 from app.modules.notifications.models import NotificationType
-from db import SessionLocal
-from main import app
+from tests.fakes import MemoryStorage
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

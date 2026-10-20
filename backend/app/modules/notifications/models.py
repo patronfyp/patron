@@ -12,7 +12,7 @@ from enum import StrEnum
 from sqlalchemy import DateTime, ForeignKey, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db import Base
+from app.core.database import Base
 
 
 class NotificationType(StrEnum):

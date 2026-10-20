@@ -53,11 +53,11 @@ you get an answer in under a second.
 
 | | Location | Naming |
 |---|---|---|
-| Backend | `backend/tests/` | `test_<thing>.py` |
+| Backend | `backend/tests/<module>/` | `test_<thing>.py` |
 | Frontend | next to the file it tests | `<Thing>.test.jsx` |
 
 Backend tests sit in their own folder because pytest is configured to look
-there. Frontend tests sit beside the component — `App.jsx` and `App.test.jsx`
+there, in a sub-folder named after the module they test. Frontend tests sit beside the component — `App.jsx` and `App.test.jsx`
 in the same directory — so you cannot miss that a test exists, and you delete
 both together.
 
@@ -91,8 +91,16 @@ be embarrassing to get wrong.
 ```
 backend/tests/
 ├── conftest.py          shared fixtures - pytest finds this automatically
-└── test_health.py       3 tests
+├── fakes.py             test doubles, e.g. MemoryStorage
+├── core/                health check, request logging
+├── auth/                register, login, LinkedIn, roles, passwords
+├── profiles/            profile, files, public profile
+├── verification/        email codes, documents
+└── notifications/
 ```
+
+Each folder has an empty `__init__.py`, so two folders can hold files with the
+same name, and tests can `from tests.fakes import MemoryStorage`.
 
 ### 1.2 Fixtures — `conftest.py`
 
@@ -130,7 +138,7 @@ The first time these tests ran, two passed and one failed with:
 RuntimeError: Event loop is closed
 ```
 
-**Why.** The database engine in `db.py` is created once when the module is
+**Why.** The database engine in `app/core/database.py` is created once when the module is
 imported, and its connection pool holds connections belonging to whichever
 event loop first used them. pytest gives each test a *fresh* event loop, so the
 second test inherited a connection tied to the previous — now closed — loop.

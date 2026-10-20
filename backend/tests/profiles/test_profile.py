@@ -1,7 +1,8 @@
 """Tests for GET and PATCH /api/v1/profile/me - Modules 1.4 and 1.5."""
 
-from conftest import MemoryStorage
 from httpx import AsyncClient
+
+from tests.fakes import MemoryStorage
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

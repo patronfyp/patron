@@ -18,6 +18,7 @@ from datetime import UTC, datetime, timedelta
 from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import get_settings
 from app.core.email import EmailDeliveryError, EmailSender
 from app.core.exceptions import (
     BadRequestError,
@@ -31,7 +32,6 @@ from app.modules.auth.models import User
 from app.modules.notifications import service as notifications_service
 from app.modules.notifications.models import NotificationType
 from app.modules.profiles import service as profiles_service
-from config import get_settings
 
 from . import repository
 from .models import EmailVerification, VerificationDocument, VerificationKind

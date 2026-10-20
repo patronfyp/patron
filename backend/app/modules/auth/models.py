@@ -26,7 +26,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db import Base
+from app.core.database import Base
 
 
 class UserRole(StrEnum):
