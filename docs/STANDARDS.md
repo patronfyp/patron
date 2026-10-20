@@ -1055,6 +1055,7 @@ checkable in review, not left to taste:
 | Extend `brand.*` tokens for a hero panel's own colours; never feed them into antd's `ConfigProvider` | keeps antd's derived component states from silently inheriting a colour meant for one panel |
 | Interactive elements show a real hover/focus state and a loading state on submit, beyond the bare minimum in §4.6 | "does it handle the state" is necessary but not sufficient for a first-impression screen |
 | Do not add Tailwind, styled-components, or another styling system to achieve any of this | §4.8 still applies — solve it with antd + `theme.js`, not a second library |
+| One-colour UI icons use `<Icon src={...} />` with a CSS `color`; only multi-colour artwork (logos, brand chips) is an `<img>` | `Icon` keeps Figma's natural size and takes its colour from a token; an `<img width>` stretches it and bakes the colour in |
 
 ### 4.10 Frontend naming
 
