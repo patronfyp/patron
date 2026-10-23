@@ -1,9 +1,4 @@
-"""Tests for POST /api/v1/auth/register.
-
-Every test starts from an empty users table (the `clean_users_table` fixture),
-so none of them depend on another having run first, or on what was in the
-database before pytest started.
-"""
+"""Tests for POST /auth/register. Each starts from an empty users table."""
 
 from httpx import AsyncClient
 
@@ -139,8 +134,8 @@ async def test_no_user_identities_row_is_created(
     not create one. See issue #14 and ADR 0009."""
     from sqlalchemy import func, select
 
+    from app.core.database import SessionLocal
     from app.modules.auth.models import UserIdentity
-    from db import SessionLocal
 
     response = await client.post(REGISTER_URL, json=_payload())
     assert response.status_code == 201

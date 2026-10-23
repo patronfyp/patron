@@ -1,5 +1,4 @@
-"""HTTP layer for the auth module. URL, validation, response shape - no
-business logic and no queries. STANDARDS.md §2.3."""
+"""Auth endpoints: register, login, LinkedIn, roles, passwords."""
 
 from typing import Annotated
 from urllib.parse import quote
@@ -10,10 +9,10 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.config import get_settings
+from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
 from app.core.exceptions import AppError
-from config import get_settings
-from db import get_session
 
 from . import linkedin, service
 from .schemas import (
@@ -36,10 +35,7 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 SessionDep = Annotated[AsyncSession, Depends(get_session)]
 SenderDep = Annotated[EmailSender, Depends(get_email_sender)]
 
-# Shown to the user when anything about the LinkedIn round trip - not the
-# account-linking rule itself - looks wrong. Deliberately vague: the specific
-# reason (missing cookie vs expired vs tampered state) isn't useful to a user
-# and would be to an attacker probing the flow.
+# Deliberately vague: the exact reason would only help an attacker.
 _STATE_INVALID = "Your sign-in attempt has expired or is invalid. Please try again."
 
 
@@ -54,12 +50,7 @@ _STATE_INVALID = "Your sign-in attempt has expired or is invalid. Please try aga
     },
 )
 async def register(payload: RegisterRequest, session: SessionDep) -> UserRead:
-    """Create an account with an email address and a password.
-
-    This is the fallback sign-up path (Module 1.2) - LinkedIn OAuth
-    (Module 1.1) is the primary route and lands in Sprint 2. The password is
-    hashed with bcrypt before storage and is never returned in the response.
-    """
+    """Create an account with email and password (Module 1.2)."""
     user = await service.register_user(session, payload)
     return UserRead.model_validate(user)
 
@@ -73,11 +64,7 @@ async def register(payload: RegisterRequest, session: SessionDep) -> UserRead:
     },
 )
 async def login(payload: LoginRequest, session: SessionDep) -> TokenPair:
-    """Exchange an email and password for an access token and a refresh token.
-
-    Wrong password and unknown email return the identical 401 message - see
-    STANDARDS.md §6, rule 10.
-    """
+    """Exchange email and password for an access and a refresh token."""
     user = await service.authenticate_user(session, payload.email, payload.password)
     return service.create_session(user)
 
@@ -91,12 +78,7 @@ async def login(payload: LoginRequest, session: SessionDep) -> TokenPair:
     },
 )
 async def refresh(payload: RefreshRequest, session: SessionDep) -> AccessTokenResponse:
-    """Get a new access token without asking the user to log in again.
-
-    The access token in `TokenPair` expires quickly on purpose (Module 1.13) -
-    this is how the client stays signed in past that without holding
-    long-lived credentials.
-    """
+    """A new access token, so the user stays signed in (Module 1.13)."""
     return await service.refresh_access_token(session, payload.refresh_token)
 
 
@@ -109,19 +91,13 @@ async def refresh(payload: RefreshRequest, session: SessionDep) -> AccessTokenRe
     },
 )
 async def me(current_user: CurrentUser) -> UserRead:
-    """Returns the user identified by the Authorization: Bearer token.
-
-    Exists mainly as the proof that `CurrentUser` (app/api/deps.py) works -
-    every future protected endpoint in every module depends on the same
-    function this one does.
-    """
+    """The user the bearer token belongs to."""
     return UserRead.model_validate(current_user)
 
 
 def _linkedin_error_redirect(message: str) -> RedirectResponse:
-    """Send the browser back to the login page with a reason it can show,
-    rather than a raw JSON error page - this route is hit by a full page
-    navigation from LinkedIn, not a fetch() call the frontend can catch."""
+    """Back to the login page with a reason - LinkedIn navigates here, so a JSON
+    error would show as a raw page."""
     settings = get_settings()
     return RedirectResponse(f"{settings.frontend_url}/login?linkedin_error={quote(message)}")
 
@@ -132,13 +108,9 @@ def _linkedin_error_redirect(message: str) -> RedirectResponse:
     summary="Get the LinkedIn consent URL",
 )
 async def linkedin_authorize(response: Response) -> LinkedInAuthorizeResponse:
-    """Start a LinkedIn sign-in: generates this attempt's signed state token,
-    sets it as an httpOnly cookie, and returns the URL the frontend should
-    send the browser to.
+    """Start a LinkedIn sign-in: set the state cookie and return the consent URL.
 
-    The cookie is what makes the state check on /callback an actual CSRF
-    defence rather than just a signature check - see linkedin.py. No PKCE -
-    see ADR 0014.
+    The cookie is what /callback checks against CSRF. No PKCE - ADR 0014.
     """
     settings = get_settings()
     state = linkedin.create_state_token()
@@ -149,11 +121,7 @@ async def linkedin_authorize(response: Response) -> LinkedInAuthorizeResponse:
         max_age=int(linkedin.STATE_TOKEN_TTL.total_seconds()),
         httponly=True,
         samesite="lax",
-        # An allowlist, not `!= "development"`: a Secure cookie is dropped by
-        # any client talking plain HTTP, which is also true of CI (APP_ENV=
-        # test, served over http://test) - this broke every LinkedIn test
-        # there despite passing locally, since the state cookie never made
-        # it back on the callback request.
+        # Only in production: plain-HTTP clients (dev, CI) drop Secure cookies.
         secure=settings.app_env == "production",
     )
     authorize_url = linkedin.build_authorize_url(state=state)
@@ -171,10 +139,9 @@ async def linkedin_callback(
     code: str | None = None,
     state: str | None = None,
 ) -> RedirectResponse:
-    """Exchange the code for LinkedIn's profile, run the account-linking
-    rule, and send the browser back to the frontend with our own tokens -
-    never LinkedIn's - in the URL fragment, not the query string, so they
-    don't end up in server logs or a Referer header.
+    """Finish a LinkedIn sign-in and send the browser back with our own tokens.
+
+    Tokens go in the URL fragment, which never reaches server logs or a Referer.
     """
     cookie_state = request.cookies.get(linkedin.STATE_COOKIE_NAME)
 
@@ -211,13 +178,8 @@ async def linkedin_callback(
 async def add_role(
     payload: AddRoleRequest, current_user: CurrentUser, session: SessionDep
 ) -> UserRead:
-    """Add candidate, referrer or recruiter to your roles.
-
-    LinkedIn never tells us what someone wants to do on Patron, so a LinkedIn
-    sign-up reaches the app with no roles and is sent here once, before the
-    rest of the app, to pick one. Anyone can call it again later to take on
-    another role. Adding a role you already hold changes nothing.
-    """
+    """Add candidate, referrer or recruiter to your roles. A LinkedIn sign-up
+    picks its first role here."""
     user = await service.add_user_role(session, current_user, payload.role.value)
     return UserRead.model_validate(user)
 
@@ -238,13 +200,8 @@ async def add_role(
 async def change_password(
     payload: PasswordChangeRequest, current_user: CurrentUser, session: SessionDep
 ) -> TokenPair:
-    """Change the password of the signed-in account - Module 1.8.
-
-    Every other session is signed out. The response is a new token pair for
-    this session, so the user stays signed in here: store it in place of the
-    old tokens. A LinkedIn-only account has no password to change and should
-    use the password-reset flow to set its first one.
-    """
+    """Change your password (Module 1.8). Signs out every other session; store
+    the returned tokens in place of the old ones."""
     return await service.change_password(
         session, current_user, payload.current_password, payload.new_password
     )
@@ -260,14 +217,8 @@ async def change_password(
 async def request_password_reset(
     payload: PasswordResetRequest, session: SessionDep, sender: SenderDep
 ) -> PasswordResetRequested:
-    """Send a reset link to the address, if an active account uses it.
-
-    Always 202 with the same message - whether or not the account exists,
-    whether a link was sent in the last minute, and even if the email provider
-    failed. Anything else would let a caller find out which emails are
-    registered. The link opens `/reset-password?token=...` on the frontend and
-    stays valid for 30 minutes.
-    """
+    """Email a reset link valid for 30 minutes. Always 202, so it never reveals
+    which emails are registered."""
     await service.request_password_reset(session, payload.email, sender)
     return PasswordResetRequested()
 
@@ -284,11 +235,5 @@ async def request_password_reset(
     },
 )
 async def confirm_password_reset(payload: PasswordResetConfirm, session: SessionDep) -> None:
-    """Set the new password and use up the token.
-
-    Every access and refresh token issued before this moment stops working,
-    so a reset signs the account out everywhere. The user then signs in with
-    the new password. Also works for a LinkedIn-only account, giving it a
-    first password.
-    """
+    """Set the new password from a reset link. Signs the account out everywhere."""
     await service.confirm_password_reset(session, payload.token, payload.new_password)

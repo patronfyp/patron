@@ -1,9 +1,9 @@
 """Tests for the profile photo and CV uploads - the Profile and CV onboarding steps."""
 
-from conftest import MemoryStorage
 from httpx import AsyncClient
 
 from app.core.uploads import MAX_UPLOAD_BYTES
+from tests.fakes import MemoryStorage
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

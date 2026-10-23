@@ -6,9 +6,9 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from httpx import AsyncClient
 
+from app.core.config import get_settings
+from app.core.database import SessionLocal
 from app.modules.auth.models import User
-from config import get_settings
-from db import SessionLocal
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -135,11 +135,7 @@ class TestRefresh:
         new_access_token = response.json()["access_token"]
         assert new_access_token
 
-        # Not a string-inequality check against the login access token: two
-        # tokens minted in the same second carry an identical iat/exp (JWT
-        # timestamps are second-precision) and are legitimately byte-for-byte
-        # identical - that is not a bug. What must hold is that the returned
-        # token decodes as a valid access token for the right user.
+        # Decoded, not compared: two tokens from the same second are identical.
         settings = get_settings()
         payload = jwt.decode(new_access_token, settings.secret_key, algorithms=["HS256"])
         assert payload["type"] == "access"

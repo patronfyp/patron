@@ -6,6 +6,9 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+from app.core.config import get_settings
+from app.core.database import Base
+
 # Alembic only sees models that have been imported by the time it reads
 # Base.metadata. Every new model module must be imported here, or
 # `--autogenerate` silently produces an empty migration.
@@ -13,8 +16,6 @@ from app.modules.auth import models as auth_models  # noqa: F401
 from app.modules.notifications import models as notifications_models  # noqa: F401
 from app.modules.profiles import models as profiles_models  # noqa: F401
 from app.modules.verification import models as verification_models  # noqa: F401
-from config import get_settings
-from db import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

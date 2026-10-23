@@ -10,9 +10,9 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.database import get_session
 from app.core.storage import FileStorage, get_file_storage
 from app.core.uploads import CONTENT_TYPES
-from db import get_session
 
 from . import service
 from .schemas import ProfileRead, ProfileUpdate, PublicProfileRead
@@ -33,12 +33,7 @@ _BAD_FILE = {422: {"description": "Empty, larger than 5 MB, or not an accepted f
     responses=_UNAUTHORIZED,
 )
 async def get_my_profile(current_user: CurrentUser, session: SessionDep) -> ProfileRead:
-    """Return the signed-in user's profile and onboarding progress.
-
-    An empty profile at step 1 is created on first read, so a new user always
-    gets a valid response. There is no user id in the URL: you can only ever
-    see your own profile.
-    """
+    """Your own profile and onboarding progress; created empty on first read."""
     profile = await service.get_or_create_profile(session, current_user)
     return ProfileRead.model_validate(profile)
 
@@ -59,12 +54,8 @@ async def get_my_profile(current_user: CurrentUser, session: SessionDep) -> Prof
 async def update_my_profile(
     payload: ProfileUpdate, current_user: CurrentUser, session: SessionDep
 ) -> ProfileRead:
-    """Change only the fields sent; everything else is left as it was.
-
-    `onboarding_step` may go back to any earlier step or forward by one, never
-    further - so the wizard cannot be skipped by calling the API directly.
-    Sending a text field as null clears it, and `[]` clears a list.
-    """
+    """Change only the fields sent. `onboarding_step` moves back freely but
+    forward by one at most, so the wizard can't be skipped."""
     profile = await service.update_profile(session, current_user, payload)
     return ProfileRead.model_validate(profile)
 
@@ -196,10 +187,6 @@ async def download_cv(
 async def get_public_profile(
     user_id: uuid.UUID, current_user: CurrentUser, session: SessionDep
 ) -> PublicProfileRead:
-    """What any signed-in user may see about another: name, photo, headline,
-    education, employer, skills and the verification badges.
-
-    Phone, CV, salary, job preferences and onboarding progress are never
-    included - they stay on GET /profile/me.
-    """
+    """What any signed-in user may see about another - never phone, CV, salary
+    or preferences."""
     return await service.get_public_profile(session, user_id)

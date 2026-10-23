@@ -1,15 +1,4 @@
-"""Tests for the /health endpoint.
-
-These are the project's first tests, kept deliberately simple so they can be
-copied as a starting point. Every test follows the same three steps:
-
-    Arrange - set up whatever the test needs (here: the `client` fixture)
-    Act     - do the one thing being tested
-    Assert  - check the result
-
-Test names describe the behaviour, not the function being called, so a failure
-report reads like a sentence.
-"""
+"""Tests for /health - a simple Arrange, Act, Assert example to copy."""
 
 from httpx import AsyncClient
 

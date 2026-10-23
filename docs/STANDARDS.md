@@ -147,13 +147,14 @@ allowed to see this?".
 
 ```
 backend/
-├── main.py                    creates the app, mounts every module's router. No logic.
-├── config.py                  Settings from .env. The only place env vars are read.
-├── db.py                      engine, session factory, Base, get_session
 ├── app/
+│   ├── main.py                creates the app: middleware, error handler, routers. No logic.
 │   ├── api/
 │   │   └── deps.py            shared dependencies: CurrentUser, SessionDep
 │   ├── core/                  used by more than one module
+│   │   ├── config.py          Settings from .env. The only place env vars are read.
+│   │   ├── database.py        engine, session factory, Base, get_session
+│   │   ├── logging.py         log setup, one line per request, crash handler
 │   │   ├── exceptions.py      AppError and its subclasses, mapped to HTTP codes
 │   │   ├── security.py        password hashing, JWT encode/decode
 │   │   ├── email.py           sending email
@@ -166,9 +167,13 @@ backend/
 │       └── notifications/
 ├── migrations/versions/       one Alembic file per schema change
 └── tests/
-    ├── conftest.py            shared fixtures (client, session, storage)
+    ├── conftest.py            shared fixtures (client, storage, clean_users_table)
+    ├── fakes.py               test doubles, e.g. MemoryStorage
+    ├── core/                  app-wide: health, logging
     └── <module>/              mirrors app/modules/: tests/auth/test_login.py
 ```
+
+Run the API from `backend/`: `uv run uvicorn app.main:app --reload`.
 
 New domains (jobs, referrals, alumni, companies, ...) are added as new folders
 under `modules/`, each with the same five files.
@@ -548,7 +553,9 @@ you are, and no.**
 match on the message text, because messages get reworded.
 
 Define exceptions once in `app/core/exceptions.py` and register handlers in
-`main.py`, so no route ever builds an error response by hand.
+`app/main.py`, so no route ever builds an error response by hand. Anything
+that isn't an `AppError` is logged with its traceback by `app/core/logging.py`
+and returned as a plain 500 - the client never sees internals.
 
 **Never leak internals** in `detail`: no stack traces, no SQL, no file paths, no
 "user with email x@y.com not found" (that confirms an account exists to an
@@ -739,7 +746,7 @@ class ConflictError(AppError):
     code = "conflict"
 ```
 
-Services raise these. A single handler in `main.py` turns them into responses.
+Services raise these. A single handler in `app/main.py` turns them into responses.
 Routes stay clean.
 
 | ✅ | ❌ |
@@ -1161,7 +1168,7 @@ where the prop isn't obvious from its name.
 | Rule | Why |
 |---|---|
 | Every setting comes from `.env` | code that changes per environment is a bug |
-| Backend reads env only in `config.py` | one source of truth; nothing else uses `os.environ` |
+| Backend reads env only in `app/core/config.py` | one source of truth; nothing else uses `os.environ` |
 | Frontend reads env only in `config/env.js` | same |
 | Required settings get **no default** | crash at startup, not silently in production |
 | New setting → add to `.env.example` in the same PR | else everyone else's app breaks with no explanation |

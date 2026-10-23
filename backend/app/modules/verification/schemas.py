@@ -1,8 +1,5 @@
-"""Request/response shapes for the verification module.
-
-The code itself is never returned by any endpoint - it only ever leaves the
-server inside the email. Nor is a document's storage key.
-"""
+"""Request/response shapes for verification. The code and storage keys are
+never returned - the code only leaves inside the email."""
 
 import uuid
 from datetime import datetime

@@ -62,7 +62,7 @@ Then open `backend/.env` and fill in two values:
 Run it — **two terminals**:
 
 ```powershell
-cd backend  ; uv run uvicorn main:app --reload    # → http://localhost:8000/docs
+cd backend  ; uv run uvicorn app.main:app --reload    # → http://localhost:8000/docs
 cd frontend ; npm run dev                          # → http://localhost:5173
 ```
 
@@ -78,7 +78,7 @@ Missing a tool, or something broke? Full walkthrough in
 | `frontend/` | `npm run dev` | dev server |
 | `frontend/` | `npm run lint` | find problems |
 | `frontend/` | `npm run format` | format code |
-| `backend/` | `uv run uvicorn main:app --reload` | dev server |
+| `backend/` | `uv run uvicorn app.main:app --reload` | dev server |
 | `backend/` | `uv run ruff check .` | find problems |
 | `backend/` | `uv run alembic upgrade head` | apply migrations |
 
@@ -92,11 +92,13 @@ Full list in [Everyday commands](#everyday-commands).
 patron/
 ├── frontend/     React 19 + Vite 8 (JavaScript) + Ant Design
 ├── backend/      FastAPI on Python 3.13, managed by uv
-│   ├── main.py       app, CORS, /health
-│   ├── config.py     settings loaded from .env
-│   ├── db.py         engine, session factory, ORM Base
+│   ├── app/
+│   │   ├── main.py   app, middleware, routers, /health
+│   │   ├── api/      shared dependencies (CurrentUser)
+│   │   ├── core/     config, database, logging, security, email, storage
+│   │   └── modules/  one folder per domain: auth, profiles, verification, ...
 │   ├── migrations/   Alembic migration scripts
-│   └── tests/        pytest suite
+│   └── tests/        pytest suite, one folder per module
 ├── docs/         standards, git workflow, agile plan, documentation, testing
 ├── .github/
 │   └── workflows/ci.yml   runs lint, build, migrations and tests on every PR
@@ -105,7 +107,7 @@ patron/
 └── README.md
 ```
 
-Folders are added when a feature needs them, not upfront.
+Where every kind of file goes: [docs/STANDARDS.md §2](docs/STANDARDS.md#2-architecture).
 
 ## Tech stack
 
@@ -282,7 +284,7 @@ uv run alembic upgrade head
 Then run the server:
 
 ```powershell
-uv run uvicorn main:app --reload
+uv run uvicorn app.main:app --reload
 ```
 
 | URL | What it is |
@@ -327,7 +329,7 @@ EditorConfig is the important one — without it VS Code ignores
 
 | Command | What it does |
 |---|---|
-| `uv run uvicorn main:app --reload` | dev server with hot reload |
+| `uv run uvicorn app.main:app --reload` | dev server with hot reload |
 | `uv run ruff check .` | find problems |
 | `uv run ruff check . --fix` | fix what can be fixed automatically |
 | `uv run ruff format .` | format all files |

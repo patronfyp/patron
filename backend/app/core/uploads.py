@@ -1,9 +1,5 @@
-"""Checking uploaded files before they are stored.
-
-The browser's content type and the file name are both chosen by the client,
-so neither is trusted: the type is read from the file's first bytes instead.
-A file renamed from `virus.exe` to `cv.pdf` is refused here.
-"""
+"""Upload checks. The type comes from the file's first bytes - never the
+client's name or content type - so a renamed `.exe` is refused."""
 
 from enum import StrEnum
 
@@ -49,12 +45,7 @@ def _detect(data: bytes) -> FileKind | None:
 async def read_upload(
     file: UploadFile, allowed: set[FileKind], *, description: str
 ) -> tuple[bytes, FileKind]:
-    """Read an upload and return its bytes and real type, or raise 422.
-
-    `description` names the accepted types in the error, e.g. "a PDF or
-    DOCX file". Reads at most one byte past the limit, so an oversized upload
-    is refused without loading all of it into memory.
-    """
+    """The upload's bytes and real type, or 422. Never reads past the size limit."""
     data = await file.read(MAX_UPLOAD_BYTES + 1)
     if not data:
         raise UnprocessableError("The file is empty.")

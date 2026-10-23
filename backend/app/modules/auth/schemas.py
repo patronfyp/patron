@@ -1,10 +1,5 @@
-"""Request/response shapes for the auth module.
-
-Separate Create/Read schemas, always - STANDARDS.md §3.4. A client must never
-be able to set fields like `id` or `is_verified`, and a response must never be
-able to leak `password`. Returning the ORM model directly is the single most
-common way projects leak a password hash.
-"""
+"""Request/response shapes for auth. Separate in/out schemas, so a response
+can never leak `password` (STANDARDS.md §3.4)."""
 
 import uuid
 from datetime import datetime
@@ -101,22 +96,14 @@ class PasswordResetRequest(BaseModel):
 
 
 class PasswordResetConfirm(BaseModel):
-    """What a client sends to POST /auth/password-reset/confirm.
-
-    The password rules match RegisterRequest, so a reset can never set a
-    password that registration would have refused.
-    """
+    """POST /auth/password-reset/confirm. Same password rules as registration."""
 
     token: str = Field(min_length=1, max_length=200)
     new_password: str = Field(min_length=8, max_length=72)
 
 
 class PasswordChangeRequest(BaseModel):
-    """What a client sends to POST /auth/password/change.
-
-    The new password follows the registration rules, so a change can never set
-    a password registration would have refused.
-    """
+    """POST /auth/password/change. Same password rules as registration."""
 
     current_password: str = Field(min_length=1, max_length=72)
     new_password: str = Field(min_length=8, max_length=72)
