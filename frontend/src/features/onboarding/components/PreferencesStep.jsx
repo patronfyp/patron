@@ -5,7 +5,7 @@ import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import xIcon from '@/assets/icons/x-12.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { SALARY_RANGE_PATTERN } from '../validation'
+import { SALARY_RANGE_PATTERN } from '../lib/validation'
 
 import styles from './PreferencesStep.module.css'
 import ToggleCard from './ToggleCard'

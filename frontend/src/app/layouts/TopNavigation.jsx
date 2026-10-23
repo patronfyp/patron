@@ -8,9 +8,8 @@ import { getFirstName, getGreeting, getInitials } from './greeting'
 import styles from './TopNavigation.module.css'
 
 /**
- * The bar across the top of every signed-in page (Figma "Top Navigation",
- * 7:648): breadcrumb and heading on the left; search, the notification bell
- * and the user's avatar on the right.
+ * The top bar of every signed-in page (Figma 7:648): breadcrumb and heading;
+ * search, notifications and avatar.
  *
  * @param {object} props
  * @param {string[]} props.breadcrumb - labels, outermost first; the last is the current page

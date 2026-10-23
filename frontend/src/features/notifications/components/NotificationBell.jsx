@@ -15,11 +15,8 @@ import NotificationPanel from './NotificationPanel'
 const MAX_SHOWN_COUNT = 99
 
 /**
- * The bell in the top bar (Figma "Top Navigation", 7:648): a 38px button with
- * the unread count on its corner, opening the notifications panel (14:968).
- *
- * Opening the panel refetches the count, so the number is current whenever
- * the list is.
+ * The top bar's bell (Figma 7:648) with the unread count; opens the panel
+ * (14:968) and refetches the count.
  */
 function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)

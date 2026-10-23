@@ -1,6 +1,4 @@
-/* The notifications panel, from the Figma "Notifications Panel" frame (14:968).
-   Colours, text styles, radii and shadows are --patron-* variables from
-   config/theme.js. */
+/* The notifications panel, Figma 14:968. */
 
 .panel {
   width: 420px;

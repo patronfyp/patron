@@ -17,10 +17,7 @@ import {
 import { useAuthStore } from '../store/authStore'
 
 /**
- * Registers the account, then immediately logs in with the same credentials
- * so the user lands signed in - /register returns no tokens, only /login does.
- * /register does return the created user, so that's used directly instead of
- * an extra /auth/me call.
+ * Register, then log in with the same credentials - /register returns no tokens.
  */
 export function useRegister() {
   const setSession = useAuthStore((state) => state.setSession)
@@ -37,9 +34,8 @@ export function useRegister() {
   })
 }
 
-// /auth/login only returns tokens, so the user's profile is fetched separately.
-// `keepSignedIn` (#71) decides whether the refresh token survives closing the
-// browser (see authStore.js) - it's never sent to the backend.
+// Login returns only tokens, so the user is fetched after. `keepSignedIn` stays
+// in the browser (authStore.js).
 export function useLogin() {
   const setSession = useAuthStore((state) => state.setSession)
 
@@ -63,9 +59,7 @@ export function useLinkedInAuthorize() {
   })
 }
 
-// POST /auth/role - adds a role to the account. A LinkedIn sign-up needs it
-// before reaching the app (#25). Only the user record changes; the tokens
-// already in the store are untouched.
+// Adds a role - a LinkedIn sign-up's first one. Tokens are unchanged.
 export function useSetRole() {
   const setUser = useAuthStore((state) => state.setUser)
 
@@ -87,10 +81,7 @@ export function useConfirmPasswordReset() {
   return useMutation({ mutationFn: confirmPasswordReset })
 }
 
-// #74's /password/change returns a fresh token pair (changing a password
-// signs out every other session, including the stale access token in this
-// one) - the user record itself doesn't change, so only the tokens are
-// swapped in, read fresh from the store rather than this render's closure.
+// A password change returns new tokens; only those are swapped in.
 export function useChangePassword() {
   const setSession = useAuthStore((state) => state.setSession)
 
@@ -114,20 +105,15 @@ export function useLogout() {
 }
 
 /**
- * Runs once on app load. The access token never survives a refresh (ADR 0009),
- * so if a refresh token was persisted, silently exchange it for a new access
- * token before any protected route renders. Returns false while that check is
- * still in flight.
+ * On app load, trade a saved refresh token for an access token (ADR 0009).
+ * Returns false until that's done.
  */
 export function useSessionBootstrap() {
   // No refresh token at all means there is nothing to wait for - decide that
   // synchronously so the effect below only ever runs for the async case.
   const [isReady, setIsReady] = useState(() => !useAuthStore.getState().refreshToken)
 
-  // StrictMode runs effects twice in development, but a refresh token is worth
-  // exchanging once: with rotating refresh tokens the second call would be
-  // refused and log the user out. A ref changes instantly, whereas state would
-  // still read the old value when the effect runs the second time.
+  // A ref, so StrictMode's second effect run doesn't refresh twice.
   const hasStarted = useRef(false)
 
   useEffect(() => {

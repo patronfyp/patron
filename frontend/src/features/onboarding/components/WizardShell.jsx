@@ -4,7 +4,7 @@ import arrowLeftIcon from '@/assets/icons/arrow-left.svg'
 import arrowRightIcon from '@/assets/icons/arrow-right.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { STEPS } from '../steps'
+import { STEPS } from '../lib/steps'
 
 import WizardHeader from './WizardHeader'
 import styles from './WizardShell.module.css'
@@ -12,9 +12,8 @@ import styles from './WizardShell.module.css'
 const pad = (number) => String(number).padStart(2, '0')
 
 /**
- * The frame every onboarding step sits in - the Figma onboarding frames
- * (65:53 ... 65:545) and the referrer's (67:505, 67:641): top bar, progress, the step's own content, an
- * info card beside it, and the Back / Continue row.
+ * The frame around every onboarding step (Figma 65:53, 67:505): top bar,
+ * progress, content, info card, Back / Continue.
  *
  * @param {object} props
  * @param {number} props.step - 1-based current step

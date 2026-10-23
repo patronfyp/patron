@@ -32,10 +32,8 @@ function formatCountdown(totalSeconds) {
 }
 
 /**
- * Step 1 - verify the sign-up email with a 6-digit code (Figma 65:53).
- *
- * A code is sent as soon as the step opens, so it is already waiting in the
- * inbox, as the copy promises. Continue ("Verify email") confirms it.
+ * Step 1 - verify the sign-up email (Figma 65:53). The code is sent on open;
+ * "Verify email" confirms it.
  *
  * @param {object} props
  * @param {boolean} props.useForUniversity

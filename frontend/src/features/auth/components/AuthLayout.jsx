@@ -1,14 +1,15 @@
 import { App, Button } from 'antd'
 
-import glowImage from '../../../assets/brand/auth-glow.svg'
-import gridImage from '../../../assets/brand/auth-grid.svg'
-import markOutlineImage from '../../../assets/brand/patron-mark-outline.svg'
-import markImage from '../../../assets/brand/patron-mark.svg'
-import capIcon from '../../../assets/icons/cap.svg'
-import checkCircleIcon from '../../../assets/icons/check-circle.svg'
-import linkedinIcon from '../../../assets/icons/linkedin.svg'
-import { brand } from '../../../config/theme'
-import { getApiErrorMessage } from '../../../shared/api/getApiErrorMessage'
+import glowImage from '@/assets/brand/auth-glow.svg'
+import gridImage from '@/assets/brand/auth-grid.svg'
+import markOutlineImage from '@/assets/brand/patron-mark-outline.svg'
+import markImage from '@/assets/brand/patron-mark.svg'
+import capIcon from '@/assets/icons/cap.svg'
+import checkCircleIcon from '@/assets/icons/check-circle.svg'
+import linkedinIcon from '@/assets/icons/linkedin.svg'
+import { brand } from '@/config/theme'
+import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
+
 import { useLinkedInAuthorize } from '../hooks/useAuth'
 
 import styles from './AuthLayout.module.css'
@@ -17,9 +18,7 @@ import styles from './AuthLayout.module.css'
 const DEFAULT_QUOTE =
   'The referral came from someone who had actually reviewed my code. That changed the whole conversation.'
 
-// Bridges config/theme.js's brand-panel colours into the CSS module, so the
-// panel has one source of truth for colour. The form side reads the global
-// --patron-* variables set in main.jsx.
+// The brand-panel colours from config/theme.js, as CSS variables for the module.
 const paneVars = {
   '--pane-bg': brand.deep,
   '--pane-on-brand': brand.onBrand,
@@ -67,14 +66,8 @@ function BrandPane({ quote }) {
 }
 
 /**
- * Shared layout for the auth screens, built from the Figma "Sign in" frame
- * (9:3): a dark brand panel on the left, the page's form on the right.
- *
- * `linkedInLabel` adds the LinkedIn button and the "or" divider above the
- * form ("Continue with LinkedIn" on sign in, "Sign up with LinkedIn" on
- * create account). `beforeLinkedIn` sits between the subtitle and that button
- * - the role picker on create account. `footer` is the line under the form,
- * e.g. "New to PATRON?".
+ * The auth screens' layout (Figma 9:3): brand panel left, form right.
+ * `linkedInLabel` adds the LinkedIn button; `beforeLinkedIn` goes above it.
  */
 function AuthLayout({
   title,

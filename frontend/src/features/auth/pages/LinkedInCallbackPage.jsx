@@ -11,12 +11,8 @@ const { Paragraph } = Typography
 const GENERIC_FAILURE = 'Could not sign in with LinkedIn. Please try again.'
 
 /**
- * Where /auth/linkedin/callback (the backend route) sends the browser on
- * success - tokens arrive in the URL fragment, never the query string, so
- * they never reach server logs or a Referer header (see router.py).
- *
- * A ref guards against StrictMode's double-invoked effect running this
- * twice in development - see useSessionBootstrap for the same pattern.
+ * Where the backend's LinkedIn callback lands; the tokens are in the URL
+ * fragment. A ref stops StrictMode running it twice.
  */
 function LinkedInCallbackPage() {
   const { message } = App.useApp()

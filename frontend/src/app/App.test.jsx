@@ -1,16 +1,6 @@
 /**
- * Tests for the App screen.
- *
- * These are the project's first frontend tests, kept simple so they can be
- * copied as a starting point. Every test follows the same three steps:
- *
- *   Arrange - render the component in the state you want to test
- *   Act     - do what a user would do (or, here, let the request resolve)
- *   Assert  - check what the user can now see
- *
- * Note what we query by: visible text, not CSS classes or component internals.
- * A test written that way still passes after a refactor, and fails when the
- * user-visible behaviour actually breaks.
+ * Tests for the App screen - a simple Arrange, Act, Assert example to copy.
+ * Query by visible text, never CSS classes, so a refactor doesn't break them.
  */
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -19,24 +9,17 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import App from './App'
-import { useAuthStore } from './features/auth'
-import { api } from './shared/api/client'
+import { useAuthStore } from '@/features/auth'
+import { api } from '@/shared/api/client'
 
-// Replace the real axios client with a fake one. Tests must never hit the
-// network: a test that needs the backend running is not a unit test, it is a
-// second way for the suite to fail.
-vi.mock('./shared/api/client', () => ({
+import App from './App'
+
+// Tests never hit the network.
+vi.mock('@/shared/api/client', () => ({
   api: { get: vi.fn() },
 }))
 
-/**
- * Renders App with the providers it needs.
- *
- * A fresh QueryClient per test means no cached data leaks between tests.
- * `retry: false` stops React Query retrying a deliberately failed request,
- * which would otherwise make the error test slow.
- */
+/** Renders App with a fresh QueryClient (no shared cache, no retries). */
 function renderApp() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },

@@ -1,9 +1,7 @@
 import { createContext, useContext, useEffect, useRef } from 'react'
 
 /**
- * How a step talks to the wizard around it: what Continue says, and work to
- * do before the wizard saves and moves on (e.g. the Account step confirming
- * its code). OnboardingWizard provides it; steps call useStepControls.
+ * Lets a step set the Continue label and run a check before the wizard moves on.
  */
 export const StepControlsContext = createContext(null)
 
@@ -16,9 +14,7 @@ export const StepControlsContext = createContext(null)
 export function useStepControls({ beforeContinue, continueLabel }) {
   const wizard = useContext(StepControlsContext)
 
-  // A ref, not state: the function changes every render (it closes over the
-  // step's latest values) and the wizard only needs it when Continue is
-  // pressed - re-rendering the wizard on each change would be wasted work.
+  // A ref: it changes every render, but is only read on Continue.
   const latest = useRef(beforeContinue)
   useEffect(() => {
     latest.current = beforeContinue

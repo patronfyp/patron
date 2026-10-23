@@ -29,9 +29,8 @@ function shortName(university) {
 }
 
 /**
- * The referrer's step 3 - which requests they want and how many (Figma
- * 67:641). Figma's "referral bonus" box is left out: no company bonus data
- * exists to show.
+ * The referrer's step 3 - which requests, and how many (Figma 67:641).
+ * No bonus box: there's no bonus data.
  *
  * @param {object} props
  * @param {string | null} [props.verifiedUniversity] - set only when the user's

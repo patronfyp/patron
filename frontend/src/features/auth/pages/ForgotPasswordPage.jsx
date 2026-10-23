@@ -24,9 +24,7 @@ function ForgotPasswordPage() {
     mutate(
       { email: values.email },
       {
-        // The backend answers 202 whether or not the account exists (#50) -
-        // showing the same message either way is the point, not a detail to
-        // branch on.
+        // Same message whether or not the account exists.
         onSuccess: () => setIsSent(true),
         onError: (error) => message.error(getErrorMessage(error)),
       },

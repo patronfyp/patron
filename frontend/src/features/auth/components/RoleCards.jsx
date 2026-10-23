@@ -1,4 +1,4 @@
-import { SIGNUP_ROLES } from '../roles'
+import { SIGNUP_ROLES } from '../lib/roles'
 
 import styles from './RoleCards.module.css'
 
@@ -29,9 +29,7 @@ function RoleCards({ value, onChange, disabled }) {
                 onChange={() => onChange(role.value)}
               />
               <span className={styles.top}>
-                {/* The icon file is only a shape; its colour comes from CSS.
-                    Quoted: Vite inlines small SVGs as data URLs with spaces
-                    in them, which an unquoted url() rejects. */}
+                {/* Quoted: Vite's inlined SVG data URLs contain spaces. */}
                 <span
                   className={styles.icon}
                   style={{ '--icon': `url("${role.icon}")` }}

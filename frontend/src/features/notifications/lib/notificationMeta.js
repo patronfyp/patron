@@ -12,10 +12,8 @@ export const TABS = [
 ]
 
 /**
- * How each backend notification `type` looks: the icon on its row, the colour
- * the icon and its tile take (a `--patron-status-*` token pair), and the tab
- * it belongs to. Add a line here when the backend gains a type - an unknown
- * type falls back to `FALLBACK_META`, so a new type never breaks the panel.
+ * Icon, colour and tab for each notification `type`. An unknown type uses
+ * `FALLBACK_META`, so a new one never breaks the panel.
  */
 const TYPE_META = {
   email_verified: { icon: checkCircleIcon, tone: 'success', category: 'verification' },
@@ -32,7 +30,7 @@ export function getTypeMeta(type) {
 /**
  * The notifications a tab shows.
  *
- * @param {import('./api/notifications.api').Notification[]} items
+ * @param {import('../api/notifications.api').Notification[]} items
  * @param {string} tabKey
  */
 export function filterByTab(items, tabKey) {

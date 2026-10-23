@@ -1,6 +1,4 @@
-// The seven onboarding steps, in Figma's order (frames 65:53 ... 65:545). The
-// backend only stores how far the user got (`onboarding_step`, 1-based) - which
-// step is which lives here.
+// The onboarding steps in Figma's order. The backend only stores the number.
 export const STEPS = [
   {
     key: 'account',

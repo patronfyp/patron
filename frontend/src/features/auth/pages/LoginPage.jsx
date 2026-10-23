@@ -3,9 +3,11 @@ import { useEffect, useRef } from 'react'
 import { App, Button, Checkbox, Form, Input } from 'antd'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 
-import lockIcon from '../../../assets/icons/lock.svg'
-import mailIcon from '../../../assets/icons/mail.svg'
-import shieldIcon from '../../../assets/icons/shield.svg'
+import lockIcon from '@/assets/icons/lock.svg'
+import mailIcon from '@/assets/icons/mail.svg'
+import shieldIcon from '@/assets/icons/shield.svg'
+import Icon from '@/shared/components/Icon/Icon'
+
 import AuthLayout from '../components/AuthLayout'
 import { useLogin } from '../hooks/useAuth'
 
@@ -26,10 +28,7 @@ function LoginPage() {
   const location = useLocation()
   const { mutate, isPending } = useLogin()
   const [searchParams, setSearchParams] = useSearchParams()
-  // StrictMode double-invokes this effect in development; clearing the query
-  // param doesn't take effect before the second run reads it again, which
-  // would show the message twice - see LinkedInCallbackPage for the same
-  // pattern.
+  // Refs, so StrictMode's second effect run doesn't show a message twice.
   const hasShownLinkedinError = useRef(false)
   const hasShownResetSuccess = useRef(false)
 
@@ -94,7 +93,7 @@ function LoginPage() {
           ]}
         >
           <Input
-            prefix={<img src={mailIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={mailIcon} className={styles.fieldIcon} />}
             placeholder="jane@example.com"
           />
         </Form.Item>
@@ -105,7 +104,7 @@ function LoginPage() {
           rules={[{ required: true, message: 'Password is required' }]}
         >
           <Input.Password
-            prefix={<img src={lockIcon} width={16} height={16} alt="" />}
+            prefix={<Icon src={lockIcon} className={styles.fieldIcon} />}
             placeholder="Your password"
           />
         </Form.Item>
@@ -122,7 +121,7 @@ function LoginPage() {
         </Button>
 
         <div className={styles.note}>
-          <img src={shieldIcon} width={16} height={16} alt="" />
+          <Icon src={shieldIcon} className={styles.noteIcon} />
           <p>PATRON never posts to LinkedIn and never shares your profile without consent.</p>
         </div>
       </Form>

@@ -1,8 +1,5 @@
-// Carries the role card picked on Create account across the LinkedIn OAuth
-// redirect round trip, so SelectRolePage ("One more thing") can pre-select
-// it instead of asking again (#75). sessionStorage, not localStorage: this
-// is only relevant for the tab that started the sign-up, and should not
-// leak into an unrelated later session.
+// Keeps the picked role across the LinkedIn redirect, for SelectRolePage.
+// sessionStorage: it only matters to the tab that started the sign-up.
 const KEY = 'patron:picked-role'
 
 export function rememberPickedRole(role) {

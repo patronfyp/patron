@@ -35,9 +35,9 @@ import UniversityStep from '../components/UniversityStep'
 import WizardShell from '../components/WizardShell'
 import { useCompleteOnboarding, useProfile, useUpdateProfile } from '../hooks/useProfile'
 import { StepControlsContext } from '../hooks/useStepControls'
-import { toFormValues, toProfileChanges } from '../profileForm'
-import { isReferrerOnly, stepsFor } from '../steps'
-import { LINKEDIN_PATTERN } from '../validation'
+import { toFormValues, toProfileChanges } from '../lib/profileForm'
+import { isReferrerOnly, stepsFor } from '../lib/steps'
+import { LINKEDIN_PATTERN } from '../lib/validation'
 
 /**
  * @param {object} props
@@ -324,9 +324,7 @@ function OnboardingWizard({ profile }) {
 
 function OnboardingPage() {
   const { data: profile, isPending, isError, refetch } = useProfile()
-  // Waited for too: the steps pick their starting verification method from
-  // it (an uploaded document means "document"), and a form's initial values
-  // are only read once. A failed status load doesn't block the wizard.
+  // Steps read their starting method from it, and form defaults are read once.
   const { isPending: isStatusPending } = useVerificationStatus()
 
   if (isPending || isStatusPending) {

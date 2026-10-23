@@ -1,6 +1,4 @@
-// Placeholder data: there is no company lookup API yet, so the companies and
-// their details below are fixed until the backend provides one. Used by both
-// Employer steps (candidate 9:337, referrer 67:505).
+// Placeholder until there's a company API. Used by both Employer steps.
 export const COMPANIES = [
   { name: 'Garner', domain: 'garner.com', size: '400 employees' },
   { name: 'Systems Limited', domain: 'systemsltd.com', size: '5,000+ employees' },

@@ -1,6 +1,4 @@
-/* "Keep me signed in" row and the security note box, from the Figma "Sign
-   in" frame (9:3, nodes 9:121 and 9:129). Colours and radii come from
-   config/theme.js's --patron-* variables. */
+/* "Keep me signed in" row and security note, Figma 9:121 and 9:129. */
 
 .row {
   display: flex;
@@ -28,9 +26,14 @@
   background: var(--patron-bg-subtle);
 }
 
-.note img {
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+.noteIcon {
   flex: none;
   margin-top: 1px;
+  color: var(--patron-accent-brand);
 }
 
 .note p {

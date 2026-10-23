@@ -24,9 +24,8 @@ export async function refreshAccessToken(refreshToken) {
 }
 
 /**
- * GET /api/v1/auth/me - the signed-in user, identified by the access token.
- * The Authorization header is set explicitly here because the shared client
- * doesn't attach it automatically yet - that lands in #20.
+ * GET /api/v1/auth/me. Takes the token explicitly: login calls it before the
+ * token is in the store.
  */
 export async function getCurrentUser(accessToken) {
   const response = await api.get('/api/v1/auth/me', {
@@ -48,9 +47,7 @@ export async function setRole(role) {
 }
 
 /**
- * POST /api/v1/auth/password-reset/request (#50) - always answers 202,
- * whether or not the email has an account, so there is nothing to branch on
- * client side.
+ * POST /api/v1/auth/password-reset/request - always 202.
  */
 export async function requestPasswordReset({ email }) {
   const response = await api.post('/api/v1/auth/password-reset/request', { email })
@@ -58,9 +55,7 @@ export async function requestPasswordReset({ email }) {
 }
 
 /**
- * POST /api/v1/auth/password-reset/confirm (#50) - sets the new password and
- * invalidates the token. 400 means the token itself is bad (unknown, expired
- * or already used) - every other failure is a 422 on the password.
+ * POST /api/v1/auth/password-reset/confirm. 400 = bad token, 422 = bad password.
  */
 export async function confirmPasswordReset({ token, newPassword }) {
   const response = await api.post('/api/v1/auth/password-reset/confirm', {
@@ -71,9 +66,7 @@ export async function confirmPasswordReset({ token, newPassword }) {
 }
 
 /**
- * POST /api/v1/auth/password/change (#74) - changes the signed-in account's
- * password. Returns a fresh token pair: changing a password also signs out
- * every other session, including a stale access token in this one.
+ * POST /api/v1/auth/password/change. Returns new tokens - the old ones stop working.
  */
 export async function changePassword({ currentPassword, newPassword }) {
   const response = await api.post('/api/v1/auth/password/change', {

@@ -4,9 +4,7 @@ import { useAuthStore } from './authStore'
 
 const STORAGE_KEY = 'patron-auth'
 
-// Some CI/local environments' jsdom doesn't implement localStorage at all
-// (Node's own global can shadow it) - clearing is best-effort, same as
-// authStore.js's own storage wrapper.
+// Best-effort: some jsdom setups have no localStorage.
 function clearBrowserStorage() {
   try {
     localStorage.clear()

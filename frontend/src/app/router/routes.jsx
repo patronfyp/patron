@@ -12,7 +12,7 @@ import {
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 import { EditProfilePage, ProfilePage } from '@/features/profile'
 
-import App from '../../App'
+import App from '../App'
 import AppLayout from '../layouts/AppLayout'
 
 import ProtectedRoute from './ProtectedRoute'

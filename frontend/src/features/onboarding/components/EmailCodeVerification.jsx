@@ -23,11 +23,8 @@ function formatCountdown(totalSeconds) {
 const EMAIL_PATTERN = /^\S+@\S+\.\S+$/
 
 /**
- * Send-a-code-type-a-code email verification, shared by the university and
- * employer onboarding steps; the code part follows Figma frame 9:337. Not a
- * Form.Item: the verified email and the code are never sent to PATCH
- * /profile/me (#52 - the profile has no field for them), so this keeps its
- * own state instead of registering with the wizard's antd Form.
+ * Email code verification for the university and employer steps (Figma 9:337).
+ * Own state, not a Form.Item: the profile has no field for it.
  *
  * @param {object} props
  * @param {'university' | 'employer'} props.kind

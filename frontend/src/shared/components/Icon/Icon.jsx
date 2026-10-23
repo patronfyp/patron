@@ -1,15 +1,8 @@
 import styles from './Icon.module.css'
 
 /**
- * A Figma icon drawn in the current text colour.
- *
- * The SVG files exported from Figma have their colour baked in; using one as
- * a CSS mask keeps only its shape, so the icon takes `color` from its parent
- * like text does, and one file serves every colour (grey, green on hover,
- * white on a button).
- *
- * Each file is the icon drawn at the size Figma uses it at, so it is shown at
- * its natural size, centred in a `size` box.
+ * A Figma icon in the current text colour (a CSS mask, so one file serves
+ * every colour), at its natural size in a `size` box.
  *
  * @param {object} props
  * @param {string} props.src - an imported .svg from src/assets

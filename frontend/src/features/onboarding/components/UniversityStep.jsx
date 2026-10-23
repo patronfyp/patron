@@ -11,10 +11,8 @@ import EmailCodeVerification from './EmailCodeVerification'
 import OptionCards from './OptionCards'
 import styles from './UniversityStep.module.css'
 
-// No university lookup API yet. `domain` is set only for universities the
-// backend can verify by email - the names and domains must match
-// UNIVERSITY_DOMAINS in backend/app/modules/verification/service.py exactly,
-// or the code is refused. The rest go through the registrar record.
+// Until there's a university API. Names and domains must match
+// UNIVERSITY_DOMAINS in the backend's verification/service.py.
 const UNIVERSITIES = [
   { name: 'Lahore University of Management Sciences (LUMS)', domain: 'lums.edu.pk' },
   { name: 'National University of Sciences and Technology (NUST)', domain: 'nust.edu.pk' },

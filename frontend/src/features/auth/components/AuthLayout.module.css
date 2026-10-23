@@ -1,15 +1,10 @@
-/* Auth layout from the Figma "Sign in" frame (9:3, 1440 x 960). Colours, text
-   styles and radii come from config/theme.js: --pane-* (AuthLayout.jsx) for
-   the brand panel, --patron-* (main.jsx) for the form side. */
+/* Auth layout, Figma "Sign in" (9:3). --pane-* for the panel, --patron-* for the form. */
 
 .screen {
   display: grid;
   /* Figma: 640px panel + 800px form column. */
   grid-template-columns: minmax(0, 640fr) minmax(0, 800fr);
-  /* A viewport unit, not min-height: 100%, on purpose: percentage heights
-     need every ancestor back to #root to have an explicit height, and antd's
-     <App> wrapper div in between doesn't, so 100% silently collapsed to the
-     content's own height. vh doesn't depend on that chain. */
+  /* vh, not 100%: antd's <App> wrapper has no height, so 100% collapses. */
   height: 100vh;
   overflow: hidden;
   background: var(--patron-bg-canvas);
@@ -213,9 +208,7 @@
   color: var(--patron-accent-text);
 }
 
-/* Figma's mobile frames (390 wide) drop the brand panel.
-   TODO(figma): mobile also has a top bar with the logo and a Sign in link
-   (frame 68:69) - not built yet. */
+/* Mobile drops the brand panel. TODO(figma): mobile top bar (68:69), #76. */
 @media (max-width: 860px) {
   .screen {
     grid-template-columns: 1fr;

@@ -1,29 +1,20 @@
 import axios from 'axios'
 
-import { API_BASE_URL } from '../../config/env'
+import { API_BASE_URL } from '@/config/env'
 
 /**
- * Single axios instance for every call to the Patron backend.
- *
- * Nothing else in the app should call axios directly - importing this keeps the
- * base URL, timeout and auth headers in one place.
+ * The one axios instance for the backend - never call axios directly.
  */
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
-  // The frontend and backend are different origins in dev (5173 vs 8000).
-  // Without this, the browser silently drops the Set-Cookie response from
-  // GET /auth/linkedin/authorize (#25) - the li_oauth_state cookie never
-  // gets stored, so /callback always sees it missing. The backend already
-  // allows this (CORSMiddleware's allow_credentials=True in main.py).
+  // Cross-origin in dev; needed so the LinkedIn state cookie is stored.
   withCredentials: true,
 })
 
-// shared/ may not import from features/ (STANDARDS.md §2.6), so the auth
-// feature hands its token access to this client instead of the client
-// reaching into the auth store.
+// shared/ can't import features/, so the auth feature plugs its tokens in here.
 let authHandlers = { getAccessToken: () => null }
 
 // The refresh currently running, if any. Requests that expire together (a page
@@ -87,9 +78,7 @@ api.interceptors.response.use(undefined, async (error) => {
   // One retry per request: a second 401 means the new token was refused too.
   config._retried = true
 
-  // If the store already holds a different token than this request was sent
-  // with, another request refreshed while this one was in flight - use that
-  // token rather than refreshing a second time.
+  // Another request already refreshed - reuse its token.
   let accessToken = authHandlers.getAccessToken()
   if (!accessToken || `Bearer ${accessToken}` === config.headers.Authorization) {
     try {

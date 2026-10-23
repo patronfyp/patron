@@ -37,10 +37,7 @@ function ResetPasswordPage() {
       {
         onSuccess: () => navigate('/login', { replace: true, state: { passwordWasReset: true } }),
         onError: (err) => {
-          // A 400 here only ever means the token is unknown, expired or
-          // already used (#50) - that case renders its own screen below
-          // instead of a toast. Anything else (a weak password, etc.) is a
-          // real form error.
+          // 400 = a dead link, shown as its own screen; anything else is a form error.
           if (err.response?.status !== 400) message.error(getErrorMessage(err))
         },
       },

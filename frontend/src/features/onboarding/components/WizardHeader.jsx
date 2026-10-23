@@ -2,7 +2,7 @@ import markImage from '@/assets/brand/patron-mark-dark.svg'
 import checkCircleIcon from '@/assets/icons/check-circle-13.svg'
 import Icon from '@/shared/components/Icon/Icon'
 
-import { STEPS } from '../steps'
+import { STEPS } from '../lib/steps'
 
 import styles from './WizardShell.module.css'
 

@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query'
 import { Alert, Button, Card, Descriptions, Flex, Spin, Typography } from 'antd'
 import { Link } from 'react-router-dom'
 
-import { API_BASE_URL } from './config/env'
-import { useLogout } from './features/auth'
-import { api } from './shared/api/client'
+import { API_BASE_URL } from '@/config/env'
+import { useLogout } from '@/features/auth'
+import { api } from '@/shared/api/client'
 
 const { Title, Paragraph, Text } = Typography
 

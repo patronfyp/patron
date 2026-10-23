@@ -13,7 +13,7 @@ import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import Icon from '@/shared/components/Icon/Icon'
 
 import { useRemovePhoto, useUploadPhoto } from '../hooks/useProfile'
-import { LINKEDIN_PATTERN } from '../validation'
+import { LINKEDIN_PATTERN } from '../lib/validation'
 
 import styles from './ProfileStep.module.css'
 
@@ -41,10 +41,8 @@ function initials(name) {
 }
 
 /**
- * Step 2 - photo, headline, city, phone, LinkedIn and bio (Figma 65:198).
- *
- * The photo is saved the moment it is picked (it is a file, not a form
- * value); everything else is saved by the wizard on Continue.
+ * Step 2 - photo, headline, city, phone, LinkedIn, bio (Figma 65:198).
+ * The photo saves on pick; the rest on Continue.
  *
  * @param {object} props
  * @param {import('../api/onboarding.api').Profile} props.profile

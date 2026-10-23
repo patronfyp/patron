@@ -2,16 +2,14 @@ import capIcon from '@/assets/icons/cap-12.svg'
 import checkCircleIcon from '@/assets/icons/check-circle-12.svg'
 import clockIcon from '@/assets/icons/clock-12.svg'
 
-import { shortUniversity } from '../profileView'
+import { shortUniversity } from '../lib/profileView'
 
 import styles from './ExperienceCard.module.css'
 import ProfileCard from './ProfileCard'
 import ProfileChip from './ProfileChip'
 
 /**
- * The employer and the degree as Figma's Experience rows. The API holds no job
- * title, dates or description, so a row is the name, its chip and, for the
- * degree, "University · year".
+ * Employer and degree as Figma's Experience rows; the API has no dates yet.
  */
 function experienceRows(profile) {
   const rows = []
