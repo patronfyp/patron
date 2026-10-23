@@ -1,8 +1,4 @@
-"""Database queries for the auth module. The only place SQL lives.
-
-Functions here just fetch and store rows - no decisions about whether
-something is allowed. That belongs in service.py.
-"""
+"""Database queries for auth - no business decisions here."""
 
 import uuid
 from datetime import UTC, datetime

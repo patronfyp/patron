@@ -1,18 +1,14 @@
-"""End-to-end tests for LinkedIn sign-in (#25): GET /auth/linkedin/authorize
-and GET /auth/linkedin/callback, exercised the same way every other auth
-behaviour in this codebase is tested - through the HTTP layer, against the
-real (test) database. LinkedIn itself is mocked at get_linkedin_account -
-the one seam between our code and the outside world.
-"""
+"""End-to-end tests for LinkedIn sign-in (/authorize and /callback).
+LinkedIn itself is mocked at get_linkedin_account."""
 
 from urllib.parse import parse_qs, urlparse
 
 import pytest
 from httpx import AsyncClient
 
+from app.core.config import get_settings
 from app.modules.auth import linkedin as linkedin_module
 from app.modules.auth.linkedin import LinkedInAccount
-from config import get_settings
 
 AUTHORIZE_URL = "/api/v1/auth/linkedin/authorize"
 CALLBACK_URL = "/api/v1/auth/linkedin/callback"

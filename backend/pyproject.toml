@@ -83,5 +83,5 @@ indent-style = "space"
 asyncio_mode = "auto"
 addopts = "-q --strict-markers"
 testpaths = ["tests"]
-# Lets tests do `from main import app` while living in tests/.
+# Lets tests import `app.*` and `tests.*` from backend/.
 pythonpath = ["."]

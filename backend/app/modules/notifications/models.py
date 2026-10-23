@@ -1,9 +1,5 @@
-"""Notification model: one message for one user (Module 11).
-
-Other modules never write this table directly - they call
-`notifications.service.notify()`, so what a notification looks like is decided
-in one place.
-"""
+"""One message for one user (Module 11). Other modules create them only
+through `notifications.service.notify()`."""
 
 import uuid
 from datetime import datetime
@@ -12,7 +8,7 @@ from enum import StrEnum
 from sqlalchemy import DateTime, ForeignKey, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
-from db import Base
+from app.core.database import Base
 
 
 class NotificationType(StrEnum):

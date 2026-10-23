@@ -1,9 +1,4 @@
-"""Tests for GET /api/v1/auth/me and the get_current_user dependency behind it.
-
-These are the tests that matter most in the whole auth module: every future
-protected endpoint in every module reuses get_current_user, so a bug here is
-a bug everywhere at once.
-"""
+"""Tests for GET /auth/me and get_current_user, which every protected endpoint uses."""
 
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -12,9 +7,9 @@ import jwt
 from httpx import AsyncClient
 from sqlalchemy import select
 
+from app.core.config import get_settings
+from app.core.database import SessionLocal
 from app.modules.auth.models import User
-from config import get_settings
-from db import SessionLocal
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

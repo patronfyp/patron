@@ -1,14 +1,7 @@
-"""Authentication models: the account, its roles, and the ways it can be
-signed into.
+"""Accounts, their roles, and the ways to sign in to them.
 
-`User` is the person. `UserIdentity` is one way that person authenticates -
-LinkedIn today (Module 1.1), possibly Google or GitHub later. Keeping them in
-separate tables means adding a provider is a new row value rather than a schema
-migration, and one person can hold several sign-in methods against a single
-account. `UserRoleAssignment` works the same way for roles.
-
-Primary keys are UUIDs, not sequential integers: an id that appears in a URL
-(`/users/<id>`) must not let anyone count users or guess the next one.
+A sign-in method (`UserIdentity`) and a role (`UserRoleAssignment`) are rows,
+so adding either needs no migration. UUID keys stop anyone guessing ids.
 """
 
 import uuid
@@ -26,19 +19,13 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
-from db import Base
+from app.core.database import Base
 
 
 class UserRole(StrEnum):
-    """What a person does on Patron - Module 1.3. One user can hold several.
+    """What a person does on Patron (Module 1.3). A user can hold several.
 
-    The first three are the "I want to" cards on the Create account screen;
-    an employee who refers people, hires for their team and is job-hunting
-    themselves holds all three.
-
-    Stored as a plain string column rather than a PostgreSQL enum type: adding a
-    value to a database enum needs a migration and locks the table, whereas a
-    varchar with this class as the source of truth does not.
+    A varchar, not a Postgres enum: a new value needs no migration.
     """
 
     CANDIDATE = "candidate"  # "Get referred"
@@ -48,9 +35,7 @@ class UserRole(StrEnum):
 
 
 class SignupRole(StrEnum):
-    """The roles a user may give themselves. Admin is deliberately missing:
-    it is granted by Patron, never picked at sign-up or through POST
-    /auth/role."""
+    """Roles a user may pick for themselves - never admin."""
 
     CANDIDATE = UserRole.CANDIDATE.value
     REFERRER = UserRole.REFERRER.value
@@ -64,12 +49,8 @@ class AuthProvider(StrEnum):
 
 
 class User(Base):
-    """A person with an account.
-
-    A LinkedIn sign-up arrives with no password and no roles: a LinkedIn-only
-    user has no password at all, and LinkedIn does not tell us what someone
-    wants to do on Patron - so a role is asked for once, on first sign-in.
-    """
+    """A person with an account. A LinkedIn sign-up starts with no password and
+    no roles - the role is asked for on first sign-in."""
 
     __tablename__ = "users"
 
@@ -80,19 +61,15 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(150))
     avatar_url: Mapped[str | None] = mapped_column(Text, default=None)
 
-    # Holds a bcrypt hash, never a plain-text password. Null for a user who
-    # only ever signs in through a provider.
-    # This column must never be returned by any endpoint - see STANDARDS.md 3.4.
+    # A bcrypt hash; null for LinkedIn-only users. Never returned by any endpoint.
     password: Mapped[str | None] = mapped_column(String(255), default=None)
 
     is_email_verified: Mapped[bool] = mapped_column(default=False, server_default=text("false"))
-    # Soft delete / ban (Module 13.2). Rows are deactivated, never deleted,
-    # because endorsements reference them as an audit trail.
+    # Deactivated, never deleted: endorsements point at users (Module 13.2).
     is_active: Mapped[bool] = mapped_column(default=True, server_default=text("true"))
 
-    # Set when the password is reset (Module 1.12). Any token issued before
-    # this moment is refused, which is how a reset signs out every existing
-    # session - JWTs are not stored, so there is nothing else to revoke.
+    # Tokens issued before this are refused - how a password change signs out
+    # every session (Module 1.12).
     password_changed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), default=None
     )
@@ -107,8 +84,7 @@ class User(Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
-    # selectin: every authenticated request reads the roles, so load them with
-    # the user rather than on first access (which async SQLAlchemy forbids).
+    # Loaded with the user: every request reads roles, and async forbids lazy loads.
     role_assignments: Mapped[list["UserRoleAssignment"]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -123,12 +99,8 @@ class User(Base):
 
     @validates("email")
     def _normalise_email(self, _key: str, value: str | None) -> str | None:
-        """Lowercase and trim on the way in, so uniqueness actually holds.
-
-        Without this, `Ali@x.com` and `ali@x.com` create two accounts and
-        password reset stops making sense. Doing it on the model rather than in
-        one service means no code path can bypass it.
-        """
+        """Trim and lowercase on the model, so no code path can create
+        `Ali@x.com` next to `ali@x.com`."""
         if value is None:
             return None
         return value.strip().lower()
@@ -138,11 +110,7 @@ class User(Base):
 
 
 class UserRoleAssignment(Base):
-    """One role held by one user - a row per role, so a user can hold several.
-
-    The (user_id, role) pair is the primary key: the same role cannot be held
-    twice, and there is nothing else a row needs to be identified by.
-    """
+    """One role held by one user. (user_id, role) is the key, so no duplicates."""
 
     __tablename__ = "user_roles"
 
@@ -161,11 +129,8 @@ class UserRoleAssignment(Base):
 
 
 class UserIdentity(Base):
-    """One provider account linked to one user.
-
-    A returning user is matched on `(provider, provider_user_id)` - never on
-    email, which a person can change at the provider.
-    """
+    """One provider account linked to one user. Matched on provider id, never
+    email, which the person can change at the provider."""
 
     __tablename__ = "user_identities"
     __table_args__ = (
@@ -186,8 +151,7 @@ class UserIdentity(Base):
     provider: Mapped[str] = mapped_column(String(20))
     # The provider's own stable id for this person - LinkedIn's `sub` claim.
     provider_user_id: Mapped[str] = mapped_column(String(255))
-    # What the provider reported, kept for reference. Authoritative email lives
-    # on User; these can drift apart.
+    # For reference only - User.email is the real one.
     provider_email: Mapped[str | None] = mapped_column(String(255), default=None)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -202,11 +166,7 @@ class UserIdentity(Base):
 
 
 class PasswordResetToken(Base):
-    """One emailed password-reset link - Module 1.12.
-
-    Only a hash of the token is stored, so a leaked table cannot be turned
-    into working reset links.
-    """
+    """One emailed reset link (Module 1.12). Only its hash is stored."""
 
     __tablename__ = "password_reset_tokens"
 
@@ -216,13 +176,11 @@ class PasswordResetToken(Base):
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
 
-    # SHA-256 hex digest of the token in the link. Unique so a lookup by hash
-    # finds at most one row.
+    # SHA-256 of the token in the link.
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    # Set when the token is used, or when a newer link replaces it. Either
-    # way the token stops working - that is what makes it single-use.
+    # Set on use, or when a newer link replaces it - makes the link single-use.
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

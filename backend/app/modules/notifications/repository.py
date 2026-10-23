@@ -1,8 +1,4 @@
-"""Database queries for the notifications module. The only place SQL lives.
-
-Functions here just fetch and store rows - no decisions about whether
-something is allowed. That belongs in service.py.
-"""
+"""Database queries for notifications - no business decisions here."""
 
 import uuid
 from datetime import datetime

@@ -7,9 +7,9 @@ from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import CurrentUser
+from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
 from app.core.storage import FileStorage, get_file_storage
-from db import get_session
 
 from . import service
 from .models import VerificationKind
@@ -61,11 +61,8 @@ async def upload_document(
     kind: Annotated[VerificationKind, Form(description="university or employer")],
     file: Annotated[UploadFile, File(description="A PDF, JPG or PNG, up to 5 MB")],
 ) -> DocumentRead:
-    """Upload a transcript, degree or employment letter - the route for
-    anyone whose university or employer can't be verified by email.
-
-    It is stored as `pending` until a person reviews it (Module 13).
-    """
+    """Upload a transcript, degree or employment letter, stored as pending
+    until a person reviews it (Module 13)."""
     row = await service.upload_document(session, current_user, kind, file, storage)
     return DocumentRead.model_validate(row)
 
@@ -88,14 +85,9 @@ async def upload_document(
 async def send_code(
     payload: SendCodeRequest, current_user: CurrentUser, session: SessionDep, sender: SenderDep
 ) -> SendCodeResponse:
-    """Send a code to the sign-up email (`kind=account`), a university email
-    (`kind=university`) or a work email (`kind=employer`).
+    """Email a code to the sign-up, university or work address (`kind`).
 
-    `account` only accepts the address the user signed up with; confirming it
-    marks the account's email verified. A university address must be on the
-    domain of the university saved on the caller's profile, so save the
-    profile first. Sending again replaces the previous code. The code is
-    never returned here - only in the email.
+    A university address must match the university on the profile - save it first.
     """
     await service.send_code(session, current_user, payload.email, payload.kind, sender)
     return SendCodeResponse(
@@ -119,11 +111,7 @@ async def send_code(
 async def confirm_code(
     payload: ConfirmCodeRequest, current_user: CurrentUser, session: SessionDep
 ) -> VerificationRead:
-    """Mark the email verified if the code matches the latest one sent to it.
-
-    Every kind of failure returns the same 400, on purpose: telling a guesser
-    whether the code was wrong or expired would help them.
-    """
+    """Verify the email if the code matches. Every failure is the same 400."""
     row = await service.confirm_code(
         session, current_user, payload.email, payload.kind, payload.code
     )

@@ -8,10 +8,10 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, update
 
+from app.core.database import SessionLocal
 from app.core.email import EmailDeliveryError, get_email_sender
+from app.main import app
 from app.modules.verification.models import EmailVerification
-from db import SessionLocal
-from main import app
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"

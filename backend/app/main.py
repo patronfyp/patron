@@ -1,29 +1,26 @@
-"""Patron API - application entry point.
+"""Patron API entry point: settings, middleware, error handling, routers.
 
-Minimal scaffold: configuration, CORS and a health check. No feature routes yet.
-
-Run locally:
-    uv run uvicorn main:app --reload
+Run locally (from backend/):
+    uv run uvicorn app.main:app --reload
 """
 
-from typing import Annotated
-
-from fastapi import Depends, FastAPI, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.deps import SessionDep
+from app.core.config import get_settings
 from app.core.exceptions import AppError
+from app.core.logging import add_request_logging, setup_logging
 from app.modules.auth.router import router as auth_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.profiles.router import router as profiles_router
 from app.modules.verification.router import router as verification_router
-from config import get_settings
-from db import get_session
 
 settings = get_settings()
+setup_logging(debug=settings.debug)
 
 app = FastAPI(
     title=settings.app_name,
@@ -31,6 +28,9 @@ app = FastAPI(
     description="Vouched, Verified, Hired.",
 )
 
+# Added before CORS so CORS wraps it: even a 500 carries CORS headers, and the
+# browser shows the real error instead of a CORS one.
+add_request_logging(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
@@ -42,10 +42,7 @@ app.add_middleware(
 
 @app.exception_handler(AppError)
 async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
-    """Turns every AppError subclass into the same response shape.
-
-    No route builds an error response by hand - see STANDARDS.md §3.7.
-    """
+    """Every AppError becomes `{detail, code}` with its status - STANDARDS.md §3.7."""
     return JSONResponse(
         status_code=exc.status_code, content={"detail": exc.detail, "code": exc.code}
     )
@@ -56,16 +53,10 @@ app.include_router(profiles_router, prefix=settings.api_v1_prefix)
 app.include_router(verification_router, prefix=settings.api_v1_prefix)
 app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 
-SessionDep = Annotated[AsyncSession, Depends(get_session)]
-
 
 @app.get("/health", tags=["system"])
 async def health(session: SessionDep) -> dict[str, str]:
-    """Liveness check - used by the frontend and by deployment health probes.
-
-    Reports the database separately so a reachable API with an unreachable
-    database is not mistaken for a healthy system.
-    """
+    """Liveness check. Reports the database separately from the API."""
     try:
         await session.execute(text("SELECT 1"))
         database = "ok"

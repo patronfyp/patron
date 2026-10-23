@@ -23,11 +23,7 @@ _CV_TYPES = {FileKind.PDF, FileKind.DOCX}
 
 
 async def get_or_create_profile(session: AsyncSession, user: User) -> Profile:
-    """Return the user's profile, creating an empty one on first read.
-
-    Creating it here rather than at registration means the sign-up and
-    LinkedIn flows never have to know the profile exists.
-    """
+    """The user's profile, created empty on first read - sign-up never needs to know."""
     profile = await repository.get_by_user_id(session, user.id)
     if profile is None:
         profile = await repository.create_for_user(session, user.id)
@@ -35,12 +31,7 @@ async def get_or_create_profile(session: AsyncSession, user: User) -> Profile:
 
 
 async def get_public_profile(session: AsyncSession, user_id: uuid.UUID) -> PublicProfileRead:
-    """Someone's public profile - Module 1.6.
-
-    A deactivated account is a 404, the same as one that never existed.
-    Reading someone else's profile never creates one for them: a user who
-    hasn't started onboarding just has empty fields.
-    """
+    """Someone's public profile (Module 1.6). Deactivated accounts are a 404."""
     user = await auth_repository.get_by_id(session, user_id)
     if user is None or not user.is_active:
         raise NotFoundError("Profile not found")
@@ -75,12 +66,8 @@ async def get_public_profile(session: AsyncSession, user_id: uuid.UUID) -> Publi
 
 
 async def update_profile(session: AsyncSession, user: User, payload: ProfileUpdate) -> Profile:
-    """Apply only the fields the client sent.
-
-    The step rule: a user may go back to any earlier step, or forward by one,
-    but never skip ahead. Without it a client could jump straight to the last
-    step and skip the university and employer steps entirely.
-    """
+    """Apply only the fields sent. Steps move forward by one at most, so the
+    wizard can't be skipped."""
     profile = await get_or_create_profile(session, user)
     changes = payload.model_dump(exclude_unset=True)
 
@@ -90,8 +77,7 @@ async def update_profile(session: AsyncSession, user: User, payload: ProfileUpda
             f"Cannot move from step {profile.onboarding_step} to step {step}; "
             "finish the steps in between first."
         )
-    # A referrer-only user's wizard is shorter; the schema only knows the
-    # longest one.
+    # The schema only knows the longest wizard; a referrer-only one is shorter.
     step_count = onboarding_step_count(user.roles)
     if step is not None and step > step_count:
         raise UnprocessableError(f"Your onboarding has only {step_count} steps.")
@@ -124,11 +110,9 @@ async def _has_employer_proof(session: AsyncSession, user_id: uuid.UUID) -> bool
 
 
 async def complete_onboarding(session: AsyncSession, user: User) -> Profile:
-    """The "Finish setup" button. Only allowed from the last step, so the
-    wizard can't be marked done from the middle. Finishing twice is harmless.
+    """The "Finish setup" button - only from the last step; twice is harmless.
 
-    A referrer-only user must also have said where they work and proved it:
-    a referral is only worth something from someone who really works there.
+    A referrer-only user also needs a company, a job title and proof they work there.
     """
     profile = await get_or_create_profile(session, user)
     if profile.onboarding_completed_at is not None:
@@ -149,11 +133,8 @@ async def complete_onboarding(session: AsyncSession, user: User) -> Profile:
 async def _replace_file(
     storage: FileStorage, folder: str, data: bytes, kind: FileKind, old_key: str | None
 ) -> str:
-    """Store the new file under a fresh random key and remove the old one.
-
-    A fresh key (rather than one per user) means a cached old photo URL never
-    shows the new photo, and file names reveal nothing about who owns them.
-    """
+    """Save under a fresh random key and delete the old file. Random keys beat
+    caches and say nothing about the owner."""
     key = f"{folder}/{uuid.uuid4()}.{kind.value}"
     await storage.save(key, data)
     if old_key is not None:
@@ -180,11 +161,7 @@ async def remove_photo(session: AsyncSession, user: User, storage: FileStorage) 
 
 
 async def read_photo(storage: FileStorage, filename: str) -> tuple[bytes, FileKind]:
-    """A photo by its file name, for anyone - like a LinkedIn profile picture.
-
-    Raises 404 for a name that isn't a stored photo, including any name that
-    isn't a well-formed key at all.
-    """
+    """A photo by file name, public like a LinkedIn picture. 404 if not a stored photo."""
     extension = filename.rsplit(".", 1)[-1]
     kind = next((k for k in _PHOTO_TYPES if k.value == extension), None)
     try:
