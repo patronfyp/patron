@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { Col, Form, Input, Row, Select } from 'antd'
+import { Form, Select } from 'antd'
 
 import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import fileIcon from '@/assets/icons/file-18.svg'
@@ -12,6 +12,7 @@ import { COMPANY_OPTIONS, findCompany } from '../lib/companies'
 
 import DocumentUpload from './DocumentUpload'
 import EmailCodeVerification from './EmailCodeVerification'
+import JobTitleFields from './JobTitleFields'
 import OptionCards from './OptionCards'
 import styles from './ReferrerEmployerStep.module.css'
 
@@ -103,22 +104,7 @@ function ReferrerEmployerStep({ verifiedEmail, hasPendingDocument }) {
         />
       </Form.Item>
 
-      <Row gutter={16}>
-        <Col xs={24} sm={12}>
-          <Form.Item
-            name="job_title"
-            label="Job title"
-            rules={[{ required: true, message: 'Enter your job title' }]}
-          >
-            <Input placeholder="e.g. Senior Software Engineer" maxLength={150} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12}>
-          <Form.Item name="team" label="Team">
-            <Input placeholder="e.g. Payments Platform" maxLength={100} />
-          </Form.Item>
-        </Col>
-      </Row>
+      <JobTitleFields />
 
       <Form.Item
         name="employer_verification_method"
