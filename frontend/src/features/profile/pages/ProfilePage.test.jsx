@@ -27,6 +27,7 @@ const PROFILE = {
   degree: 'BSc Computer Science',
   graduation_year: 2026,
   employer_name: 'Garner',
+  job_title: null,
   skills: ['React', 'FastAPI'],
   primary_role: 'candidate',
   university_verified: true,
@@ -82,6 +83,16 @@ describe('ProfilePage', () => {
     expect(screen.getByRole('heading', { name: 'BSc Computer Science' })).toBeInTheDocument()
     expect(screen.getByText('LUMS · 2026')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Garner' })).toBeInTheDocument()
+  })
+
+  it('shows the job title over the employer when there is one', async () => {
+    getPublicProfile.mockResolvedValue({ ...PROFILE, job_title: 'Senior Software Engineer' })
+    renderPage()
+
+    await screen.findByRole('heading', { name: 'Sarah Chen' })
+    expect(screen.getByRole('heading', { name: 'Senior Software Engineer' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Garner' })).not.toBeInTheDocument()
+    expect(screen.getByText('Garner')).toBeInTheDocument()
   })
 
   it('marks an unverified employer as not verified, not as verified', async () => {

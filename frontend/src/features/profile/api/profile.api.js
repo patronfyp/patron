@@ -17,6 +17,7 @@ import { api } from '@/shared/api/client'
  * @property {string | null} degree
  * @property {number | null} graduation_year
  * @property {string | null} employer_name
+ * @property {string | null} job_title
  * @property {string[]} skills
  * @property {string | null} primary_role
  * @property {boolean} university_verified - the Verified Alumni badge
