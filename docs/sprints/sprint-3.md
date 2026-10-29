@@ -39,8 +39,22 @@ public profile doesn't show the `job_title` field #87 added to the
 backend two days before #88 merged (#92), and Edit profile has no way to
 change the referrer-specific fields #87 introduced - job title, team,
 referral-team preferences, monthly limit, the two toggles (#93). Both
-added to Sprint 4 rather than reopening #88, since #88 itself already
-shipped and these are new, separable pieces of work.
+were done after the review, before Sprint 4 started, as separate PRs
+rather than reopening #88 (#98, #100).
+
+## Wrap-up after the review (26–29 Oct)
+Before starting Sprint 4, the leftovers from Sprints 1–3 that need no Figma
+work were closed:
+- #90, #95, #96 — one structure for backend and frontend (STANDARDS.md §2):
+  backend code inside `app/`, request logging with a request id, tests by
+  module, feature helpers in `lib/`, `@/` imports, short comments. #95 also
+  stopped LinkedIn profile data reaching the logs.
+- #98 — job title on the public profile (closes #92)
+- #100 — referrer settings on Edit profile (closes #93)
+- #101 — frontend tests pass reliably in parallel on a laptop (closes #77)
+
+Still open from these sprints, waiting on Figma access: #69 recruiter
+onboarding, #76 mobile and dark-mode designs.
 
 ## Capacity
 Plan estimate was ~75–90 person-hours per sprint (AGILE_PLAN §3). Sprint 3
@@ -51,7 +65,22 @@ assumed, worth factoring into Sprint 4's planning rather than treating as
 a one-off.
 
 ## Retro
-To be filled in at the sprint review by the team:
-- Went well:
-- Did not:
-- Change (exactly one, with an owner):
+- **Went well:**
+  - The sprint goal (verification) landed in the first three days, which
+    left room for all three Sprint 2 carry-overs.
+  - Review caught real problems before merge: a referrer could finish
+    onboarding without proving their employer (#87), and LinkedIn profile
+    data was being written to the logs (#95).
+  - One agreed structure (#90, #95, #96) means every feature now has the
+    same folders, so any file can be found from its feature name.
+- **Did not:**
+  - PRs waited on small fixes. #81 sat five days for a three-file change,
+    and was finished by the reviewer.
+  - #71 changed hands twice (Rohan, Rafay, Umair) because only some of us
+    can open the Figma file.
+  - The frontend tests failed on our laptops until #77, so we ran them one
+    file at a time. That was slow, and a real failure could be dismissed as
+    "just a timeout".
+- **Change (one, with an owner):** a PR with review comments is updated
+  within two days, or the reviewer finishes it and says so on the PR.
+  Owner: Rafay.
