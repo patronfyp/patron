@@ -32,7 +32,40 @@ const MY_PROFILE = {
   salary_max: null,
   available_from: null,
   open_to_referrers: false,
+  job_title: 'Senior Software Engineer',
+  team: 'Payments',
+  referral_teams: ['backend'],
+  monthly_referral_limit: 5,
+  accept_alumni_requests: true,
+  accept_any_verified_requests: false,
   onboarding_step: 7,
+}
+
+const NOT_VERIFIED = {
+  email: 'rohan@example.com',
+  email_verified: true,
+  university_email: null,
+  employer_email: null,
+  documents: [],
+}
+
+/** GET /verification/me gets `status`; every other GET gets `profile`. */
+function serve(profile, status = NOT_VERIFIED, patches = []) {
+  fakeNetwork((config) => {
+    if (config.method === 'patch') {
+      patches.push(JSON.parse(config.data))
+      return ok(config, profile)
+    }
+    return ok(config, config.url.includes('/verification/') ? status : profile)
+  })
+  return patches
+}
+
+function signInAs(roles) {
+  useAuthStore.setState({
+    user: { id: 'u-1', full_name: 'Rohan Zubair', roles },
+    accessToken: 'token',
+  })
 }
 
 function unprocessable(config, detail) {
@@ -125,6 +158,94 @@ describe('EditProfilePage', () => {
     expect((await screen.findAllByText('Bio is too long')).length).toBeGreaterThan(0)
     expect(screen.queryByText('Profile screen')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Save changes' })).toBeEnabled()
+  })
+
+  describe('Referrer settings', () => {
+    it('are hidden from a user who does not refer', async () => {
+      serve(MY_PROFILE)
+      renderPage()
+
+      await screen.findByLabelText('Headline')
+      expect(screen.queryByRole('heading', { name: 'Referrer settings' })).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Job title')).not.toBeInTheDocument()
+    })
+
+    it('start from what the referrer saved', async () => {
+      signInAs(['candidate', 'referrer'])
+      serve(MY_PROFILE)
+      renderPage()
+
+      expect(await screen.findByLabelText('Job title')).toHaveValue('Senior Software Engineer')
+      expect(screen.getByLabelText('Team')).toHaveValue('Payments')
+      expect(screen.getByRole('button', { name: 'Backend' })).toHaveAttribute(
+        'aria-pressed',
+        'true',
+      )
+      expect(screen.getByText('Accept requests from any verified candidate')).toBeInTheDocument()
+    })
+
+    it('keep the candidate sections for someone who is also a candidate', async () => {
+      signInAs(['candidate', 'referrer'])
+      serve(MY_PROFILE)
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Referrer settings' })
+      expect(screen.getByRole('heading', { name: 'Skills' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Preferences' })).toBeInTheDocument()
+    })
+
+    it('replace the candidate sections for a referrer-only user', async () => {
+      signInAs(['referrer'])
+      serve(MY_PROFILE)
+      renderPage()
+
+      await screen.findByRole('heading', { name: 'Referrer settings' })
+      expect(screen.queryByRole('heading', { name: 'Skills' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: 'Preferences' })).not.toBeInTheDocument()
+    })
+
+    it('show the alumni toggle only with a verified university email', async () => {
+      signInAs(['referrer'])
+      serve(
+        { ...MY_PROFILE, university: 'Lahore University of Management Sciences (LUMS)' },
+        { ...NOT_VERIFIED, university_email: { email: 'rohan@lums.edu.pk' } },
+      )
+      renderPage()
+
+      expect(await screen.findByText('Accept requests from LUMS alumni')).toBeInTheDocument()
+    })
+
+    it('are saved with the rest of the profile', async () => {
+      signInAs(['referrer'])
+      const patches = serve(MY_PROFILE)
+      renderPage()
+
+      const title = await screen.findByLabelText('Job title')
+      await userEvent.clear(title)
+      await userEvent.type(title, 'Staff Engineer')
+      await userEvent.click(screen.getByText('10'))
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+      expect(await screen.findByText('Profile screen')).toBeInTheDocument()
+      expect(patches[0]).toMatchObject({
+        job_title: 'Staff Engineer',
+        team: 'Payments',
+        referral_teams: ['backend'],
+        monthly_referral_limit: 10,
+      })
+    })
+
+    it('require a job title', async () => {
+      signInAs(['referrer'])
+      const patches = serve(MY_PROFILE)
+      renderPage()
+
+      await userEvent.clear(await screen.findByLabelText('Job title'))
+      await userEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+
+      expect(await screen.findByText('Enter your job title')).toBeInTheDocument()
+      expect(patches).toHaveLength(0)
+    })
   })
 
   it('offers a retry when the profile cannot be loaded', async () => {
