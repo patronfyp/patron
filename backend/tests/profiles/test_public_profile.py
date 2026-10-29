@@ -52,6 +52,7 @@ async def test_shows_the_public_fields(client: AsyncClient, clean_users_table: N
             "degree": "BSc Computer Science",
             "graduation_year": 2026,
             "employer_name": "Garner",
+            "job_title": "Senior Software Engineer",
             "skills": ["Python", "FastAPI"],
             "primary_role": "backend",
         },
@@ -64,6 +65,7 @@ async def test_shows_the_public_fields(client: AsyncClient, clean_users_table: N
     assert body["full_name"] == "Jane Doe"
     assert body["roles"] == ["candidate"]
     assert body["headline"] == "Backend engineer"
+    assert body["job_title"] == "Senior Software Engineer"
     assert body["university"] == "Lahore University of Management Sciences (LUMS)"
     assert body["skills"] == ["Python", "FastAPI"]
     assert body["university_verified"] is False
@@ -106,6 +108,7 @@ async def test_someone_who_never_opened_onboarding_has_empty_fields(
     body = (await client.get(_public(owner_id), headers=viewer)).json()
 
     assert body["headline"] is None
+    assert body["job_title"] is None
     assert body["skills"] == []
 
 

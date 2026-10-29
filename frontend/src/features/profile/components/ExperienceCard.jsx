@@ -9,7 +9,8 @@ import ProfileCard from './ProfileCard'
 import ProfileChip from './ProfileChip'
 
 /**
- * Employer and degree as Figma's Experience rows; the API has no dates yet.
+ * Employer and degree as Figma's Experience rows: job title over company,
+ * degree over university. The API has no dates yet.
  */
 function experienceRows(profile) {
   const rows = []
@@ -18,8 +19,8 @@ function experienceRows(profile) {
     rows.push({
       key: 'employer',
       logo: profile.employer_name,
-      title: profile.employer_name,
-      detail: null,
+      title: profile.job_title || profile.employer_name,
+      detail: profile.job_title ? profile.employer_name : null,
       chip: profile.employer_verified ? (
         <ProfileChip tone="success" icon={checkCircleIcon}>
           Verified

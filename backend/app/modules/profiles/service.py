@@ -58,6 +58,7 @@ async def get_public_profile(session: AsyncSession, user_id: uuid.UUID) -> Publi
         degree=profile.degree if profile else None,
         graduation_year=profile.graduation_year if profile else None,
         employer_name=profile.employer_name if profile else None,
+        job_title=profile.job_title if profile else None,
         skills=profile.skills if profile else [],
         primary_role=profile.primary_role if profile else None,
         university_verified=university is not None,

@@ -139,6 +139,7 @@ class PublicProfileRead(BaseModel):
     degree: str | None
     graduation_year: int | None
     employer_name: str | None
+    job_title: str | None
     skills: list[str]
     primary_role: PrimaryRole | None
     # The Verified Alumni / Verified Employee badges.
