@@ -1,20 +1,16 @@
 """Tests for POST /api/v1/auth/password-reset/request and /confirm - Module 1.12."""
 
-import re
 import uuid
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
 import jwt
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, update
 
 from app.core.config import get_settings
 from app.core.database import SessionLocal
-from app.core.email import EmailDeliveryError, get_email_sender
-from app.main import app
 from app.modules.auth.models import PasswordResetToken, User
+from tests.fakes import RecordingSender
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -26,32 +22,6 @@ CONFIRM_URL = "/api/v1/auth/password-reset/confirm"
 _EMAIL = "reset-test@example.com"
 _OLD_PASSWORD = "oldpass123"
 _NEW_PASSWORD = "newpass456"
-
-
-class RecordingSender:
-    """Stands in for the real sender and keeps every email it was given."""
-
-    def __init__(self) -> None:
-        self.sent: list[dict[str, str]] = []
-        # Set to make the next send behave like the provider refusing it.
-        self.fail_next = False
-
-    async def send(self, to: str, subject: str, body: str) -> None:
-        if self.fail_next:
-            self.fail_next = False
-            raise EmailDeliveryError("provider refused")
-        self.sent.append({"to": to, "subject": subject, "body": body})
-
-    def last_token(self) -> str:
-        return re.search(r"reset-password\?token=(\S+)", self.sent[-1]["body"]).group(1)
-
-
-@pytest.fixture
-async def sender() -> AsyncIterator[RecordingSender]:
-    recording = RecordingSender()
-    app.dependency_overrides[get_email_sender] = lambda: recording
-    yield recording
-    app.dependency_overrides.pop(get_email_sender, None)
 
 
 async def _register(client: AsyncClient) -> None:

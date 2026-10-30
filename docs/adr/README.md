@@ -28,3 +28,4 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0017](0017-patron-2-0-visual-language-one-theme-file.md) | PATRON 2.0 visual language from Figma, one theme file — supersedes 0012 | Rafay |
 | [0018](0018-local-disk-file-storage-behind-a-filestorage-interface.md) | Local-disk file storage behind a `FileStorage` interface | Rafay |
 | [0019](0019-one-endorsements-table-with-a-type-column.md) | One `endorsements` table with a type column — supersedes 0007 | Rafay |
+| [0020](0020-companies-verified-by-email-domain.md) | Companies, verified and joined by email domain | Rafay |

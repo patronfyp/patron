@@ -1,17 +1,13 @@
 """Tests for GET /api/v1/profile/{user_id} - the public profile, Module 1.6."""
 
-import re
 import uuid
-from collections.abc import AsyncIterator
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import update
 
 from app.core.database import SessionLocal
-from app.core.email import get_email_sender
-from app.main import app
 from app.modules.auth.models import User
+from tests.fakes import RecordingSender
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -145,25 +141,6 @@ async def test_profile_me_still_returns_your_own_profile(
 
     assert response.status_code == 200
     assert "onboarding_step" in response.json()
-
-
-class RecordingSender:
-    def __init__(self) -> None:
-        self.sent: list[str] = []
-
-    async def send(self, to: str, subject: str, body: str) -> None:
-        self.sent.append(body)
-
-    def last_code(self) -> str:
-        return re.search(r"\b\d{6}\b", self.sent[-1]).group()
-
-
-@pytest.fixture
-async def sender() -> AsyncIterator[RecordingSender]:
-    recording = RecordingSender()
-    app.dependency_overrides[get_email_sender] = lambda: recording
-    yield recording
-    app.dependency_overrides.pop(get_email_sender, None)
 
 
 async def test_a_verified_work_email_shows_the_employee_badge(

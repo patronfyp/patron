@@ -7,9 +7,10 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy import text
 
 from app.core.database import engine
+from app.core.email import get_email_sender
 from app.core.storage import get_file_storage
 from app.main import app
-from tests.fakes import MemoryStorage
+from tests.fakes import MemoryStorage, RecordingSender
 
 
 @pytest.fixture(autouse=True)
@@ -35,6 +36,15 @@ async def storage() -> AsyncIterator[MemoryStorage]:
     app.dependency_overrides[get_file_storage] = lambda: memory
     yield memory
     app.dependency_overrides.pop(get_file_storage, None)
+
+
+@pytest.fixture
+async def sender() -> AsyncIterator[RecordingSender]:
+    """Swap the app's email sender for one that records every email."""
+    recording = RecordingSender()
+    app.dependency_overrides[get_email_sender] = lambda: recording
+    yield recording
+    app.dependency_overrides.pop(get_email_sender, None)
 
 
 @pytest.fixture

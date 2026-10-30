@@ -1,17 +1,13 @@
 """Tests for POST /api/v1/verification/email/send and /confirm - Module 1.9."""
 
-import re
-from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import select, update
 
 from app.core.database import SessionLocal
-from app.core.email import EmailDeliveryError, get_email_sender
-from app.main import app
 from app.modules.verification.models import EmailVerification
+from tests.fakes import RecordingSender
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -23,32 +19,6 @@ _PASSWORD = "secret123"
 _LUMS = "Lahore University of Management Sciences (LUMS)"
 _UNI_EMAIL = "abdul@lums.edu.pk"
 _WORK_EMAIL = "abdul@garner.com"
-
-
-class RecordingSender:
-    """Stands in for the real sender and keeps every email it was given."""
-
-    def __init__(self) -> None:
-        self.sent: list[dict[str, str]] = []
-        # Set to make the next send behave like the provider refusing it.
-        self.fail_next = False
-
-    async def send(self, to: str, subject: str, body: str) -> None:
-        if self.fail_next:
-            self.fail_next = False
-            raise EmailDeliveryError("provider refused")
-        self.sent.append({"to": to, "subject": subject, "body": body})
-
-    def last_code(self) -> str:
-        return re.search(r"\b\d{6}\b", self.sent[-1]["body"]).group()
-
-
-@pytest.fixture
-async def sender() -> AsyncIterator[RecordingSender]:
-    recording = RecordingSender()
-    app.dependency_overrides[get_email_sender] = lambda: recording
-    yield recording
-    app.dependency_overrides.pop(get_email_sender, None)
 
 
 async def _sign_in(client: AsyncClient, university: str | None = _LUMS) -> dict:

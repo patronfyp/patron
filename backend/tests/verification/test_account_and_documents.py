@@ -1,15 +1,9 @@
 """Tests for verifying the sign-up email (the Account onboarding step),
 verification documents, and GET /api/v1/verification/me."""
 
-import re
-from collections.abc import AsyncIterator
-
-import pytest
 from httpx import AsyncClient
 
-from app.core.email import get_email_sender
-from app.main import app
-from tests.fakes import MemoryStorage
+from tests.fakes import MemoryStorage, RecordingSender
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -22,25 +16,6 @@ DOCUMENTS_URL = "/api/v1/verification/documents"
 _EMAIL = "account@example.com"
 _PASSWORD = "secret123"
 _PDF = b"%PDF-1.7\n" + b"transcript"
-
-
-class RecordingSender:
-    def __init__(self) -> None:
-        self.sent: list[dict[str, str]] = []
-
-    async def send(self, to: str, subject: str, body: str) -> None:
-        self.sent.append({"to": to, "subject": subject, "body": body})
-
-    def last_code(self) -> str:
-        return re.search(r"\b\d{6}\b", self.sent[-1]["body"]).group()
-
-
-@pytest.fixture
-async def sender() -> AsyncIterator[RecordingSender]:
-    recording = RecordingSender()
-    app.dependency_overrides[get_email_sender] = lambda: recording
-    yield recording
-    app.dependency_overrides.pop(get_email_sender, None)
 
 
 async def _sign_in(client: AsyncClient) -> dict:
