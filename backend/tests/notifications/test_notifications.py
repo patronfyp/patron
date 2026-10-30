@@ -1,20 +1,15 @@
 """Tests for the notifications module - Module 11.1, 11.2, 11.6."""
 
-import re
 import uuid
-from collections.abc import AsyncIterator
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
-from app.core.email import get_email_sender
-from app.main import app
 from app.modules.auth.models import User
 from app.modules.notifications import service
 from app.modules.notifications.models import NotificationType
-from tests.fakes import MemoryStorage
+from tests.fakes import MemoryStorage, RecordingSender
 
 REGISTER_URL = "/api/v1/auth/register"
 LOGIN_URL = "/api/v1/auth/login"
@@ -187,25 +182,6 @@ async def test_only_app_paths_are_kept_as_links(
 
 
 # --- Real triggers --------------------------------------------------------------
-
-
-class RecordingSender:
-    def __init__(self) -> None:
-        self.sent: list[str] = []
-
-    async def send(self, to: str, subject: str, body: str) -> None:
-        self.sent.append(body)
-
-    def last_code(self) -> str:
-        return re.search(r"\b\d{6}\b", self.sent[-1]).group()
-
-
-@pytest.fixture
-async def sender() -> AsyncIterator[RecordingSender]:
-    recording = RecordingSender()
-    app.dependency_overrides[get_email_sender] = lambda: recording
-    yield recording
-    app.dependency_overrides.pop(get_email_sender, None)
 
 
 async def test_verifying_a_work_email_sends_a_notification(
