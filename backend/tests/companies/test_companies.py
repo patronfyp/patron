@@ -6,51 +6,19 @@ from httpx import AsyncClient
 
 from app.core.database import SessionLocal
 from app.modules.companies.models import CompanyMember
+from tests.companies.helpers import (
+    COMPANY_URL,
+    GARNER,
+    sign_up,
+    verified_recruiter,
+    verify_work_email,
+)
 from tests.fakes import MemoryStorage, RecordingSender
 
-REGISTER_URL = "/api/v1/auth/register"
-LOGIN_URL = "/api/v1/auth/login"
-SEND_URL = "/api/v1/verification/email/send"
-CONFIRM_URL = "/api/v1/verification/email/confirm"
-COMPANY_URL = "/api/v1/companies/me"
 LOGO_URL = "/api/v1/companies/me/logo"
 
-_PASSWORD = "secret123"
 _PNG = b"\x89PNG\r\n\x1a\n" + b"logo"
 _SVG = b'<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'
-
-GARNER = {
-    "name": "Garner",
-    "website": "https://www.Garner.com/careers",
-    "size": "1000+",
-    "industry": "fintech",
-    "headquarters": "Lahore, Pakistan",
-}
-
-
-async def _sign_up(client: AsyncClient, email: str, role: str = "recruiter") -> dict:
-    await client.post(
-        REGISTER_URL,
-        json={"email": email, "password": _PASSWORD, "full_name": "Ayesha", "role": role},
-    )
-    login = await client.post(LOGIN_URL, json={"email": email, "password": _PASSWORD})
-    return {"Authorization": f"Bearer {login.json()['access_token']}"}
-
-
-async def _verify_work_email(
-    client: AsyncClient, headers: dict, sender: RecordingSender, email: str
-) -> None:
-    body = {"email": email, "kind": "employer"}
-    await client.post(SEND_URL, headers=headers, json=body)
-    await client.post(CONFIRM_URL, headers=headers, json={**body, "code": sender.last_code()})
-
-
-async def _verified_recruiter(
-    client: AsyncClient, sender: RecordingSender, email: str = "ayesha@garner.com"
-) -> dict:
-    headers = await _sign_up(client, f"{uuid.uuid4().hex[:8]}@example.com")
-    await _verify_work_email(client, headers, sender, email)
-    return headers
 
 
 async def test_it_requires_a_token(client: AsyncClient) -> None:
@@ -59,7 +27,7 @@ async def test_it_requires_a_token(client: AsyncClient) -> None:
 
 
 async def test_no_company_yet_is_a_404(client: AsyncClient, clean_users_table: None) -> None:
-    headers = await _sign_up(client, "ayesha@example.com")
+    headers = await sign_up(client, "ayesha@example.com")
 
     response = await client.get(COMPANY_URL, headers=headers)
 
@@ -69,7 +37,7 @@ async def test_no_company_yet_is_a_404(client: AsyncClient, clean_users_table: N
 async def test_a_verified_recruiter_creates_the_company_as_owner(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
 
     created = await client.post(COMPANY_URL, headers=headers, json=GARNER)
     mine = await client.get(COMPANY_URL, headers=headers)
@@ -87,7 +55,7 @@ async def test_a_verified_recruiter_creates_the_company_as_owner(
 async def test_a_work_email_on_a_subdomain_counts(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender, "ayesha@eng.garner.com")
+    headers = await verified_recruiter(client, sender, "ayesha@eng.garner.com")
 
     response = await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
@@ -97,7 +65,7 @@ async def test_a_work_email_on_a_subdomain_counts(
 async def test_without_a_verified_email_on_the_domain_it_is_refused(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender, "ayesha@arbisoft.com")
+    headers = await verified_recruiter(client, sender, "ayesha@arbisoft.com")
 
     response = await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
@@ -108,9 +76,9 @@ async def test_without_a_verified_email_on_the_domain_it_is_refused(
 async def test_a_second_recruiter_on_the_domain_joins_the_same_company(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    owner = await _verified_recruiter(client, sender, "ayesha@garner.com")
+    owner = await verified_recruiter(client, sender, "ayesha@garner.com")
     created = (await client.post(COMPANY_URL, headers=owner, json=GARNER)).json()
-    colleague = await _verified_recruiter(client, sender, "bilal@garner.com")
+    colleague = await verified_recruiter(client, sender, "bilal@garner.com")
 
     joined = await client.post(
         COMPANY_URL, headers=colleague, json={**GARNER, "name": "Garner Ltd"}
@@ -126,7 +94,7 @@ async def test_a_second_recruiter_on_the_domain_joins_the_same_company(
 async def test_belonging_to_a_company_already_is_a_409(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
     again = await client.post(COMPANY_URL, headers=headers, json=GARNER)
@@ -137,8 +105,8 @@ async def test_belonging_to_a_company_already_is_a_409(
 async def test_only_recruiters_set_up_a_company(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _sign_up(client, "candidate@example.com", role="candidate")
-    await _verify_work_email(client, headers, sender, "sara@garner.com")
+    headers = await sign_up(client, "candidate@example.com", role="candidate")
+    await verify_work_email(client, headers, sender, "sara@garner.com")
 
     response = await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
@@ -148,7 +116,7 @@ async def test_only_recruiters_set_up_a_company(
 async def test_bad_fields_are_rejected(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
 
     for bad in (
         {**GARNER, "website": "not a website"},
@@ -164,7 +132,7 @@ async def test_bad_fields_are_rejected(
 async def test_the_owner_updates_details_but_never_the_domain(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
     updated = await client.patch(
@@ -184,9 +152,9 @@ async def test_the_owner_updates_details_but_never_the_domain(
 async def test_an_interviewer_cannot_change_the_company(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:
-    owner = await _verified_recruiter(client, sender)
+    owner = await verified_recruiter(client, sender)
     company_id = (await client.post(COMPANY_URL, headers=owner, json=GARNER)).json()["id"]
-    interviewer = await _sign_up(client, "mehwish@example.com", role="candidate")
+    interviewer = await sign_up(client, "mehwish@example.com", role="candidate")
     me = await client.get("/api/v1/auth/me", headers=interviewer)
     async with SessionLocal() as session:
         session.add(
@@ -206,7 +174,7 @@ async def test_an_interviewer_cannot_change_the_company(
 async def test_a_png_logo_is_stored_and_served_publicly(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender, storage: MemoryStorage
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
     uploaded = await client.put(
@@ -224,7 +192,7 @@ async def test_a_png_logo_is_stored_and_served_publicly(
 async def test_an_svg_logo_is_refused(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender, storage: MemoryStorage
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
 
     response = await client.put(
@@ -238,7 +206,7 @@ async def test_an_svg_logo_is_refused(
 async def test_removing_the_logo_deletes_the_file(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender, storage: MemoryStorage
 ) -> None:
-    headers = await _verified_recruiter(client, sender)
+    headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
     await client.put(LOGO_URL, headers=headers, files={"file": ("logo.png", _PNG, "image/png")})
 
