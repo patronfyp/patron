@@ -3,13 +3,14 @@ verification or storage keys."""
 
 import re
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, field_validator
 
 from app.core.config import get_settings
 
-from .models import CompanySize, Industry, MemberRole
+from .models import CompanySize, Industry, InviteRole, MemberRole
 
 # One or more labels and a TLD, e.g. "garner.com", "eng.garner.com.pk".
 _DOMAIN_PATTERN = re.compile(r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$")
@@ -117,3 +118,51 @@ class CompanyRead(BaseModel):
         """The company row with the caller's role added."""
         fields = {name: getattr(company, name) for name in cls.model_fields if name != "my_role"}
         return cls.model_validate({**fields, "my_role": role})
+
+
+class InviteCreate(BaseModel):
+    """POST /companies/me/invites - one teammate on the company's domain."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr
+    role: InviteRole
+
+
+class InviteRead(BaseModel):
+    """An invite as its company sees it - never the token."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: str
+    role: InviteRole
+    sent_at: datetime
+    expires_at: datetime
+    accepted_at: datetime | None
+
+    @computed_field
+    @property
+    def status(self) -> Literal["pending", "accepted", "expired"]:
+        if self.accepted_at is not None:
+            return "accepted"
+        if self.expires_at <= datetime.now(UTC):
+            return "expired"
+        return "pending"
+
+
+class InviteToken(BaseModel):
+    """The token from an invite link. Sent in the body, never the URL, so it stays out of logs."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    token: str = Field(min_length=1, max_length=200)
+
+
+class InvitePreview(BaseModel):
+    """What an invite link shows before sign-up: who is inviting, and which email to use."""
+
+    company_name: str
+    company_domain: str
+    email: str
+    role: InviteRole

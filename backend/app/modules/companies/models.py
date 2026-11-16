@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import DateTime, ForeignKey, String, func, text
+from sqlalchemy import DateTime, ForeignKey, Index, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -40,6 +40,14 @@ class MemberRole(StrEnum):
     RECRUITER = "recruiter"
     HIRING_MANAGER = "hiring_manager"
     INTERVIEWER = "interviewer"
+
+
+class InviteRole(StrEnum):
+    """Roles an invite can give - never owner (Team step, Figma 67:1040)."""
+
+    RECRUITER = MemberRole.RECRUITER.value
+    HIRING_MANAGER = MemberRole.HIRING_MANAGER.value
+    INTERVIEWER = MemberRole.INTERVIEWER.value
 
 
 class Company(Base):
@@ -93,3 +101,42 @@ class CompanyMember(Base):
 
     def __repr__(self) -> str:
         return f"<CompanyMember company_id={self.company_id} user_id={self.user_id}>"
+
+
+class CompanyInvite(Base):
+    """An emailed invite to join a company's hiring team. Only the token's hash is stored."""
+
+    __tablename__ = "company_invites"
+    __table_args__ = (
+        # One pending invite per person per company; accepted ones are history.
+        Index(
+            "uq_company_invites_pending_email",
+            "company_id",
+            "email",
+            unique=True,
+            postgresql_where=text("accepted_at IS NULL"),
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("companies.id", ondelete="CASCADE"), index=True
+    )
+    # Lowercase.
+    email: Mapped[str] = mapped_column(String(255))
+    # Values come from InviteRole.
+    role: Mapped[str] = mapped_column(String(20))
+    # SHA-256 of the token in the link.
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    invited_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), default=None
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
+    # Set every time the invite is (re)sent - the resend cooldown reads it.
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self) -> str:
+        return f"<CompanyInvite id={self.id} email={self.email!r}>"
