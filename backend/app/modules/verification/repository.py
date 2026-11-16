@@ -43,6 +43,16 @@ async def get_latest_verified(
     return await session.scalar(stmt)
 
 
+async def list_verified_emails(session: AsyncSession, user_id: uuid.UUID, kind: str) -> list[str]:
+    """Every address of this kind the user has verified."""
+    stmt = select(EmailVerification.email).where(
+        EmailVerification.user_id == user_id,
+        EmailVerification.kind == kind,
+        EmailVerification.verified_at.is_not(None),
+    )
+    return list(await session.scalars(stmt))
+
+
 async def create(
     session: AsyncSession,
     *,

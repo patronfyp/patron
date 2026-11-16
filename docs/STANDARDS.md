@@ -164,7 +164,8 @@ backend/
 │       ├── auth/
 │       ├── profiles/
 │       ├── verification/
-│       └── notifications/
+│       ├── notifications/
+│       └── companies/         companies and their members (ADR 0020)
 ├── migrations/versions/       one Alembic file per schema change
 └── tests/
     ├── conftest.py            shared fixtures (client, storage, clean_users_table)
@@ -263,7 +264,8 @@ frontend/src/
 │   ├── onboarding/
 │   ├── profile/               ↔ modules/profiles
 │   ├── verification/
-│   └── notifications/
+│   ├── notifications/
+│   └── companies/
 ├── shared/                    used by two or more features, imports no feature
 │   ├── api/                   axios client, fileUrl, getApiErrorMessage
 │   ├── components/            Icon, OtpInput (one folder per component)
@@ -361,7 +363,8 @@ Frontend features and backend modules use the same names.
 | Profiles | `features/profile/` | `modules/profiles/` |
 | Verification | `features/verification/` | `modules/verification/` |
 | Notifications | `features/notifications/` | `modules/notifications/` |
-| Onboarding | `features/onboarding/` | uses `modules/profiles/` |
+| Companies | `features/companies/` | `modules/companies/` |
+| Onboarding | `features/onboarding/` | uses `modules/profiles/`, `modules/companies/` |
 | Jobs | `features/jobs/` | `modules/jobs/` |
 | Referrals | `features/referrals/` | `modules/referrals/` |
 | Alumni | `features/alumni/` | `modules/alumni/` |

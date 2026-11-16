@@ -13,6 +13,7 @@ from app.core.database import Base
 # Base.metadata. Every new model module must be imported here, or
 # `--autogenerate` silently produces an empty migration.
 from app.modules.auth import models as auth_models  # noqa: F401
+from app.modules.companies import models as companies_models  # noqa: F401
 from app.modules.notifications import models as notifications_models  # noqa: F401
 from app.modules.profiles import models as profiles_models  # noqa: F401
 from app.modules.verification import models as verification_models  # noqa: F401
