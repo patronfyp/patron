@@ -33,6 +33,14 @@ class Industry(StrEnum):
     OTHER = "other"
 
 
+class HiringTimeline(StrEnum):
+    """The Hiring step's "How soon do you need to hire?" (Figma 67:1170)."""
+
+    THIS_MONTH = "this_month"
+    THIS_QUARTER = "this_quarter"
+    ALWAYS = "always"
+
+
 class MemberRole(StrEnum):
     """What a member does at their company. The first recruiter is the owner."""
 
@@ -68,6 +76,8 @@ class Company(Base):
     logo_key: Mapped[str | None] = mapped_column(String(100), default=None)
     # The Team step's "Let <company> employees join as referrers" (Figma 67:1040).
     employees_can_refer: Mapped[bool] = mapped_column(default=True, server_default=text("true"))
+    # Values come from HiringTimeline; null until the Hiring step is done.
+    hiring_timeline: Mapped[str | None] = mapped_column(String(20), default=None)
 
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_by: Mapped[uuid.UUID | None] = mapped_column(
