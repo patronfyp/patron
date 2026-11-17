@@ -11,11 +11,16 @@ from app.core.storage import FileStorage
 from app.core.uploads import FileKind, read_upload
 from app.modules.auth import repository as auth_repository
 from app.modules.auth.models import User
+from app.modules.companies import repository as companies_repository
 from app.modules.verification import repository as verification_repository
 from app.modules.verification.models import DocumentStatus, VerificationKind
 
 from . import repository
-from .models import REFERRER_ONBOARDING_STEP_COUNT, Profile, onboarding_step_count
+from .models import (
+    REFERRER_ONBOARDING_STEP_COUNT,
+    Profile,
+    onboarding_step_count,
+)
 from .schemas import ProfileUpdate, PublicProfileRead, photo_url
 
 _PHOTO_TYPES = {FileKind.JPEG, FileKind.PNG}
@@ -78,10 +83,11 @@ async def update_profile(session: AsyncSession, user: User, payload: ProfileUpda
             f"Cannot move from step {profile.onboarding_step} to step {step}; "
             "finish the steps in between first."
         )
-    # The schema only knows the longest wizard; a referrer-only one is shorter.
-    step_count = onboarding_step_count(user.roles)
-    if step is not None and step > step_count:
-        raise UnprocessableError(f"Your onboarding has only {step_count} steps.")
+    # The schema only knows the longest wizard; referrer and recruiter ones are shorter.
+    if step is not None:
+        step_count = await _step_count(session, user)
+        if step > step_count:
+            raise UnprocessableError(f"Your onboarding has only {step_count} steps.")
 
     # Checked against the saved value too, so sending only one end of the
     # range can't leave the minimum above the maximum.
@@ -110,18 +116,37 @@ async def _has_employer_proof(session: AsyncSession, user_id: uuid.UUID) -> bool
     )
 
 
+async def _company_role(session: AsyncSession, user: User) -> str | None:
+    membership = await companies_repository.get_membership(session, user.id)
+    return membership[1].role if membership else None
+
+
+async def _step_count(session: AsyncSession, user: User) -> int:
+    """This user's wizard length. Only recruiter-only users need the company lookup."""
+    company_role = await _company_role(session, user) if user.roles == ["recruiter"] else None
+    return onboarding_step_count(user.roles, company_role)
+
+
 async def complete_onboarding(session: AsyncSession, user: User) -> Profile:
     """The "Finish setup" button - only from the last step; twice is harmless.
 
-    A referrer-only user also needs a company, a job title and proof they work there.
+    A referrer-only user also needs a company, a job title and proof they work
+    there; a recruiter-only user needs their company set up.
     """
     profile = await get_or_create_profile(session, user)
     if profile.onboarding_completed_at is not None:
         return profile
-    if profile.onboarding_step != onboarding_step_count(user.roles):
+    recruiter_only = user.roles == ["recruiter"]
+    company_role = await _company_role(session, user) if recruiter_only else None
+    step_count = onboarding_step_count(user.roles, company_role)
+    # ">=": a recruiter part-way through the old 7-step wizard isn't stranded.
+    if profile.onboarding_step < step_count:
         raise UnprocessableError("Finish every onboarding step first.")
 
-    if onboarding_step_count(user.roles) == REFERRER_ONBOARDING_STEP_COUNT:
+    if recruiter_only and company_role is None:
+        raise UnprocessableError("Set up your company first.")
+
+    if step_count == REFERRER_ONBOARDING_STEP_COUNT:
         if not profile.employer_name or not profile.job_title:
             raise UnprocessableError("Add your company and job title first.")
         if not await _has_employer_proof(session, user.id):

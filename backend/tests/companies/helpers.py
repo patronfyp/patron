@@ -1,5 +1,6 @@
-"""Sign-up and verification steps shared by the companies tests."""
+"""Sign-up, verification and team steps shared by the companies, jobs and profiles tests."""
 
+import re
 import uuid
 
 from httpx import AsyncClient
@@ -11,6 +12,8 @@ LOGIN_URL = "/api/v1/auth/login"
 SEND_URL = "/api/v1/verification/email/send"
 CONFIRM_URL = "/api/v1/verification/email/confirm"
 COMPANY_URL = "/api/v1/companies/me"
+INVITES_URL = "/api/v1/companies/me/invites"
+ACCEPT_URL = "/api/v1/companies/invites/accept"
 
 PASSWORD = "secret123"
 
@@ -54,4 +57,15 @@ async def garner_owner(client: AsyncClient, sender: RecordingSender) -> dict:
     """A recruiter who owns Garner."""
     headers = await verified_recruiter(client, sender)
     await client.post(COMPANY_URL, headers=headers, json=GARNER)
+    return headers
+
+
+async def join_garner(
+    client: AsyncClient, owner: dict, sender: RecordingSender, email: str, role: str
+) -> dict:
+    """A recruiter-only user invited to Garner as `role` who has accepted."""
+    await client.post(INVITES_URL, headers=owner, json={"email": email, "role": role})
+    token = re.search(r"register\?invite=(\S+)", sender.sent[-1]["body"]).group(1)
+    headers = await sign_up(client, email)
+    await client.post(ACCEPT_URL, headers=headers, json={"token": token})
     return headers

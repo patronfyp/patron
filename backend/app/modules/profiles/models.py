@@ -16,11 +16,23 @@ from app.core.database import Base
 ONBOARDING_STEP_COUNT = 7
 # Referrer-only users: Account, Employer, Referring.
 REFERRER_ONBOARDING_STEP_COUNT = 3
+# Recruiter-only users: Account, Company, Team, Hiring.
+RECRUITER_ONBOARDING_STEP_COUNT = 4
+# Invited hiring managers and interviewers: Account only - their company is set up.
+TEAM_MEMBER_ONBOARDING_STEP_COUNT = 1
+_TEAM_MEMBER_ROLES = {"hiring_manager", "interviewer"}
 
 
-def onboarding_step_count(roles: list[str]) -> int:
-    """How many steps this user's wizard has."""
-    return REFERRER_ONBOARDING_STEP_COUNT if roles == ["referrer"] else ONBOARDING_STEP_COUNT
+def onboarding_step_count(roles: list[str], company_role: str | None = None) -> int:
+    """How many steps this user's wizard has. `company_role` is their role at
+    their company, if any - it only matters for recruiter-only users."""
+    if roles == ["referrer"]:
+        return REFERRER_ONBOARDING_STEP_COUNT
+    if roles == ["recruiter"]:
+        if company_role in _TEAM_MEMBER_ROLES:
+            return TEAM_MEMBER_ONBOARDING_STEP_COUNT
+        return RECRUITER_ONBOARDING_STEP_COUNT
+    return ONBOARDING_STEP_COUNT
 
 
 class PrimaryRole(StrEnum):

@@ -149,6 +149,22 @@ async def test_the_owner_updates_details_but_never_the_domain(
     assert domain_change.status_code == 422
 
 
+async def test_the_hiring_timeline_is_saved(
+    client: AsyncClient, clean_users_table: None, sender: RecordingSender
+) -> None:
+    headers = await verified_recruiter(client, sender)
+    created = await client.post(COMPANY_URL, headers=headers, json=GARNER)
+
+    updated = await client.patch(
+        COMPANY_URL, headers=headers, json={"hiring_timeline": "this_quarter"}
+    )
+    unknown = await client.patch(COMPANY_URL, headers=headers, json={"hiring_timeline": "someday"})
+
+    assert created.json()["hiring_timeline"] is None
+    assert updated.json()["hiring_timeline"] == "this_quarter"
+    assert unknown.status_code == 422
+
+
 async def test_an_interviewer_cannot_change_the_company(
     client: AsyncClient, clean_users_table: None, sender: RecordingSender
 ) -> None:

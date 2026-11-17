@@ -10,7 +10,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field, computed_field, fie
 
 from app.core.config import get_settings
 
-from .models import CompanySize, Industry, InviteRole, MemberRole
+from .models import CompanySize, HiringTimeline, Industry, InviteRole, MemberRole
 
 # One or more labels and a TLD, e.g. "garner.com", "eng.garner.com.pk".
 _DOMAIN_PATTERN = re.compile(r"^(?=.{4,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$")
@@ -80,6 +80,7 @@ class CompanyUpdate(BaseModel):
     industry: Industry | None = None
     headquarters: str | None = Field(default=None, min_length=1, max_length=100)
     employees_can_refer: bool | None = None
+    hiring_timeline: HiringTimeline | None = None
 
     @field_validator("name", "headquarters")
     @classmethod
@@ -105,6 +106,7 @@ class CompanyRead(BaseModel):
     headquarters: str
     logo_key: str | None = Field(exclude=True)
     employees_can_refer: bool
+    hiring_timeline: HiringTimeline | None
     verified_at: datetime
     my_role: MemberRole
 
