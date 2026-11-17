@@ -18,6 +18,14 @@ export const INDUSTRIES = [
   { value: 'other', label: 'Other' },
 ]
 
+// CompanyInviteRole in backend/app/modules/companies/models.py - never
+// "owner", which is never invited, only created by verifying on the domain.
+export const INVITE_ROLES = [
+  { value: 'hiring_manager', label: 'Hiring manager' },
+  { value: 'interviewer', label: 'Interviewer' },
+  { value: 'recruiter', label: 'Recruiter' },
+]
+
 export const HEADQUARTERS = [
   'Lahore',
   'Karachi',

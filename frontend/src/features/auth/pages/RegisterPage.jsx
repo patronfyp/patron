@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { App, Button, Checkbox, Form, Input } from 'antd'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 
 import lockIcon from '@/assets/icons/lock.svg'
 import mailIcon from '@/assets/icons/mail.svg'
 import userIcon from '@/assets/icons/user.svg'
+import { INVITE_ROLES, useAcceptCompanyInvite, usePreviewCompanyInvite } from '@/features/companies'
+import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 import Icon from '@/shared/components/Icon/Icon'
 
 import AuthLayout from '../components/AuthLayout'
@@ -19,6 +21,8 @@ import {
 import { rememberPickedRole } from '../lib/roleMemory'
 
 import styles from './RegisterPage.module.css'
+
+const INVITE_ROLE_LABELS = Object.fromEntries(INVITE_ROLES.map((role) => [role.value, role.label]))
 
 // A 422 from Pydantic carries an array of {msg}; our own errors carry a plain
 // string - STANDARDS.md §4.7 says show the backend's reason, so handle both.
@@ -67,6 +71,33 @@ function RegisterPage() {
     rememberPickedRole(role)
   }, [role])
 
+  // A team invite link (#105) carries its token as a query param rather than
+  // a route segment, so following it doesn't need its own route.
+  const [searchParams] = useSearchParams()
+  const inviteToken = searchParams.get('invite')
+  const [invite, setInvite] = useState(null)
+  const previewInvite = usePreviewCompanyInvite()
+  const acceptInvite = useAcceptCompanyInvite()
+  // StrictMode double-invokes effects in development; a second preview call
+  // with the same token is harmless, but would overwrite the email the user
+  // may have already started editing.
+  const hasPreviewedInvite = useRef(false)
+
+  useEffect(() => {
+    if (!inviteToken || hasPreviewedInvite.current) return
+    hasPreviewedInvite.current = true
+
+    previewInvite.mutate(inviteToken, {
+      onSuccess: (preview) => {
+        setInvite(preview)
+        form.setFieldValue('email', preview.email)
+      },
+      // An unknown, expired or revoked token (#104) - the invite banner
+      // just doesn't show; registering normally still works.
+      onError: () => {},
+    })
+  }, [inviteToken, previewInvite, form])
+
   const onFinish = (values) => {
     mutate(
       {
@@ -78,7 +109,22 @@ function RegisterPage() {
       {
         onSuccess: () => {
           message.success('Account created')
-          navigate('/start', { replace: true })
+          if (!inviteToken) {
+            navigate('/start', { replace: true })
+            return
+          }
+          // The account exists and is signed in either way - a bad or
+          // already-used invite token shouldn't block getting into the app.
+          acceptInvite.mutate(inviteToken, {
+            onSettled: () => navigate('/start', { replace: true }),
+            onError: (error) =>
+              message.error(
+                getApiErrorMessage(
+                  error,
+                  "Could not join your team's company. You can try the invite link again.",
+                ),
+              ),
+          })
         },
         onError: (error) => message.error(getErrorMessage(error)),
       },
@@ -106,6 +152,13 @@ function RegisterPage() {
         disabled={isPending}
         autoComplete="off"
       >
+        {invite ? (
+          <p className={styles.inviteBanner}>
+            <strong>{invite.company_name}</strong> invited you to join as{' '}
+            {INVITE_ROLE_LABELS[invite.role] ?? invite.role}.
+          </p>
+        ) : null}
+
         <Form.Item
           name="fullName"
           label="Full name"
@@ -128,6 +181,7 @@ function RegisterPage() {
           <Input
             prefix={<Icon src={mailIcon} className={styles.fieldIcon} />}
             placeholder="jane@example.com"
+            disabled={Boolean(invite)}
           />
         </Form.Item>
 

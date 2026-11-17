@@ -47,3 +47,19 @@
   width: 18px;
   height: 18px;
 }
+
+/* A team invite link's banner (#105) - not part of the Figma "Create
+   account" frame, which has no invite flow of its own. */
+.inviteBanner {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-md);
+  background: var(--patron-accent-subtle);
+  font: var(--patron-type-body-s);
+  color: var(--patron-text-secondary);
+}
+
+.inviteBanner strong {
+  color: var(--patron-text-primary);
+}
