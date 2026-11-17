@@ -6,7 +6,16 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '@/features/auth'
-// Imported directly to mock it; app code uses the barrel.
+// Imported directly to mock it; app code uses the barrels.
+// eslint-disable-next-line no-restricted-imports
+import {
+  createCompanyInvite,
+  createOrJoinCompany,
+  getCompanyInvites,
+  getMyCompany,
+} from '@/features/companies/api/companies.api'
+// eslint-disable-next-line no-restricted-imports
+import { createJob, getJobs } from '@/features/jobs/api/jobs.api'
 // eslint-disable-next-line no-restricted-imports
 import {
   confirmVerificationCode,
@@ -30,6 +39,24 @@ vi.mock('@/features/verification/api/verification.api', () => ({
   sendVerificationCode: vi.fn(),
   confirmVerificationCode: vi.fn(),
   uploadVerificationDocument: vi.fn(),
+}))
+
+vi.mock('@/features/companies/api/companies.api', () => ({
+  getMyCompany: vi.fn(),
+  createOrJoinCompany: vi.fn(),
+  updateCompany: vi.fn(),
+  uploadCompanyLogo: vi.fn(),
+  removeCompanyLogo: vi.fn(),
+  getCompanyInvites: vi.fn(),
+  createCompanyInvite: vi.fn(),
+  deleteCompanyInvite: vi.fn(),
+}))
+
+vi.mock('@/features/jobs/api/jobs.api', () => ({
+  getJobs: vi.fn(),
+  createJob: vi.fn(),
+  updateJob: vi.fn(),
+  deleteJob: vi.fn(),
 }))
 
 const EMAIL = 'jane@example.com'
@@ -565,6 +592,118 @@ describe('OnboardingPage', () => {
       await screen.findByText(/Step 3 of 3/)
       expect(screen.queryByText(/alumni$/)).not.toBeInTheDocument()
       expect(screen.getAllByRole('switch')).toHaveLength(1)
+    })
+  })
+
+  describe('Recruiter wizard', () => {
+    const GARNER = {
+      id: 'c-1',
+      name: 'Garner',
+      domain: 'garner.com',
+      size: '1-50',
+      industry: 'software',
+      headquarters: 'Lahore, Pakistan',
+      employees_can_refer: false,
+      hiring_timeline: 'this_month',
+      logo_url: null,
+      my_role: 'owner',
+    }
+
+    beforeEach(() => {
+      signIn({ roles: ['recruiter'] })
+      getVerificationStatus.mockResolvedValue({
+        email: EMAIL,
+        email_verified: true,
+        university_email: null,
+        employer_email: { email: 'jane@garner.com' },
+        documents: [],
+      })
+      getCompanyInvites.mockResolvedValue([])
+      getJobs.mockResolvedValue([])
+    })
+
+    it('gives a recruiter-only user four steps, the Company step first, and the Recruiter chip', async () => {
+      getMyCompany.mockResolvedValue(null)
+      getProfile.mockResolvedValue(profileAt(2))
+
+      renderPage()
+
+      expect(await screen.findByText(/Step 2 of 4 · Company/)).toBeInTheDocument()
+      expect(screen.getByText('Recruiter')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Set up your company' })).toBeInTheDocument()
+    })
+
+    it('gives an invited hiring manager only the Account step', async () => {
+      getMyCompany.mockResolvedValue({ ...GARNER, my_role: 'hiring_manager' })
+      getProfile.mockResolvedValue(profileAt(1))
+
+      renderPage()
+
+      expect(await screen.findByText(/Step 1 of 1/)).toBeInTheDocument()
+      expect(screen.getByText('Recruiter')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Verify your email' })).toBeInTheDocument()
+    })
+
+    it('creates the company once its domain is verified, then saves team and roles', async () => {
+      const user = userEvent.setup({ pointerEventsCheck: 0 })
+      getMyCompany.mockResolvedValue(null)
+      createOrJoinCompany.mockResolvedValue(GARNER)
+      createCompanyInvite.mockResolvedValue({
+        id: 'i-1',
+        email: 'bob@garner.com',
+        role: 'hiring_manager',
+        status: 'pending',
+      })
+      createJob.mockResolvedValue({ id: 'j-1', title: 'Software Engineer' })
+      getProfile.mockResolvedValue(profileAt(2))
+      renderPage()
+      await screen.findByText(/Step 2 of 4 · Company/)
+
+      await user.type(screen.getByLabelText('Company name'), 'Garner')
+      // Not the first size option - Segmented pre-highlights that one without
+      // firing onChange, so the form's value would stay unset.
+      await user.click(screen.getByText('51–200'))
+      await user.click(screen.getByLabelText('Industry'))
+      await user.click(await screen.findByTitle('Software'))
+      await user.click(screen.getByLabelText('Headquarters'))
+      await user.click(await screen.findByTitle('Lahore, Pakistan'))
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(createOrJoinCompany.mock.calls[0][0]).toEqual({
+          name: 'Garner',
+          size: '51-200',
+          industry: 'software',
+          headquarters: 'Lahore, Pakistan',
+          website: 'garner.com',
+        }),
+      )
+      expect(await screen.findByText(/Step 3 of 4 · Team/)).toBeInTheDocument()
+
+      await user.type(screen.getByPlaceholderText('name@garner.com'), 'bob@garner.com')
+      await user.click(screen.getByRole('button', { name: /continue/i }))
+
+      await waitFor(() =>
+        expect(createCompanyInvite.mock.calls[0][0]).toEqual({
+          email: 'bob@garner.com',
+          role: 'hiring_manager',
+        }),
+      )
+      expect(await screen.findByText(/Step 4 of 4 · Hiring/)).toBeInTheDocument()
+
+      await user.type(
+        screen.getByPlaceholderText('e.g. Software Engineer III'),
+        'Software Engineer',
+      )
+      await user.click(screen.getByRole('button', { name: /finish setup/i }))
+
+      await waitFor(() =>
+        expect(createJob.mock.calls[0][0]).toEqual(
+          expect.objectContaining({ title: 'Software Engineer' }),
+        ),
+      )
+      expect(await screen.findByText('All set screen')).toBeInTheDocument()
+      expect(completeOnboarding).toHaveBeenCalled()
     })
   })
 
