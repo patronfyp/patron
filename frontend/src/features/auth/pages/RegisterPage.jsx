@@ -104,7 +104,9 @@ function RegisterPage() {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
-        role,
+        // An invitee joins a hiring team, so they sign up as a recruiter only -
+        // the backend then gives them the 1-step wizard (#106).
+        role: invite ? 'recruiter' : role,
       },
       {
         onSuccess: () => {
@@ -136,7 +138,9 @@ function RegisterPage() {
       title="Create your account"
       subtitle="Join PATRON and get referred by people who can vouch for you."
       quote="I signed up on a Monday. By Friday a LUMS alumnus at Garner had referred me."
-      beforeLinkedIn={<RoleCards value={role} onChange={setRole} disabled={isPending} />}
+      beforeLinkedIn={
+        invite ? null : <RoleCards value={role} onChange={setRole} disabled={isPending} />
+      }
       linkedInLabel="Sign up with LinkedIn"
       footer={
         <>

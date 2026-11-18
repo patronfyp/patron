@@ -175,6 +175,7 @@ describe('RegisterPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByLabelText(/email/i)).toHaveValue('new.hire@garner.com')
     expect(screen.getByLabelText(/email/i)).toBeDisabled()
+    expect(screen.queryByRole('radio', { name: /get referred/i })).not.toBeInTheDocument()
     expect(previewCompanyInvite.mock.calls[0][0]).toBe('tok-1')
   })
 
@@ -209,6 +210,8 @@ describe('RegisterPage', () => {
 
     await screen.findByText('Protected home')
     expect(acceptCompanyInvite.mock.calls[0][0]).toBe('tok-1')
+    // An invitee is a recruiter only, so the backend gives them the 1-step wizard.
+    expect(register).toHaveBeenCalledWith(expect.objectContaining({ role: 'recruiter' }))
   })
 
   it('still signs the user in if accepting the invite fails', async () => {

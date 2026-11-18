@@ -58,8 +58,17 @@ function TeamStep({ company, invites }) {
       }
 
       const rows = (values.invites ?? []).filter((row) => row?.email?.trim())
+      // Each invite on its own: if one fails, the ones that went out leave the
+      // drafts, so Continue again only retries the failed ones (no 429 resends).
+      const results = await Promise.allSettled(rows.map((row) => createInvite.mutateAsync(row)))
+      const failed = rows.filter((_row, index) => results[index].status === 'rejected')
+      if (failed.length) {
+        form.setFieldValue('invites', failed)
+        const firstError = results.find((result) => result.status === 'rejected').reason
+        message.error(getApiErrorMessage(firstError, 'Could not send an invite. Please try again.'))
+        return false
+      }
       try {
-        await Promise.all(rows.map((row) => createInvite.mutateAsync(row)))
         await updateCompany.mutateAsync({
           employees_can_refer: form.getFieldValue('employees_can_refer'),
         })
@@ -68,7 +77,7 @@ function TeamStep({ company, invites }) {
         form.setFieldValue('invites', [{}])
         return true
       } catch (error) {
-        message.error(getApiErrorMessage(error, 'Could not send an invite. Please try again.'))
+        message.error(getApiErrorMessage(error, 'Could not save your settings. Please try again.'))
         return false
       }
     },

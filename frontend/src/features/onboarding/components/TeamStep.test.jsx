@@ -127,6 +127,26 @@ describe('TeamStep', () => {
     expect(updateCompany.mock.calls[0][0]).toEqual({ employees_can_refer: false })
   })
 
+  it('keeps only the invite that failed, so Continue again does not resend the others', async () => {
+    const user = userEvent.setup()
+    createCompanyInvite
+      .mockResolvedValueOnce({ ...SENT_INVITE, id: 'i-new' })
+      .mockRejectedValueOnce({ response: { data: { detail: 'Already on the team' } } })
+    const onResult = renderStep()
+
+    await user.type(screen.getByPlaceholderText('name@garner.com'), 'first@garner.com')
+    await user.click(screen.getByRole('button', { name: /add another/i }))
+    await user.type(screen.getAllByPlaceholderText('name@garner.com')[1], 'second@garner.com')
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith(false))
+    expect(await screen.findByText('Already on the team')).toBeInTheDocument()
+    const drafts = screen.getAllByPlaceholderText('name@garner.com')
+    expect(drafts).toHaveLength(1)
+    expect(drafts[0]).toHaveValue('second@garner.com')
+    expect(updateCompany).not.toHaveBeenCalled()
+  })
+
   it('stays on the step for a badly formed email', async () => {
     const user = userEvent.setup()
     const onResult = renderStep()
