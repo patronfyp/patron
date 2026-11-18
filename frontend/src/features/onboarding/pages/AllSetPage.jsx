@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import glowImage from '@/assets/brand/all-set-glow.svg'
 import arrowRightIcon from '@/assets/icons/arrow-right.svg'
+import briefcaseIcon from '@/assets/icons/briefcase.svg'
 import building12Icon from '@/assets/icons/building-12.svg'
 import buildingIcon from '@/assets/icons/building-18.svg'
 import cap12Icon from '@/assets/icons/cap-12.svg'
@@ -10,9 +11,12 @@ import capIcon from '@/assets/icons/cap-18.svg'
 import checkIcon from '@/assets/icons/check-40.svg'
 import checkCircleIcon from '@/assets/icons/check-circle-18.svg'
 import fileIcon from '@/assets/icons/file-18b.svg'
+import mailIcon from '@/assets/icons/mail-18.svg'
 import sendIcon from '@/assets/icons/send-18.svg'
 import slidersIcon from '@/assets/icons/sliders-18.svg'
 import { useAuthStore } from '@/features/auth'
+import { useCompanyInvites, useMyCompany } from '@/features/companies'
+import { useJobs } from '@/features/jobs'
 import { useVerificationStatus } from '@/features/verification'
 import Icon from '@/shared/components/Icon/Icon'
 
@@ -20,7 +24,15 @@ import { TrustBadge } from '../components/StepAside'
 import WizardHeader from '../components/WizardHeader'
 import { useProfile } from '../hooks/useProfile'
 import { profileStrength } from '../lib/profileStrength'
-import { REFERRER_STEPS, STEPS, isReferrerOnly } from '../lib/steps'
+import {
+  isRecruiterOnly,
+  isReferrerOnly,
+  RECRUITER_STEPS,
+  REFERRER_STEPS,
+  STEPS,
+  TEAM_MEMBER_COMPANY_ROLES,
+  TEAM_MEMBER_STEPS,
+} from '../lib/steps'
 
 import styles from './AllSetPage.module.css'
 
@@ -270,6 +282,164 @@ function ReferrerAllSet({ profile, status, firstName }) {
   )
 }
 
+/** The recruiter's summary rows (Figma 67:1242), from what they really saved. */
+function recruiterRows(company, invites, jobs) {
+  return [
+    {
+      key: 'company',
+      icon: buildingIcon,
+      title: 'Company verified',
+      detail: company?.domain ?? 'Not set up yet',
+      tone: company ? 'emp' : 'warning',
+      badge: company ? (
+        <TrustBadge tier="emp" icon={building12Icon}>
+          Verified employer
+        </TrustBadge>
+      ) : (
+        <StatusChip tone="warning">Not verified</StatusChip>
+      ),
+    },
+    {
+      key: 'team',
+      icon: mailIcon,
+      title: 'Team invited',
+      detail: invites.length
+        ? `${invites.length} ${invites.length === 1 ? 'person' : 'people'} invited`
+        : 'No invites sent yet',
+      tone: invites.length ? 'accent' : 'neutral',
+      badge: invites.length ? (
+        <StatusChip tone="success">Done</StatusChip>
+      ) : (
+        <StatusChip tone="neutral">Not yet</StatusChip>
+      ),
+    },
+    {
+      key: 'roles',
+      icon: briefcaseIcon,
+      title: 'Roles drafted',
+      detail: jobs.length
+        ? `${jobs.length} ${jobs.length === 1 ? 'role' : 'roles'} drafted`
+        : 'No roles drafted yet',
+      tone: jobs.length ? 'accent' : 'neutral',
+      badge: jobs.length ? (
+        <StatusChip tone="success">Done</StatusChip>
+      ) : (
+        <StatusChip tone="neutral">Not yet</StatusChip>
+      ),
+    },
+  ]
+}
+
+/**
+ * "You are ready to hire" (Figma 67:1242). Post first job and Open dashboard
+ * both go home for now - there's no dedicated jobs page yet.
+ */
+function RecruiterAllSet({ company, invites, jobs, firstName }) {
+  const navigate = useNavigate()
+  const goHome = () => navigate('/', { replace: true })
+
+  return (
+    <div className={styles.screen}>
+      <WizardHeader
+        steps={RECRUITER_STEPS}
+        chip="Recruiter"
+        step={RECRUITER_STEPS.length + 1}
+        label="Setup complete"
+        action={
+          <Button type="text" size="small" className={styles.ghost} onClick={goHome}>
+            Open dashboard
+          </Button>
+        }
+      />
+
+      <main className={`${styles.body} ${styles.bodyCentered}`}>
+        <section className={styles.card}>
+          <span className={styles.check}>
+            <Icon src={checkIcon} size={40} />
+          </span>
+
+          <div className={styles.heading}>
+            <h1 className={styles.title}>
+              You are ready to hire{firstName ? `, ${firstName}` : ''}
+            </h1>
+            <p className={styles.subtitle}>
+              Referred candidates can now be matched against {company?.name ?? 'your company'}
+              &rsquo;s open roles.
+            </p>
+          </div>
+
+          <ul className={styles.rows}>
+            {recruiterRows(company, invites, jobs).map(({ key, ...row }) => (
+              <SummaryRow key={key} {...row} />
+            ))}
+          </ul>
+
+          <div className={styles.actions}>
+            <Button size="large" className={styles.cta} onClick={goHome}>
+              Post first job
+            </Button>
+            <Button type="primary" size="large" className={styles.cta} onClick={goHome}>
+              Open dashboard
+              <Icon src={arrowRightIcon} size={18} />
+            </Button>
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
+/**
+ * An invited hiring manager or interviewer: no Figma frame covers this (their
+ * company and roles are someone else's work, not theirs to summarise), so
+ * this is a plain, undesigned landing rather than reusing the recruiter's
+ * rows for data that isn't about them.
+ */
+function TeamMemberAllSet({ firstName }) {
+  const navigate = useNavigate()
+  const goHome = () => navigate('/', { replace: true })
+
+  return (
+    <div className={styles.screen}>
+      <WizardHeader
+        steps={TEAM_MEMBER_STEPS}
+        chip="Recruiter"
+        step={TEAM_MEMBER_STEPS.length + 1}
+        label="Setup complete"
+        action={
+          <Button type="text" size="small" className={styles.ghost} onClick={goHome}>
+            Open dashboard
+          </Button>
+        }
+      />
+
+      <main className={`${styles.body} ${styles.bodyCentered}`}>
+        <section className={styles.card}>
+          <span className={styles.check}>
+            <Icon src={checkIcon} size={40} />
+          </span>
+
+          <div className={styles.heading}>
+            <h1 className={styles.title}>
+              You&rsquo;re all set{firstName ? `, ${firstName}` : ''}
+            </h1>
+            <p className={styles.subtitle}>
+              You can review your team&rsquo;s roles and candidates from the dashboard.
+            </p>
+          </div>
+
+          <div className={styles.actions}>
+            <Button type="primary" size="large" className={styles.cta} onClick={goHome}>
+              Open dashboard
+              <Icon src={arrowRightIcon} size={18} />
+            </Button>
+          </div>
+        </section>
+      </main>
+    </div>
+  )
+}
+
 /** "You're all set" - the end of onboarding (Figma 65:630, or 67:714 for a referrer). */
 function AllSetPage() {
   const navigate = useNavigate()
@@ -277,8 +447,17 @@ function AllSetPage() {
   const roles = useAuthStore((state) => state.user?.roles)
   const { data: profile } = useProfile()
   const { data: status } = useVerificationStatus()
+  const recruiterOnly = isRecruiterOnly(roles)
+  const { data: company, isLoading: isCompanyLoading } = useMyCompany({ enabled: recruiterOnly })
+  const hasCompany = recruiterOnly && Boolean(company)
+  const { data: invites = [], isLoading: isInvitesLoading } = useCompanyInvites({
+    enabled: hasCompany,
+  })
+  const { data: jobs = [], isLoading: isJobsLoading } = useJobs({ enabled: hasCompany })
+  // Wait for the counts too, so the summary never flashes "Not yet" first.
+  const isRecruiterLoading = isCompanyLoading || isInvitesLoading || isJobsLoading
 
-  if (!profile || !status) {
+  if (!profile || !status || (recruiterOnly && isRecruiterLoading)) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: '100vh' }}>
         <Spin size="large" />
@@ -290,6 +469,15 @@ function AllSetPage() {
 
   if (isReferrerOnly(roles)) {
     return <ReferrerAllSet profile={profile} status={status} firstName={firstName} />
+  }
+
+  if (recruiterOnly) {
+    // An invited hiring manager/interviewer gets the plain landing; someone
+    // who built their own company gets the real summary (#107).
+    if (TEAM_MEMBER_COMPANY_ROLES.includes(company?.my_role)) {
+      return <TeamMemberAllSet firstName={firstName} />
+    }
+    return <RecruiterAllSet company={company} invites={invites} jobs={jobs} firstName={firstName} />
   }
 
   const strength = profileStrength(profile, status)

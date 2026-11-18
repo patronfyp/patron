@@ -68,12 +68,62 @@ export const REFERRER_STEPS = [
   },
 ]
 
+// The recruiter's own four steps (Figma 67:899, 67:1040, 67:1170), for a user
+// whose only role is recruiter - matches backend/app/modules/profiles/models.py's
+// RECRUITER_ONBOARDING_STEP_COUNT.
+export const RECRUITER_STEPS = [
+  STEPS[0],
+  {
+    key: 'company',
+    label: 'Company',
+    title: 'Set up your company',
+    subtitle: "Verify your work email and we'll confirm or create your company on PATRON.",
+  },
+  {
+    key: 'team',
+    label: 'Team',
+    title: 'Invite your hiring team',
+    subtitle: 'Hiring managers review candidates, interviewers leave scorecards.',
+  },
+  {
+    key: 'hiring',
+    label: 'Hiring',
+    title: 'What are you hiring for?',
+    subtitle: 'Pick your open roles. We will match them with referred candidates right away.',
+  },
+]
+
+// An invited hiring manager or interviewer: their company already exists
+// (whoever invited them built it), so only Account is left - matches
+// TEAM_MEMBER_ONBOARDING_STEP_COUNT.
+export const TEAM_MEMBER_STEPS = [STEPS[0]]
+
 /** True for a user who only refers - they get REFERRER_STEPS. */
 export function isReferrerOnly(roles) {
   return roles?.length === 1 && roles[0] === 'referrer'
 }
 
-/** The wizard's steps for a user with these roles. */
-export function stepsFor(roles) {
-  return isReferrerOnly(roles) ? REFERRER_STEPS : STEPS
+/** True for a user who only recruits - they get RECRUITER_STEPS (or
+ * TEAM_MEMBER_STEPS, if `companyRole` says someone else's company invited
+ * them in rather than them building their own). */
+export function isRecruiterOnly(roles) {
+  return roles?.length === 1 && roles[0] === 'recruiter'
+}
+
+export const TEAM_MEMBER_COMPANY_ROLES = ['hiring_manager', 'interviewer']
+
+/**
+ * The wizard's steps for a user with these roles.
+ *
+ * @param {string[]} roles - the signed-in user's app roles
+ * @param {string | null} [companyRole] - their role at their company, if
+ *   any (`my_role` from `GET /companies/me`) - only read for a recruiter-only
+ *   user, same as the backend's `onboarding_step_count`.
+ */
+export function stepsFor(roles, companyRole = null) {
+  if (isReferrerOnly(roles)) return REFERRER_STEPS
+  if (isRecruiterOnly(roles)) {
+    return TEAM_MEMBER_COMPANY_ROLES.includes(companyRole) ? TEAM_MEMBER_STEPS : RECRUITER_STEPS
+  }
+  return STEPS
 }

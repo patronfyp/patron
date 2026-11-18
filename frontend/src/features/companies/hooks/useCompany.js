@@ -16,8 +16,13 @@ import {
 export const COMPANY_KEY = ['companies', 'me']
 export const COMPANY_INVITES_KEY = ['companies', 'me', 'invites']
 
-/** The user's company, or `null` when they have none yet (the API's 404). */
-export function useMyCompany() {
+/**
+ * The user's company, or `null` when they have none yet (the API's 404).
+ *
+ * @param {{ enabled?: boolean }} [options] - `enabled: false` skips the
+ *   fetch for a user who isn't a recruiter and so has no company to read
+ */
+export function useMyCompany({ enabled = true } = {}) {
   return useQuery({
     queryKey: COMPANY_KEY,
     queryFn: async () => {
@@ -28,6 +33,7 @@ export function useMyCompany() {
         throw error
       }
     },
+    enabled,
   })
 }
 
@@ -45,9 +51,13 @@ export const useUpdateCompany = () => useCompanyWrite(updateCompany)
 export const useUploadCompanyLogo = () => useCompanyWrite(uploadCompanyLogo)
 export const useRemoveCompanyLogo = () => useCompanyWrite(removeCompanyLogo)
 
-/** The company's pending/accepted/expired invites (#104, #105). */
-export function useCompanyInvites() {
-  return useQuery({ queryKey: COMPANY_INVITES_KEY, queryFn: getCompanyInvites })
+/**
+ * The company's pending/accepted/expired invites (#104, #105).
+ *
+ * @param {{ enabled?: boolean }} [options]
+ */
+export function useCompanyInvites({ enabled = true } = {}) {
+  return useQuery({ queryKey: COMPANY_INVITES_KEY, queryFn: getCompanyInvites, enabled })
 }
 
 function useInvitesWrite(mutationFn) {

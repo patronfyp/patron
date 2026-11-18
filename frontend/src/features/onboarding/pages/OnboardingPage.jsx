@@ -4,14 +4,17 @@ import { App, Button, ConfigProvider, Flex, Form, Result, Spin } from 'antd'
 import { useNavigate } from 'react-router-dom'
 
 import awardIcon from '@/assets/icons/award-20.svg'
+import briefcaseIcon from '@/assets/icons/briefcase.svg'
 import building12Icon from '@/assets/icons/building-12.svg'
 import building14Icon from '@/assets/icons/building-14.svg'
 import building20Icon from '@/assets/icons/building-20.svg'
 import cap12Icon from '@/assets/icons/cap-12.svg'
 import cap20Icon from '@/assets/icons/cap-20.svg'
 import check11Icon from '@/assets/icons/check-11.svg'
+import checkCircleIcon from '@/assets/icons/check-circle-16.svg'
 import diamondIcon from '@/assets/icons/diamond-14.svg'
 import lockIcon from '@/assets/icons/lock-20.svg'
+import mailIcon from '@/assets/icons/mail-18.svg'
 import shieldIcon from '@/assets/icons/shield-20.svg'
 import sparkleIcon from '@/assets/icons/sparkle-20.svg'
 import targetIcon from '@/assets/icons/target-20.svg'
@@ -19,25 +22,33 @@ import userIcon from '@/assets/icons/user-20.svg'
 import zapIcon from '@/assets/icons/zap.svg'
 import { wizardTheme } from '@/config/theme'
 import { useAuthStore } from '@/features/auth'
+import { isOnDomain, useCompanyInvites, useMyCompany, websiteDomain } from '@/features/companies'
+import { useJobs } from '@/features/jobs'
 import { useVerificationStatus } from '@/features/verification'
 import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 
 import AccountStep from '../components/AccountStep'
+import CompanyStep from '../components/CompanyStep'
 import CvStep from '../components/CvStep'
 import EmployerStep from '../components/EmployerStep'
+import HiringStep from '../components/HiringStep'
 import PreferencesStep from '../components/PreferencesStep'
 import ProfileStep from '../components/ProfileStep'
 import ReferrerEmployerStep from '../components/ReferrerEmployerStep'
 import ReferringStep from '../components/ReferringStep'
 import SkillsStep from '../components/SkillsStep'
 import StepAside, { AsideChecklist, AsideChip, TrustBadge } from '../components/StepAside'
+import TeamStep from '../components/TeamStep'
 import UniversityStep from '../components/UniversityStep'
 import WizardShell from '../components/WizardShell'
 import { useCompleteOnboarding, useProfile, useUpdateProfile } from '../hooks/useProfile'
 import { StepControlsContext } from '../hooks/useStepControls'
 import { toFormValues, toProfileChanges } from '../lib/profileForm'
-import { isReferrerOnly, stepsFor } from '../lib/steps'
+import { isRecruiterOnly, isReferrerOnly, stepsFor } from '../lib/steps'
 import { LINKEDIN_PATTERN } from '../lib/validation'
+
+// The recruiter flow's Company step (RECRUITER_STEPS[1]).
+const COMPANY_STEP = 2
 
 /**
  * @param {object} props
@@ -50,12 +61,22 @@ function OnboardingWizard({ profile }) {
   const updateProfile = useUpdateProfile()
   const completeOnboarding = useCompleteOnboarding()
   const { data: status } = useVerificationStatus()
-  // A referrer-only user gets the three referrer steps; everyone else seven.
+  // A referrer-only user gets the three referrer steps, a recruiter-only
+  // user four (or just Account, if their company role says they were
+  // invited rather than building their own); everyone else seven.
   const roles = useAuthStore((state) => state.user?.roles)
   const referrerOnly = isReferrerOnly(roles)
-  const flow = stepsFor(roles)
+  const recruiterOnly = isRecruiterOnly(roles)
+  const { data: company } = useMyCompany({ enabled: recruiterOnly })
+  // Team and Hiring read the company's own lists, which only exist once it does.
+  const { data: invites = [] } = useCompanyInvites({ enabled: recruiterOnly && Boolean(company) })
+  const { data: jobs = [] } = useJobs({ enabled: recruiterOnly && Boolean(company) })
+  const flow = stepsFor(roles, company?.my_role)
   // Resume where the user left off; after this, the wizard owns the position.
-  const [step, setStep] = useState(Math.min(profile.onboarding_step, flow.length))
+  // A recruiter with no company yet (e.g. part-way through the old 7-step
+  // wizard) resumes on the Company step - Team and Hiring need a company.
+  const lastReachable = recruiterOnly && !company ? COMPANY_STEP : flow.length
+  const [step, setStep] = useState(Math.min(profile.onboarding_step, lastReachable))
   const [useAccountEmailForUniversity, setUseAccountEmailForUniversity] = useState(true)
   const [beforeContinue, setBeforeContinue] = useState(null)
   const [stepContinueLabel, setStepContinueLabel] = useState(null)
@@ -79,6 +100,9 @@ function OnboardingWizard({ profile }) {
 
   const hasPendingDocument = (kind) =>
     status?.documents?.some((doc) => doc.kind === kind && doc.status === 'pending') ?? false
+
+  const companyDomain = websiteDomain(Form.useWatch('company_website', form))
+  const companyEmailVerified = isOnDomain(status?.employer_email?.email, companyDomain)
 
   const steps = {
     account: {
@@ -193,6 +217,42 @@ function OnboardingWizard({ profile }) {
         />
       ),
     },
+    company: {
+      render: () => (
+        <CompanyStep company={company} verifiedEmail={status?.employer_email?.email ?? null} />
+      ),
+      aside: (
+        <StepAside
+          icon={building20Icon}
+          title="Verified companies only"
+          text="We confirm every company through its work email domain, so every job on PATRON comes from a real employer."
+        >
+          {companyDomain && companyEmailVerified ? (
+            <AsideChip icon={checkCircleIcon}>{companyDomain} verified</AsideChip>
+          ) : null}
+        </StepAside>
+      ),
+    },
+    team: {
+      render: () => <TeamStep company={company} invites={invites} />,
+      aside: (
+        <StepAside
+          icon={mailIcon}
+          title="Referrals start with your team"
+          text="Hiring managers review candidates and interviewers leave scorecards - invite them now so referrals don't stall later."
+        />
+      ),
+    },
+    hiring: {
+      render: () => <HiringStep company={company} jobs={jobs} />,
+      aside: (
+        <StepAside
+          icon={briefcaseIcon}
+          title="Give referrers something to aim at"
+          text="Draft your open roles now so referred candidates have somewhere real to apply the moment you go live."
+        />
+      ),
+    },
     referrerEmployer: {
       render: () => (
         <ReferrerEmployerStep
@@ -293,7 +353,7 @@ function OnboardingWizard({ profile }) {
       <ConfigProvider theme={wizardTheme}>
         <WizardShell
           steps={flow}
-          chip={referrerOnly ? 'Referrer' : undefined}
+          chip={referrerOnly ? 'Referrer' : recruiterOnly ? 'Recruiter' : undefined}
           step={step}
           title={current.title}
           subtitle={current.subtitle}
@@ -326,8 +386,12 @@ function OnboardingPage() {
   const { data: profile, isPending, isError, refetch } = useProfile()
   // Steps read their starting method from it, and form defaults are read once.
   const { isPending: isStatusPending } = useVerificationStatus()
+  // The recruiter flow's step count depends on the company role (see
+  // lib/steps.js), so wait for it before picking a flow and clamping `step`.
+  const roles = useAuthStore((state) => state.user?.roles)
+  const { isLoading: isCompanyLoading } = useMyCompany({ enabled: isRecruiterOnly(roles) })
 
-  if (isPending || isStatusPending) {
+  if (isPending || isStatusPending || isCompanyLoading) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: '100vh' }}>
         <Spin size="large" />
