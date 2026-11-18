@@ -52,3 +52,51 @@ export async function removeCompanyLogo() {
   const response = await api.delete('/api/v1/companies/me/logo')
   return response.data
 }
+
+/**
+ * The backend's CompanyInviteRead.
+ *
+ * @typedef {object} CompanyInvite
+ * @property {string} id
+ * @property {string} email
+ * @property {'recruiter' | 'hiring_manager' | 'interviewer'} role
+ * @property {'pending' | 'accepted' | 'expired'} status
+ */
+
+/** GET /api/v1/companies/me/invites - newest first, capped at 200. */
+export async function getCompanyInvites() {
+  const response = await api.get('/api/v1/companies/me/invites')
+  return response.data
+}
+
+/**
+ * POST /api/v1/companies/me/invites (#104) - emails a one-time sign-up link.
+ * The email must be on the company's domain.
+ */
+export async function createCompanyInvite({ email, role }) {
+  const response = await api.post('/api/v1/companies/me/invites', { email, role })
+  return response.data
+}
+
+/** DELETE /api/v1/companies/me/invites/{id} - cancels a pending invite. */
+export async function deleteCompanyInvite(id) {
+  await api.delete(`/api/v1/companies/me/invites/${id}`)
+}
+
+/**
+ * POST /api/v1/companies/invites/preview (#104) - no auth needed, the token
+ * alone identifies the invite. 404 for an unknown, expired or revoked token.
+ */
+export async function previewCompanyInvite(token) {
+  const response = await api.post('/api/v1/companies/invites/preview', { token })
+  return response.data
+}
+
+/**
+ * POST /api/v1/companies/invites/accept (#104) - the signed-in user joins
+ * the company with the invited role. Call right after sign-up and login.
+ */
+export async function acceptCompanyInvite(token) {
+  const response = await api.post('/api/v1/companies/invites/accept', { token })
+  return response.data
+}

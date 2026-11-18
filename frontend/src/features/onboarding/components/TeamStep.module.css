@@ -1,0 +1,106 @@
+/* The recruiter's Team step, Figma 67:1040. */
+
+.fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.label {
+  margin: 0;
+  font: var(--patron-type-body-s-medium);
+  color: var(--patron-text-primary);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.row > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.roleSelect {
+  flex: none;
+  width: 180px;
+}
+
+.fieldIcon {
+  color: var(--patron-text-tertiary);
+}
+
+/* Keeps the inline validation message (a plain antd Form.Item, not
+   noStyle, so "Enter a valid email address" actually renders) from adding
+   its own bottom margin on top of .row's and .fields' own gaps. */
+.emailItem {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}
+
+.sentEmail {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font: var(--patron-type-body);
+  color: var(--patron-text-primary);
+}
+
+.sentRole {
+  flex: none;
+  width: 180px;
+  font: var(--patron-type-body);
+  color: var(--patron-text-primary);
+}
+
+.removeButton {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--patron-text-tertiary);
+}
+
+.addButton {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  font: var(--patron-type-body-s-semibold);
+  color: var(--patron-text-secondary);
+}
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-status-success-subtle);
+  font: var(--patron-type-caption-medium);
+  color: var(--patron-status-success-text);
+}
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--patron-status-success-text);
+}
+
+.chipExpired {
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-tertiary);
+}

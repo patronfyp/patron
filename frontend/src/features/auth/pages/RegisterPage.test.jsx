@@ -2,8 +2,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+// Imported directly to mock it; app code uses the barrel.
+// eslint-disable-next-line no-restricted-imports
+import { acceptCompanyInvite, previewCompanyInvite } from '@/features/companies/api/companies.api'
 
 import { login, register } from '../api/auth.api'
 
@@ -14,13 +18,21 @@ vi.mock('../api/auth.api', () => ({
   login: vi.fn(),
 }))
 
-function renderPage() {
+vi.mock('@/features/companies/api/companies.api', () => ({
+  previewCompanyInvite: vi.fn(),
+  acceptCompanyInvite: vi.fn(),
+}))
+
+function renderPage(initialEntries = ['/register']) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
       <AntApp>
-        <MemoryRouter>
-          <RegisterPage />
+        <MemoryRouter initialEntries={initialEntries}>
+          <Routes>
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/start" element={<div>Protected home</div>} />
+          </Routes>
         </MemoryRouter>
       </AntApp>
     </QueryClientProvider>,
@@ -145,6 +157,87 @@ describe('RegisterPage', () => {
 
     await user.type(screen.getByLabelText('Password'), 'pass1234!longer12')
     expect(await screen.findByText('Strong password')).toBeInTheDocument()
+  })
+
+  it('previews a team invite link, prefills and locks the email', async () => {
+    previewCompanyInvite.mockResolvedValue({
+      company_name: 'Garner',
+      company_domain: 'garner.com',
+      email: 'new.hire@garner.com',
+      role: 'hiring_manager',
+    })
+    renderPage(['/register?invite=tok-1'])
+
+    expect(
+      await screen.findByText(
+        (_text, node) => node?.textContent === 'Garner invited you to join as Hiring manager.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText(/email/i)).toHaveValue('new.hire@garner.com')
+    expect(screen.getByLabelText(/email/i)).toBeDisabled()
+    expect(screen.queryByRole('radio', { name: /get referred/i })).not.toBeInTheDocument()
+    expect(previewCompanyInvite.mock.calls[0][0]).toBe('tok-1')
+  })
+
+  it('registers normally when the invite token is bad - no banner, no blocked email', async () => {
+    previewCompanyInvite.mockRejectedValue({ response: { status: 404 } })
+    renderPage(['/register?invite=expired-tok'])
+
+    await waitFor(() => expect(previewCompanyInvite).toHaveBeenCalled())
+    expect(screen.queryByText(/invited you/i)).not.toBeInTheDocument()
+    expect(screen.getByLabelText(/email/i)).toBeEnabled()
+  })
+
+  it('accepts the invite after signing up, then goes home', async () => {
+    const user = userEvent.setup()
+    previewCompanyInvite.mockResolvedValue({
+      company_name: 'Garner',
+      company_domain: 'garner.com',
+      email: 'new.hire@garner.com',
+      role: 'hiring_manager',
+    })
+    acceptCompanyInvite.mockResolvedValue({ id: 'c-1', name: 'Garner' })
+    register.mockResolvedValue({ id: 'user-1', email: 'new.hire@garner.com' })
+    login.mockResolvedValue({ access_token: 'token-123', refresh_token: 'refresh-123' })
+    renderPage(['/register?invite=tok-1'])
+
+    await screen.findByDisplayValue('new.hire@garner.com')
+    await user.type(screen.getByLabelText(/full name/i), 'New Hire')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('checkbox', { name: /terms of service/i }))
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    await screen.findByText('Protected home')
+    expect(acceptCompanyInvite.mock.calls[0][0]).toBe('tok-1')
+    // An invitee is a recruiter only, so the backend gives them the 1-step wizard.
+    expect(register).toHaveBeenCalledWith(expect.objectContaining({ role: 'recruiter' }))
+  })
+
+  it('still signs the user in if accepting the invite fails', async () => {
+    const user = userEvent.setup()
+    previewCompanyInvite.mockResolvedValue({
+      company_name: 'Garner',
+      company_domain: 'garner.com',
+      email: 'new.hire@garner.com',
+      role: 'hiring_manager',
+    })
+    acceptCompanyInvite.mockRejectedValue({
+      response: { data: { detail: 'This invite has already been used.' } },
+    })
+    register.mockResolvedValue({ id: 'user-1', email: 'new.hire@garner.com' })
+    login.mockResolvedValue({ access_token: 'token-123', refresh_token: 'refresh-123' })
+    renderPage(['/register?invite=tok-1'])
+
+    await screen.findByDisplayValue('new.hire@garner.com')
+    await user.type(screen.getByLabelText(/full name/i), 'New Hire')
+    await user.type(screen.getByLabelText('Password'), 'password123')
+    await user.type(screen.getByLabelText(/confirm password/i), 'password123')
+    await user.click(screen.getByRole('checkbox', { name: /terms of service/i }))
+    await user.click(screen.getByRole('button', { name: /create account/i }))
+
+    expect(await screen.findByText('This invite has already been used.')).toBeInTheDocument()
+    expect(await screen.findByText('Protected home')).toBeInTheDocument()
   })
 
   it('shows the server error on a duplicate email', async () => {
