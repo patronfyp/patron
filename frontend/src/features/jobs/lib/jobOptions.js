@@ -1,8 +1,8 @@
-// JobWorkMode in backend/app/modules/jobs/models.py.
+// WorkMode in backend/app/modules/profiles/models.py - jobs reuse it.
 export const WORK_MODES = [
-  { value: 'remote', label: 'Remote' },
+  { value: 'on_site', label: 'On-site' },
   { value: 'hybrid', label: 'Hybrid' },
-  { value: 'onsite', label: 'On-site' },
+  { value: 'remote', label: 'Remote' },
 ]
 
 const WORK_MODE_LABELS = Object.fromEntries(WORK_MODES.map((mode) => [mode.value, mode.label]))

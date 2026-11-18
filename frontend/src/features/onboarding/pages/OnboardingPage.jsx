@@ -47,6 +47,9 @@ import { toFormValues, toProfileChanges } from '../lib/profileForm'
 import { isRecruiterOnly, isReferrerOnly, stepsFor } from '../lib/steps'
 import { LINKEDIN_PATTERN } from '../lib/validation'
 
+// The recruiter flow's Company step (RECRUITER_STEPS[1]).
+const COMPANY_STEP = 2
+
 /**
  * @param {object} props
  * @param {import('../api/onboarding.api').Profile} props.profile
@@ -65,11 +68,15 @@ function OnboardingWizard({ profile }) {
   const referrerOnly = isReferrerOnly(roles)
   const recruiterOnly = isRecruiterOnly(roles)
   const { data: company } = useMyCompany({ enabled: recruiterOnly })
-  const { data: invites = [] } = useCompanyInvites({ enabled: recruiterOnly })
-  const { data: jobs = [] } = useJobs({ enabled: recruiterOnly })
+  // Team and Hiring read the company's own lists, which only exist once it does.
+  const { data: invites = [] } = useCompanyInvites({ enabled: recruiterOnly && Boolean(company) })
+  const { data: jobs = [] } = useJobs({ enabled: recruiterOnly && Boolean(company) })
   const flow = stepsFor(roles, company?.my_role)
   // Resume where the user left off; after this, the wizard owns the position.
-  const [step, setStep] = useState(Math.min(profile.onboarding_step, flow.length))
+  // A recruiter with no company yet (e.g. part-way through the old 7-step
+  // wizard) resumes on the Company step - Team and Hiring need a company.
+  const lastReachable = recruiterOnly && !company ? COMPANY_STEP : flow.length
+  const [step, setStep] = useState(Math.min(profile.onboarding_step, lastReachable))
   const [useAccountEmailForUniversity, setUseAccountEmailForUniversity] = useState(true)
   const [beforeContinue, setBeforeContinue] = useState(null)
   const [stepContinueLabel, setStepContinueLabel] = useState(null)

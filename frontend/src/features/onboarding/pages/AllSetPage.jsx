@@ -449,10 +449,15 @@ function AllSetPage() {
   const { data: status } = useVerificationStatus()
   const recruiterOnly = isRecruiterOnly(roles)
   const { data: company, isLoading: isCompanyLoading } = useMyCompany({ enabled: recruiterOnly })
-  const { data: invites = [] } = useCompanyInvites({ enabled: recruiterOnly })
-  const { data: jobs = [] } = useJobs({ enabled: recruiterOnly })
+  const hasCompany = recruiterOnly && Boolean(company)
+  const { data: invites = [], isLoading: isInvitesLoading } = useCompanyInvites({
+    enabled: hasCompany,
+  })
+  const { data: jobs = [], isLoading: isJobsLoading } = useJobs({ enabled: hasCompany })
+  // Wait for the counts too, so the summary never flashes "Not yet" first.
+  const isRecruiterLoading = isCompanyLoading || isInvitesLoading || isJobsLoading
 
-  if (!profile || !status || (recruiterOnly && isCompanyLoading)) {
+  if (!profile || !status || (recruiterOnly && isRecruiterLoading)) {
     return (
       <Flex justify="center" align="center" style={{ minHeight: '100vh' }}>
         <Spin size="large" />

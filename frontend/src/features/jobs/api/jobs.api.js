@@ -7,7 +7,7 @@ import { api } from '@/shared/api/client'
  * @property {string} id
  * @property {string} title
  * @property {string} location
- * @property {'remote' | 'hybrid' | 'onsite'} work_mode
+ * @property {'on_site' | 'hybrid' | 'remote'} work_mode
  * @property {number | null} salary_min - monthly PKR
  * @property {number | null} salary_max - monthly PKR
  * @property {number} openings - 1-50

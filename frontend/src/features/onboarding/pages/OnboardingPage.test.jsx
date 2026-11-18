@@ -633,6 +633,17 @@ describe('OnboardingPage', () => {
       expect(screen.getByRole('heading', { name: 'Set up your company' })).toBeInTheDocument()
     })
 
+    it('resumes a recruiter with no company on the Company step, not Team or Hiring', async () => {
+      getMyCompany.mockResolvedValue(null)
+      getProfile.mockResolvedValue(profileAt(4))
+
+      renderPage()
+
+      expect(await screen.findByText(/Step 2 of 4 · Company/)).toBeInTheDocument()
+      expect(getCompanyInvites).not.toHaveBeenCalled()
+      expect(getJobs).not.toHaveBeenCalled()
+    })
+
     it('gives an invited hiring manager only the Account step', async () => {
       getMyCompany.mockResolvedValue({ ...GARNER, my_role: 'hiring_manager' })
       getProfile.mockResolvedValue(profileAt(1))
@@ -695,6 +706,7 @@ describe('OnboardingPage', () => {
         screen.getByPlaceholderText('e.g. Software Engineer III'),
         'Software Engineer',
       )
+      await user.type(screen.getByPlaceholderText('Location'), 'Lahore')
       await user.click(screen.getByRole('button', { name: /finish setup/i }))
 
       await waitFor(() =>

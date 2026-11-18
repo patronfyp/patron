@@ -114,11 +114,76 @@ describe('HiringStep', () => {
     expect(createJob.mock.calls[0][0]).toEqual({
       title: 'Product Designer',
       location: 'Remote',
-      work_mode: 'onsite',
+      work_mode: 'on_site',
       openings: 1,
       salary_min: undefined,
       salary_max: undefined,
     })
     expect(updateCompany.mock.calls[0][0]).toEqual({ hiring_timeline: 'this_quarter' })
+  })
+
+  it('does not re-save a timeline that did not change', async () => {
+    const onResult = renderStep()
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith(true))
+    expect(updateCompany).not.toHaveBeenCalled()
+  })
+
+  it('saves the timeline shown for a company that has none yet - never null', async () => {
+    const onResult = renderStep({ company: { ...GARNER, hiring_timeline: null } })
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith(true))
+    expect(updateCompany.mock.calls[0][0]).toEqual({ hiring_timeline: 'this_month' })
+  })
+
+  it('needs a location once a title is typed', async () => {
+    const user = userEvent.setup()
+    const onResult = renderStep()
+
+    await user.type(screen.getByPlaceholderText('e.g. Software Engineer III'), 'Product Designer')
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(await screen.findByText('Add a location')).toBeInTheDocument()
+    expect(onResult).toHaveBeenCalledWith(false)
+    expect(createJob).not.toHaveBeenCalled()
+  })
+
+  it('refuses a maximum salary below the minimum', async () => {
+    const user = userEvent.setup()
+    const onResult = renderStep()
+
+    await user.type(screen.getByPlaceholderText('e.g. Software Engineer III'), 'Product Designer')
+    await user.type(screen.getByPlaceholderText('Location'), 'Lahore')
+    await user.type(screen.getByPlaceholderText('Min PKR'), '500000')
+    await user.type(screen.getByPlaceholderText('Max PKR'), '100000')
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    expect(await screen.findByText('Max is below min')).toBeInTheDocument()
+    expect(onResult).toHaveBeenCalledWith(false)
+    expect(createJob).not.toHaveBeenCalled()
+  })
+
+  it('keeps only the role that failed, so Continue again does not create the others twice', async () => {
+    const user = userEvent.setup()
+    createJob
+      .mockResolvedValueOnce({ ...DRAFTED_JOB, id: 'j-new' })
+      .mockRejectedValueOnce({ response: { data: { detail: 'Something went wrong' } } })
+    const onResult = renderStep()
+
+    await user.type(screen.getByPlaceholderText('e.g. Software Engineer III'), 'First role')
+    await user.type(screen.getByPlaceholderText('Location'), 'Lahore')
+    await user.click(screen.getByRole('button', { name: /add a role/i }))
+    await user.type(screen.getAllByPlaceholderText('e.g. Software Engineer III')[1], 'Second role')
+    await user.type(screen.getAllByPlaceholderText('Location')[1], 'Karachi')
+    await user.click(screen.getByRole('button', { name: 'Continue' }))
+
+    await waitFor(() => expect(onResult).toHaveBeenCalledWith(false))
+    const titles = screen.getAllByPlaceholderText('e.g. Software Engineer III')
+    expect(titles).toHaveLength(1)
+    expect(titles[0]).toHaveValue('Second role')
   })
 })
