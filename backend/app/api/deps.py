@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_session
 from app.core.exceptions import UnauthorizedError
+from app.core.rate_limit import RateLimiter, get_rate_limiter
 from app.core.security import TokenType, decode_token, issued_before, token_user_id
 from app.modules.auth import repository
 from app.modules.auth.models import User
@@ -46,3 +47,6 @@ async def get_current_user(credentials: CredentialsDep, session: SessionDep) -> 
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+# Rate limits (ADR 0021): `limiter: LimiterDep`, then `await limiter.hit(...)`.
+LimiterDep = Annotated[RateLimiter, Depends(get_rate_limiter)]

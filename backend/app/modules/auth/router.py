@@ -8,11 +8,20 @@ from fastapi import APIRouter, Depends, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, LimiterDep
 from app.core.config import get_settings
 from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
-from app.core.exceptions import AppError
+from app.core.exceptions import AppError, UnauthorizedError
+from app.core.rate_limit import (
+    LOGIN_PER_EMAIL,
+    LOGIN_PER_IP,
+    PASSWORD_RESET_CONFIRM_PER_IP,
+    PASSWORD_RESET_PER_EMAIL,
+    PASSWORD_RESET_PER_IP,
+    REGISTER_PER_IP,
+    client_ip,
+)
 
 from . import linkedin, service
 from .schemas import (
@@ -47,10 +56,14 @@ _STATE_INVALID = "Your sign-in attempt has expired or is invalid. Please try aga
     responses={
         409: {"description": "An account with this email already exists"},
         422: {"description": "Validation failed - weak password, bad email, or an invalid role"},
+        429: {"description": "Too many sign-ups from this IP"},
     },
 )
-async def register(payload: RegisterRequest, session: SessionDep) -> UserRead:
+async def register(
+    payload: RegisterRequest, request: Request, session: SessionDep, limiter: LimiterDep
+) -> UserRead:
     """Create an account with email and password (Module 1.2)."""
+    await limiter.hit(REGISTER_PER_IP, client_ip(request))
     user = await service.register_user(session, payload)
     return UserRead.model_validate(user)
 
@@ -61,11 +74,24 @@ async def register(payload: RegisterRequest, session: SessionDep) -> UserRead:
     summary="Log in with email and password",
     responses={
         401: {"description": "Invalid email or password"},
+        429: {"description": "Too many attempts from this IP, or wrong passwords for this email"},
     },
 )
-async def login(payload: LoginRequest, session: SessionDep) -> TokenPair:
-    """Exchange email and password for an access and a refresh token."""
-    user = await service.authenticate_user(session, payload.email, payload.password)
+async def login(
+    payload: LoginRequest, request: Request, session: SessionDep, limiter: LimiterDep
+) -> TokenPair:
+    """Exchange email and password for an access and a refresh token.
+
+    Only wrong passwords count against the email; a correct one starts it over.
+    """
+    await limiter.hit(LOGIN_PER_IP, client_ip(request))
+    await limiter.check(LOGIN_PER_EMAIL, payload.email)
+    try:
+        user = await service.authenticate_user(session, payload.email, payload.password)
+    except UnauthorizedError:
+        await limiter.hit(LOGIN_PER_EMAIL, payload.email)
+        raise
+    await limiter.clear(LOGIN_PER_EMAIL, payload.email)
     return service.create_session(user)
 
 
@@ -212,13 +238,22 @@ async def change_password(
     response_model=PasswordResetRequested,
     status_code=status.HTTP_202_ACCEPTED,
     summary="Email a password reset link",
-    responses={422: {"description": "Not a valid email address"}},
+    responses={
+        422: {"description": "Not a valid email address"},
+        429: {"description": "Too many reset emails for this address or from this IP"},
+    },
 )
 async def request_password_reset(
-    payload: PasswordResetRequest, session: SessionDep, sender: SenderDep
+    payload: PasswordResetRequest,
+    request: Request,
+    session: SessionDep,
+    sender: SenderDep,
+    limiter: LimiterDep,
 ) -> PasswordResetRequested:
     """Email a reset link valid for 30 minutes. Always 202, so it never reveals
-    which emails are registered."""
+    which emails are registered (the limit counts unregistered emails too)."""
+    await limiter.hit(PASSWORD_RESET_PER_IP, client_ip(request))
+    await limiter.hit(PASSWORD_RESET_PER_EMAIL, payload.email)
     await service.request_password_reset(session, payload.email, sender)
     return PasswordResetRequested()
 
@@ -232,8 +267,12 @@ async def request_password_reset(
             "description": "Token is unknown, expired, already used, or replaced by a newer link"
         },
         422: {"description": "New password is shorter than 8 or longer than 72 characters"},
+        429: {"description": "Too many attempts from this IP"},
     },
 )
-async def confirm_password_reset(payload: PasswordResetConfirm, session: SessionDep) -> None:
+async def confirm_password_reset(
+    payload: PasswordResetConfirm, request: Request, session: SessionDep, limiter: LimiterDep
+) -> None:
     """Set the new password from a reset link. Signs the account out everywhere."""
+    await limiter.hit(PASSWORD_RESET_CONFIRM_PER_IP, client_ip(request))
     await service.confirm_password_reset(session, payload.token, payload.new_password)

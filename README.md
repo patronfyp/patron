@@ -281,6 +281,18 @@ Apply any pending database migrations:
 uv run alembic upgrade head
 ```
 
+Start Redis, which keeps the login and sign-up rate-limit counters (ADR 0021).
+It needs [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+running; this is a one-time step, and it restarts with Docker after that:
+
+```powershell
+docker run -d --name patron-redis -p 6379:6379 --restart unless-stopped redis:7-alpine
+docker exec patron-redis redis-cli ping    # → PONG
+```
+
+> Without Redis the API still runs - rate limits are just skipped, with a
+> warning in the log. Tests never need it (they use an in-memory fake).
+
 Then run the server:
 
 ```powershell

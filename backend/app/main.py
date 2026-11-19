@@ -4,6 +4,9 @@ Run locally (from backend/):
     uv run uvicorn app.main:app --reload
 """
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -14,6 +17,7 @@ from app.api.deps import SessionDep
 from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.core.logging import add_request_logging, setup_logging
+from app.core.redis import close_redis
 from app.modules.auth.router import router as auth_router
 from app.modules.companies.router import router as companies_router
 from app.modules.jobs.router import router as jobs_router
@@ -24,10 +28,18 @@ from app.modules.verification.router import router as verification_router
 settings = get_settings()
 setup_logging(debug=settings.debug)
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    yield
+    await close_redis()
+
+
 app = FastAPI(
     title=settings.app_name,
     version="0.1.0",
     description="Vouched, Verified, Hired.",
+    lifespan=lifespan,
 )
 
 # Added before CORS so CORS wraps it: even a 500 carries CORS headers, and the
@@ -39,6 +51,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Lets the frontend read how long a 429 asks it to wait.
+    expose_headers=["Retry-After"],
 )
 
 
@@ -46,7 +60,9 @@ app.add_middleware(
 async def app_error_handler(_request: Request, exc: AppError) -> JSONResponse:
     """Every AppError becomes `{detail, code}` with its status - STANDARDS.md §3.7."""
     return JSONResponse(
-        status_code=exc.status_code, content={"detail": exc.detail, "code": exc.code}
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "code": exc.code},
+        headers=exc.headers or None,
     )
 
 
