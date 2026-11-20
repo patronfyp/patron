@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.email import EmailDeliveryError, EmailSender
+from app.core.email_layout import compose
 from app.core.exceptions import BadRequestError, ConflictError, UnauthorizedError
 from app.core.security import (
     TokenType,
@@ -200,16 +201,19 @@ async def request_password_reset(session: AsyncSession, email: str, sender: Emai
 
     link = f"{get_settings().frontend_url}/reset-password?token={token}"
     minutes = int(RESET_TOKEN_TTL.total_seconds() // 60)
+    message = compose(
+        subject="Reset your PATRON password",
+        heading="Reset your password",
+        lines=[
+            "Someone asked to reset the password for your PATRON account.",
+            f"Choose a new one with the button below. The link expires in {minutes} minutes.",
+        ],
+        button=("Choose a new password", link),
+        footer="If it wasn't you, ignore this email - your password stays the same.",
+    )
     try:
         await sender.send(
-            to=user.email,
-            subject="Reset your PATRON password",
-            body=(
-                f"Someone asked to reset the password for your PATRON account.\n\n"
-                f"Open this link to choose a new one (it expires in {minutes} minutes):\n"
-                f"{link}\n\n"
-                f"If it wasn't you, ignore this email - your password stays the same."
-            ),
+            to=user.email, subject=message.subject, body=message.text, html=message.html
         )
     except EmailDeliveryError:
         # Undelivered - drop it so the cooldown doesn't block a retry.

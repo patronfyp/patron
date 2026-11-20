@@ -9,15 +9,15 @@ class RecordingSender:
     """Stands in for the real email sender and keeps every email it was given."""
 
     def __init__(self) -> None:
-        self.sent: list[dict[str, str]] = []
+        self.sent: list[dict[str, str | None]] = []
         # Set to make the next send behave like the provider refusing it.
         self.fail_next = False
 
-    async def send(self, to: str, subject: str, body: str) -> None:
+    async def send(self, to: str, subject: str, body: str, html: str | None = None) -> None:
         if self.fail_next:
             self.fail_next = False
             raise EmailDeliveryError("provider refused")
-        self.sent.append({"to": to, "subject": subject, "body": body})
+        self.sent.append({"to": to, "subject": subject, "body": body, "html": html})
 
     def last_code(self) -> str:
         return re.search(r"\b\d{6}\b", self.sent[-1]["body"]).group()
