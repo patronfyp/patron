@@ -9,6 +9,8 @@ class AppError(Exception):
 
     def __init__(self, detail: str) -> None:
         self.detail = detail
+        # Extra response headers, e.g. Retry-After on a 429.
+        self.headers: dict[str, str] = {}
         super().__init__(detail)
 
 
@@ -20,6 +22,11 @@ class BadRequestError(AppError):
 class TooManyRequestsError(AppError):
     status_code = 429
     code = "too_many_requests"
+
+    def __init__(self, detail: str, retry_after: int | None = None) -> None:
+        super().__init__(detail)
+        if retry_after is not None:
+            self.headers["Retry-After"] = str(retry_after)
 
 
 class ServiceUnavailableError(AppError):

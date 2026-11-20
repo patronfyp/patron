@@ -46,6 +46,9 @@ class Settings(BaseSettings):
     # Local upload folder, relative to backend/.
     upload_dir: str = "uploads"
 
+    # Rate-limit counters (ADR 0021). Empty turns rate limiting off.
+    redis_url: str = "redis://localhost:6379/0"
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]

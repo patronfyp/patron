@@ -6,9 +6,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import CurrentUser
+from app.api.deps import CurrentUser, LimiterDep
 from app.core.database import get_session
 from app.core.email import EmailSender, get_email_sender
+from app.core.rate_limit import VERIFICATION_SEND_PER_USER
 from app.core.storage import FileStorage, get_file_storage
 
 from . import service
@@ -78,17 +79,25 @@ async def upload_document(
             "description": "Not a valid address for this kind - wrong university domain, "
             "university not verifiable by email, or a personal address used as a work email"
         },
-        429: {"description": "A code was sent to this address less than 60 seconds ago"},
+        429: {
+            "description": "A code was sent to this address less than 60 seconds ago, "
+            "or more than 10 codes were asked for in an hour"
+        },
         503: {"description": "The email provider refused or failed; nothing was sent, retry"},
     },
 )
 async def send_code(
-    payload: SendCodeRequest, current_user: CurrentUser, session: SessionDep, sender: SenderDep
+    payload: SendCodeRequest,
+    current_user: CurrentUser,
+    session: SessionDep,
+    sender: SenderDep,
+    limiter: LimiterDep,
 ) -> SendCodeResponse:
     """Email a code to the sign-up, university or work address (`kind`).
 
     A university address must match the university on the profile - save it first.
     """
+    await limiter.hit(VERIFICATION_SEND_PER_USER, str(current_user.id))
     await service.send_code(session, current_user, payload.email, payload.kind, sender)
     return SendCodeResponse(
         email=payload.email.lower(),

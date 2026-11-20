@@ -1194,7 +1194,7 @@ Non-negotiable, in a product handling identity and employment verification.
 | 6 | Short-lived access tokens, long-lived refresh | ~15 min / ~7 days |
 | 7 | Never return internal fields | separate `Read` schemas — never serialise a model directly |
 | 8 | Explicit CORS origins | never `allow_origins=["*"]` with credentials |
-| 9 | Rate-limit auth and endorsement endpoints | Modules 14.1–14.3 |
+| 9 | Rate-limit auth and endorsement endpoints | Modules 14.1–14.3. `limiter: LimiterDep` + a `Limit` in `app/core/rate_limit.py` (ADR 0021) |
 | 10 | Generic auth errors | "Invalid email or password" — never say which one was wrong |
 | 11 | Validate uploads | type, size, and never trust the client-supplied filename |
 | 12 | Log events, never secrets | no passwords, tokens or full request bodies in logs |
