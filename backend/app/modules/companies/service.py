@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.email import EmailDeliveryError, EmailSender
+from app.core.email_layout import compose
 from app.core.exceptions import (
     ConflictError,
     ForbiddenError,
@@ -185,15 +186,19 @@ async def _send_invite(
 ) -> None:
     link = f"{get_settings().frontend_url}/register?invite={token}"
     role = invite.role.replace("_", " ")
-    await sender.send(
-        to=invite.email,
+    message = compose(
         subject=f"Join {company.name} on PATRON",
-        body=(
-            f"{inviter.full_name} invited you to hire with {company.name} on PATRON "
-            f"as a {role}.\n\nAccept the invite (the link expires in "
-            f"{INVITE_TTL.days} days):\n{link}\n\n"
-            "If you weren't expecting this, ignore this email."
-        ),
+        heading=f"Join {company.name} on PATRON",
+        lines=[
+            f"{inviter.full_name} invited you to hire with {company.name} as a {role}.",
+            f"Create your account with the button below. The invite expires in "
+            f"{INVITE_TTL.days} days.",
+        ],
+        button=("Accept the invite", link),
+        footer="If you weren't expecting this, you can ignore this email.",
+    )
+    await sender.send(
+        to=invite.email, subject=message.subject, body=message.text, html=message.html
     )
 
 

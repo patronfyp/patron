@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import get_settings
 from app.core.email import EmailDeliveryError, EmailSender
+from app.core.email_layout import compose
 from app.core.exceptions import (
     BadRequestError,
     ServiceUnavailableError,
@@ -142,15 +143,15 @@ async def send_code(
     )
 
     minutes = int(CODE_TTL.total_seconds() // 60)
+    message = compose(
+        subject=f"{code} is your PATRON verification code",
+        heading="Your verification code",
+        lines=[f"Enter this code on PATRON to verify {email}. It expires in {minutes} minutes."],
+        code=code,
+        footer="If you didn't ask for this code, you can ignore this email.",
+    )
     try:
-        await sender.send(
-            to=email,
-            subject="Your PATRON verification code",
-            body=(
-                f"Your PATRON verification code is {code}.\n\n"
-                f"It expires in {minutes} minutes. If you didn't ask for it, ignore this email."
-            ),
-        )
+        await sender.send(to=email, subject=message.subject, body=message.text, html=message.html)
     except EmailDeliveryError as exc:
         # Undelivered - drop it so the cooldown doesn't block a retry.
         await repository.delete(session, row)

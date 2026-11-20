@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -48,6 +49,13 @@ class Settings(BaseSettings):
 
     # Rate-limit counters (ADR 0021). Empty turns rate limiting off.
     redis_url: str = "redis://localhost:6379/0"
+
+    @model_validator(mode="after")
+    def _real_email_in_production(self) -> "Settings":
+        # The console backend logs working codes and reset links.
+        if self.app_env == "production" and self.email_backend == "console":
+            raise ValueError("EMAIL_BACKEND=console is not allowed when APP_ENV=production")
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:
