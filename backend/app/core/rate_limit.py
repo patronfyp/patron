@@ -44,6 +44,9 @@ PASSWORD_RESET_CONFIRM_PER_IP = Limit("reset-confirm-ip", 10, timedelta(minutes=
 VERIFICATION_SEND_PER_USER = Limit("code-send-user", 10, timedelta(hours=1))
 # Stops one account spamming connection requests.
 CONNECTION_REQUESTS_PER_USER = Limit("connect-user", 50, timedelta(days=1))
+# Plenty for typing in a search box (one request per pause); stops scraping
+# the member list.
+PEOPLE_SEARCH_PER_USER = Limit("search-user", 60, timedelta(minutes=1))
 
 
 def client_ip(request: Request) -> str:

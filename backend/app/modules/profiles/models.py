@@ -7,7 +7,7 @@ import uuid
 from datetime import date, datetime
 from enum import StrEnum
 
-from sqlalchemy import ARRAY, Date, DateTime, ForeignKey, String, func, text
+from sqlalchemy import ARRAY, Date, DateTime, ForeignKey, Index, String, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -85,6 +85,17 @@ class Profile(Base):
     """
 
     __tablename__ = "profiles"
+    # People search (#120) matches these "contains" style; trigram indexes keep
+    # that off a full scan. Needs the pg_trgm extension.
+    __table_args__ = tuple(
+        Index(
+            f"ix_profiles_{column}_trgm",
+            column,
+            postgresql_using="gin",
+            postgresql_ops={column: "gin_trgm_ops"},
+        )
+        for column in ("job_title", "employer_name", "university")
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 

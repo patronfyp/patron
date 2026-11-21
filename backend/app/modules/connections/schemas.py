@@ -35,6 +35,17 @@ class PersonSummary(BaseModel):
     university: str | None
 
 
+class PersonResult(PersonSummary):
+    """GET /people - a search result, with what the Connect button needs."""
+
+    # The Verified Alumni / Verified Employee badges.
+    university_verified: bool
+    employer_verified: bool
+    relationship: "Relationship"
+    # Set while a request is pending, so the result can accept or withdraw it.
+    request_id: uuid.UUID | None
+
+
 class ConnectionRequestCreate(BaseModel):
     """POST /connections/requests."""
 

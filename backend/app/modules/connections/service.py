@@ -20,6 +20,7 @@ from .schemas import (
     ConnectionPage,
     ConnectionRead,
     ConnectionRequestRead,
+    PersonResult,
     PersonSummary,
     Relationship,
     RelationshipRead,
@@ -30,6 +31,8 @@ ASK_AGAIN_AFTER = timedelta(days=30)
 # Requests are a handful at a time; the list is capped, never unbounded.
 MAX_REQUESTS_LISTED = 100
 MUTUAL_SHOWN = 3
+# Search is for finding someone, not browsing: a short, capped list.
+SEARCH_LIMIT = 20
 _TOO_SOON = "You can send this person another request later."
 
 
@@ -236,21 +239,35 @@ async def remove_connection(session: AsyncSession, user: User, other_id: uuid.UU
     await repository.delete_connection(session, connection)
 
 
+async def _statuses(
+    session: AsyncSession, me: uuid.UUID, others: list[uuid.UUID]
+) -> dict[uuid.UUID, tuple[Relationship, uuid.UUID | None]]:
+    """Where I stand with each of `others`, and the pending request if any.
+
+    The one place this rule lives: profile pages and search both use it.
+    A request they sent me wins over one I sent them, so I can accept it.
+    """
+    connected, sent, received = await repository.relationships(session, me, others)
+    statuses = {}
+    for other in others:
+        if other in connected:
+            statuses[other] = (Relationship.CONNECTED, None)
+        elif other in received:
+            statuses[other] = (Relationship.PENDING_RECEIVED, received[other].id)
+        elif other in sent:
+            statuses[other] = (Relationship.PENDING_SENT, sent[other].id)
+        else:
+            statuses[other] = (Relationship.NONE, None)
+    return statuses
+
+
 async def relationship(session: AsyncSession, user: User, other_id: uuid.UUID) -> RelationshipRead:
     """Where I stand with `other_id`, for their profile page."""
     await _other_user(session, user, other_id)
-    status, request_id, connection_type = Relationship.NONE, None, None
-
-    if await repository.get_connection(session, user.id, other_id) is not None:
-        status = Relationship.CONNECTED
+    status, request_id = (await _statuses(session, user.id, [other_id]))[other_id]
+    connection_type = None
+    if status == Relationship.CONNECTED:
         connection_type = (await _types(session, user.id, [other_id]))[other_id]
-    else:
-        mine = await repository.get_request_between(session, user.id, other_id)
-        theirs = await repository.get_request_between(session, other_id, user.id)
-        if theirs is not None and theirs.status == RequestStatus.PENDING:
-            status, request_id = Relationship.PENDING_RECEIVED, theirs.id
-        elif mine is not None and mine.status in (RequestStatus.PENDING, RequestStatus.DECLINED):
-            status, request_id = Relationship.PENDING_SENT, mine.id
 
     mutual_count, mutual = await repository.mutual(session, user.id, other_id, limit=MUTUAL_SHOWN)
     return RelationshipRead(
@@ -261,3 +278,29 @@ async def relationship(session: AsyncSession, user: User, other_id: uuid.UUID) -
         mutual_count=mutual_count,
         mutual=[_summary(person) for person in mutual],
     )
+
+
+async def search_people(session: AsyncSession, user: User, query: str) -> list[PersonResult]:
+    """People to connect with: at most SEARCH_LIMIT, in a fixed number of queries."""
+    people = await repository.search_people(session, user.id, query, limit=SEARCH_LIMIT)
+    ids = [person["id"] for person in people]
+    statuses = await _statuses(session, user.id, ids)
+
+    verified: dict[uuid.UUID, set[str]] = {}
+    for user_id, kind, _email in await repository.verified_emails(session, ids):
+        verified.setdefault(user_id, set()).add(kind)
+
+    results = []
+    for person in people:
+        status, request_id = statuses[person["id"]]
+        kinds = verified.get(person["id"], set())
+        results.append(
+            PersonResult(
+                **_summary(person).model_dump(),
+                university_verified=VerificationKind.UNIVERSITY in kinds,
+                employer_verified=VerificationKind.EMPLOYER in kinds,
+                relationship=status,
+                request_id=request_id,
+            )
+        )
+    return results
