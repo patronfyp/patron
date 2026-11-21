@@ -31,3 +31,4 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0020](0020-companies-verified-by-email-domain.md) | Companies, verified and joined by email domain | Rafay |
 | [0021](0021-redis-for-rate-limiting.md) | Redis for rate limiting, failing open | Rafay |
 | [0022](0022-resend-for-transactional-email.md) | Resend for transactional email | Rafay |
+| [0023](0023-connection-type-from-verified-emails.md) | Connections, and their type worked out from verified emails | Rafay |

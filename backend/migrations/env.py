@@ -14,6 +14,7 @@ from app.core.database import Base
 # `--autogenerate` silently produces an empty migration.
 from app.modules.auth import models as auth_models  # noqa: F401
 from app.modules.companies import models as companies_models  # noqa: F401
+from app.modules.connections import models as connections_models  # noqa: F401
 from app.modules.jobs import models as jobs_models  # noqa: F401
 from app.modules.notifications import models as notifications_models  # noqa: F401
 from app.modules.profiles import models as profiles_models  # noqa: F401

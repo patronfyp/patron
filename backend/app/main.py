@@ -20,6 +20,7 @@ from app.core.logging import add_request_logging, setup_logging
 from app.core.redis import close_redis
 from app.modules.auth.router import router as auth_router
 from app.modules.companies.router import router as companies_router
+from app.modules.connections.router import router as connections_router
 from app.modules.jobs.router import router as jobs_router
 from app.modules.notifications.router import router as notifications_router
 from app.modules.profiles.router import router as profiles_router
@@ -72,6 +73,7 @@ app.include_router(verification_router, prefix=settings.api_v1_prefix)
 app.include_router(notifications_router, prefix=settings.api_v1_prefix)
 app.include_router(companies_router, prefix=settings.api_v1_prefix)
 app.include_router(jobs_router, prefix=settings.api_v1_prefix)
+app.include_router(connections_router, prefix=settings.api_v1_prefix)
 
 
 @app.get("/health", tags=["system"])
