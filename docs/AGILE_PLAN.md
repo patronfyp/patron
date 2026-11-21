@@ -71,10 +71,9 @@ split it.
 | 0 | 26 Aug – 13 Sep | Setup, tooling, docs ✅ **done** |
 | 1 | 14 – 27 Sep | Auth foundation — the reference module |
 | 2 | 28 Sep – 11 Oct | Profile & account lifecycle |
-| 3 | 12 – 25 Oct | University/employer verification + notification core |
-| 4 | 26 Oct – 8 Nov | Connection system + type tagging |
-| 5 | 9 – 22 Nov | Companies + job posting |
-| 6 | 23 Nov – 6 Dec | Job discovery — search, filters, detail page |
+| 3 | 12 Oct – 20 Nov | University/employer verification + notification core + recruiter onboarding *(ran long — see below)* |
+| 4 | 21 – 23 Nov | Connection system + type tagging + people search |
+| 5 + 6 | 24 Nov – 6 Dec | Job posting + job discovery *(merged — see below)* |
 | 7 | 7 – 20 Dec | ⭐ Recommendation Engine |
 | 8 | 21 Dec – 3 Jan | **Light** — buffer, mid-evaluation, docs catch-up |
 | 9 | 4 – 17 Jan | ⭐ Employee Referral Engine |
@@ -276,7 +275,12 @@ Also this sprint: create the ESLint boundary rules once `features/` and
 | Password reset via emailed token | 1.12 |
 | Profile completion wizard | 1.5 |
 
-### Sprint 3 — Verification + notification core · 12–25 Oct
+### Sprint 3 — Verification + notification core · 12 Oct – 20 Nov
+
+> **Re-planned 21 Nov.** Planned for 12–25 Oct; it ran to 20 Nov with the
+> carry-overs, the Sprint 3 review follow-ups (#92, #93), recruiter onboarding
+> (#69) and the Redis / email groundwork (#110, #111). Sprint 4 starts 21 Nov,
+> and Sprints 5 and 6 are merged so Sprint 7 onwards keeps its dates.
 
 **Goal:** a user can prove a university or employer affiliation.
 
@@ -299,42 +303,56 @@ Everything above except the two carry-over rows and referrer onboarding landed
 in the first three days of the sprint, ahead of schedule — see the Sprint 2
 report for why it slipped from there instead of Sprint 2.
 
-**Recruiter onboarding** (own wizard) was going to be part of this sprint too,
-but has moved to Sprint 4 instead — tracked as #69.
+**Recruiter onboarding** (own wizard), first planned here, landed later in
+the extended sprint: companies (#103), invites (#108), jobs and the 4-step
+wizard (#109), Team step (#115), Hiring step (#116) — #69 is done. The Sprint 3
+review follow-ups landed too: job title on the public profile (#92) and
+referrer fields on Edit profile (#93).
 
-### Sprint 4 — Connections · 26 Oct – 8 Nov
+### Sprint 4 — Connections · 21 – 23 Nov
 
 **Goal:** users have a network, and the system knows what kind of relationship
 each connection is.
 
-| Item | Spec |
-|---|---|
-| Send / accept / decline connection requests | 3.1, 3.2 |
-| Connections list — paginated, searchable | 3.4 |
-| Remove connection, connection count | 3.7, 3.8 |
-| **Connection type tagging** — Professional / Alumni / Both | **3.9** |
-| Mutual connections | 3.5 |
-| Recruiter onboarding (own wizard) — moved from Sprint 3, #69 | — |
-| **Follow-up from Sprint 3 review:** job title on the public profile | 1.6, #92 |
-| **Follow-up from Sprint 3 review:** referrer fields on Edit profile | 1.7, #93 |
+| Item | Spec | Card |
+|---|---|---|
+| Send / accept / decline connection requests | 3.1, 3.2 | #119 (backend), #122 (UI) |
+| Connections list — paginated, searchable | 3.4 | #119, #122 |
+| Remove connection, connection count | 3.7, 3.8 | #119, #122 |
+| **Connection type tagging** — Professional / Alumni / Both | **3.9** | #119 (ADR 0023) |
+| Mutual connections | 3.5 | #119, #122 |
+| People search — name, job title, company, university | 3 | #120 (backend, ADR 0024), #123 (UI, should) |
+| App shell — sidebar, top navigation, simple home | — | #121 |
 
 3.9 is the critical one — it decides which endorsement types are possible
 between any two people. Everything in Sprints 7, 9 and 11 reads it.
 
-### Sprint 5 — Companies + job posting · 9–22 Nov
+Three days is short because Sprint 3 ran long; the backend (#119, #120) was
+built first so the frontend cards had a real API from day one. If #123 doesn't
+fit, it moves to Sprint 5 + 6.
 
-**Goal:** a verified company can post a job.
+### Sprint 5 + 6 — Job posting + job discovery · 24 Nov – 6 Dec
 
-| Item | Spec |
-|---|---|
-| Company model, company profile page | 8.1 |
-| Post a job — full form | 4.1 |
-| Company job dashboard — list, status | 4.10 |
-| Job expiry | 4.7 |
+**Goal:** a verified company can post a job, and a candidate can find a
+relevant job and see who could vouch for them.
 
-### Sprint 6 — Job discovery · 23 Nov – 6 Dec
+Two planned sprints merged into one so the endorsement engines keep their
+dates. That works because part of the job-posting half already exists from
+recruiter onboarding (#69): the company model and its domain verification, and
+draft jobs. If job discovery doesn't all fit, the rest moves to Sprint 8,
+which is light on purpose.
 
-**Goal:** a candidate can find a relevant job and see who could vouch for them.
+**Job posting** (planned as Sprint 5)
+
+| Item | Spec | Status |
+|---|---|---|
+| Company model | 8.1 | done — #103 (ADR 0020) |
+| Company profile page | 8.1 | |
+| Post a job — full form (draft jobs exist, #109) | 4.1 | |
+| Company job dashboard — list, status | 4.10 | |
+| Job expiry | 4.7 | |
+
+**Job discovery** (planned as Sprint 6)
 
 | Item | Spec |
 |---|---|
@@ -634,6 +652,7 @@ start branching off unmerged branches.
 | Risk | Likelihood | Impact | What we do |
 |---|---|---|---|
 | Exams and other courses eat sprint capacity | high | high | Sprint 8 is deliberately light; buffer in Sprint 16; scope by MoSCoW |
+| **Schedule slip — Sprint 3 ran to 20 Nov (happened)** | — | high | Sprint 4 shortened to 21–23 Nov; Sprints 5 and 6 merged (24 Nov – 6 Dec) so Sprint 7 onwards keeps its dates; any job-discovery overflow goes to Sprint 8 |
 | Scope creep — more supervisor-requested modules | medium | high | Phase 2 list stays explicit; new asks go to the backlog, not the sprint |
 | A member falls behind or drops out | low | high | no single-person module knowledge; Rafay reviews everything; docs stay current |
 | Endorsement logic turns out harder than estimated | medium | high | the three engines get their own sprints, in dependency order, with Sprint 8 as slack |
