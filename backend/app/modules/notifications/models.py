@@ -17,6 +17,8 @@ class NotificationType(StrEnum):
 
     EMAIL_VERIFIED = "email_verified"
     DOCUMENT_UPLOADED = "document_uploaded"
+    CONNECTION_REQUEST = "connection_request"
+    CONNECTION_ACCEPTED = "connection_accepted"
 
 
 class Notification(Base):

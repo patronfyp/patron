@@ -42,6 +42,8 @@ PASSWORD_RESET_PER_IP = Limit("reset-ip", 20, timedelta(hours=1))
 PASSWORD_RESET_CONFIRM_PER_IP = Limit("reset-confirm-ip", 10, timedelta(minutes=15))
 # Each code locks after 5 wrong tries; this caps how many new codes, and so guesses.
 VERIFICATION_SEND_PER_USER = Limit("code-send-user", 10, timedelta(hours=1))
+# Stops one account spamming connection requests.
+CONNECTION_REQUESTS_PER_USER = Limit("connect-user", 50, timedelta(days=1))
 
 
 def client_ip(request: Request) -> str:
