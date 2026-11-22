@@ -1,0 +1,95 @@
+/* "Recent activity", Figma 10:414. --patron-* variables from config/theme.js. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 20px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-card);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-button);
+}
+
+.heading {
+  margin: 0;
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row + .row {
+  border-top: 1px solid var(--patron-border-subtle);
+}
+
+.link {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  color: inherit;
+  text-decoration: none;
+}
+
+a.link:hover .title {
+  color: var(--patron-text-primary);
+}
+
+.tile {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+}
+
+.success {
+  background: var(--patron-status-success-tile);
+  color: var(--patron-status-success-text);
+}
+
+.warning {
+  background: var(--patron-status-warning-tile);
+  color: var(--patron-status-warning-text);
+}
+
+.neutral {
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.title {
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.time {
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+.empty {
+  margin: 0;
+  padding: 12px 0;
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  color: var(--patron-text-tertiary);
+}

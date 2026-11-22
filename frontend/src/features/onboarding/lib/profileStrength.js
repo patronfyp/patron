@@ -3,9 +3,10 @@
  *
  * @param {import('../api/onboarding.api').Profile} profile
  * @param {import('@/features/verification/api/verification.api').VerificationStatus | undefined} status
- * @returns {{ percent: number, nextStep: string | null, isOneAway: boolean }}
+ * @returns {{ percent: number, nextStep: string | null, isOneAway: boolean, remaining: number }}
  *   `nextStep` names the first thing still missing (null when everything is
- *   done); `isOneAway` is true when it is the only thing missing
+ *   done); `isOneAway` is true when it is the only thing missing; `remaining`
+ *   is how many things are still missing
  */
 export function profileStrength(profile, status) {
   const items = [
@@ -25,5 +26,6 @@ export function profileStrength(profile, status) {
     percent: Math.round((done / items.length) * 100),
     nextStep: items.find((item) => !item.done)?.todo ?? null,
     isOneAway: items.length - done === 1,
+    remaining: items.length - done,
   }
 }

@@ -242,6 +242,8 @@ export const brand = {
   avatarLType: { size: 23, lineHeight: 28, weight: 600, tracking: -1 },
   // Initials in the 36px top navigation avatar (frame 7:603).
   avatarMType: { size: 13, lineHeight: 16, weight: 600, tracking: -1 },
+  // Initials in the 34px sidebar avatar (Sidebar / Candidate, 7:571).
+  avatarSType: { size: 12, lineHeight: 16, weight: 600, tracking: -1 },
   // The letter in a 44px company logo tile (frame 9:337).
   logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
   // The letter in a 32px company logo tile, in the referrer's company field (67:425).
@@ -249,6 +251,28 @@ export const brand = {
   // The percentage inside the profile-strength ring (frame 65:790).
   ringType: { size: 15, lineHeight: 20, weight: 600, tracking: -3 },
   quoteType: { size: 30, lineHeight: 40, weight: 500, tracking: -1.5 },
+}
+
+/**
+ * The dark Readiness card on the Overview (Figma 10:141). Literal fills on the
+ * frame, not Figma variables; kept out of antd's theme like `brand`.
+ */
+export const readiness = {
+  bg: tokens.bg.inverse,
+  label: '#6fd3a6', // the "Referral readiness" eyebrow
+  // Chip/dark icons: verified (icon/checkC) and pending (icon/clock).
+  iconVerified: '#34c08a',
+  iconPending: '#f2ae4a',
+  ringTrack: 'rgba(255, 255, 255, 0.1)',
+  // The ring's gradient: accent/brand to ai/base.
+  ringFrom: tokens.accent.brand,
+  ringTo: tokens.ai.base,
+  // Button/glass (10:138).
+  glassBg: 'rgba(255, 255, 255, 0.08)',
+  glassBorder: 'rgba(255, 255, 255, 0.14)',
+  titleType: { size: 30, lineHeight: 38, weight: 600, tracking: -2 },
+  percentType: { size: 34, lineHeight: 40, weight: 600, tracking: -3 },
+  captionType: { size: 11, lineHeight: 14, weight: 500, tracking: 2 },
 }
 
 // `600 36px/44px 'Geist', ...` - a style as a CSS `font` shorthand.
@@ -307,6 +331,10 @@ export function cssVariables() {
   addType('logoSmall', brand.logoSmallType)
   addType('avatarL', brand.avatarLType)
   addType('avatarM', brand.avatarMType)
+  addType('avatarS', brand.avatarSType)
+  addType('readinessTitle', readiness.titleType)
+  addType('readinessPercent', readiness.percentType)
+  addType('readinessCaption', readiness.captionType)
   addType('logoInitial', brand.logoInitialType)
   addType('logoInitialSmall', brand.logoInitialSmallType)
   addType('ring', brand.ringType)

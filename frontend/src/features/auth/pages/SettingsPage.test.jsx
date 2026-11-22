@@ -106,13 +106,4 @@ describe('SettingsPage', () => {
       ),
     ).toBeInTheDocument()
   })
-
-  it('links back home', async () => {
-    const user = userEvent.setup()
-    renderPage()
-
-    await user.click(screen.getByRole('link', { name: /back/i }))
-
-    expect(await screen.findByText('Home')).toBeInTheDocument()
-  })
 })

@@ -13,13 +13,15 @@ import styles from './TopNavigation.module.css'
  *
  * @param {object} props
  * @param {string[]} props.breadcrumb - labels, outermost first; the last is the current page
- * @param {string} [props.title] - the heading; defaults to "Good morning, <first name>"
+ * @param {string | null} [props.title] - the heading; defaults to "Good morning, <first name>";
+ *   `null` leaves it out, for a page with a heading of its own (Profile, 14:2)
  */
 function TopNavigation({ breadcrumb, title }) {
   const user = useAuthStore((state) => state.user)
 
   const firstName = getFirstName(user?.full_name)
-  const heading = title ?? (firstName ? `${getGreeting()}, ${firstName}` : getGreeting())
+  const greeting = firstName ? `${getGreeting()}, ${firstName}` : getGreeting()
+  const heading = title === undefined ? greeting : title
 
   return (
     <header className={styles.bar}>
@@ -41,7 +43,7 @@ function TopNavigation({ breadcrumb, title }) {
             })}
           </ol>
         </nav>
-        <h1 className={styles.title}>{heading}</h1>
+        {heading === null ? null : <h1 className={styles.title}>{heading}</h1>}
       </div>
 
       <div className={styles.actions}>

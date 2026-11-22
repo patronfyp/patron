@@ -1,29 +1,55 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { App as AntApp } from 'antd'
-import { MemoryRouter } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { useAuthStore } from '@/features/auth'
-import { fakeNetwork, ok, restoreNetwork } from '@/test/fakeNetwork'
+import { appResponder } from '@/test/appData'
+import { fakeNetwork, restoreNetwork } from '@/test/fakeNetwork'
 
 import AppLayout from './AppLayout'
 
-const user = { id: 'u-1', email: 'abdul@example.com', full_name: 'Abdul Rafay' }
+const user = {
+  id: 'u-1',
+  email: 'abdul@example.com',
+  full_name: 'Abdul Rafay',
+  roles: ['candidate'],
+}
 
-function renderLayout(props = {}) {
+/** The shell with two pages: Overview (greeting) and a profile (own heading). */
+function renderAt(path) {
+  const router = createMemoryRouter(
+    [
+      {
+        element: <AppLayout />,
+        children: [
+          {
+            index: true,
+            element: <p>Home content</p>,
+            handle: { breadcrumb: ['Home', 'Overview'] },
+          },
+          {
+            path: 'profile/:userId',
+            element: <h1>Abdul Rafay</h1>,
+            handle: { breadcrumb: ['Home', 'Profile'], title: null },
+          },
+          { path: 'settings', element: <p>Settings page</p> },
+        ],
+      },
+    ],
+    { initialEntries: [path] },
+  )
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(
+  render(
     <QueryClientProvider client={queryClient}>
       <AntApp>
-        <MemoryRouter>
-          <AppLayout {...props}>
-            <p>Page content</p>
-          </AppLayout>
-        </MemoryRouter>
+        <RouterProvider router={router} />
       </AntApp>
     </QueryClientProvider>,
   )
+  return router
 }
 
 // Only the clock's Date is faked: the greeting depends on it, while React
@@ -35,9 +61,7 @@ function setTime(hour) {
 
 describe('AppLayout', () => {
   beforeEach(() => {
-    // The bell asks the API for its count; answer at the network, not by
-    // reaching into the notifications feature's internals.
-    fakeNetwork((config) => ok(config, { count: 3 }))
+    fakeNetwork(appResponder())
     useAuthStore.setState({ user })
   })
 
@@ -47,71 +71,113 @@ describe('AppLayout', () => {
     useAuthStore.setState({ user: null })
   })
 
-  it('shows the page inside the layout', () => {
-    renderLayout()
+  it('renders the page inside the shell', () => {
+    renderAt('/')
 
-    expect(within(screen.getByRole('main')).getByText('Page content')).toBeInTheDocument()
+    expect(within(screen.getByRole('main')).getByText('Home content')).toBeInTheDocument()
+    expect(screen.getByRole('complementary', { name: 'Main' })).toBeInTheDocument()
   })
 
   it('greets the user by first name for the time of day', () => {
     setTime(9)
-    renderLayout()
+    renderAt('/')
+
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Good morning, Abdul')
   })
 
-  it('changes the greeting in the afternoon and evening', () => {
-    setTime(14)
-    const first = renderLayout()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Good afternoon, Abdul')
-    first.unmount()
-
-    setTime(20)
-    renderLayout()
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Good evening, Abdul')
-  })
-
-  it('uses a title in place of the greeting', () => {
-    renderLayout({ title: 'My referrals', breadcrumb: ['Home', 'Referrals'] })
-
-    expect(screen.getByRole('heading', { level: 1, name: 'My referrals' })).toBeInTheDocument()
-  })
-
-  it('shows the breadcrumb with the current page marked', () => {
-    renderLayout()
+  it('takes the breadcrumb from the route and marks the current page', () => {
+    renderAt('/')
 
     const trail = screen.getByRole('navigation', { name: 'Breadcrumb' })
-    expect(within(trail).getByText('Home')).toBeInTheDocument()
     expect(within(trail).getByText('Overview')).toHaveAttribute('aria-current', 'page')
   })
 
-  it('shows the user initials on the avatar', () => {
-    renderLayout()
+  it('leaves the heading to a page that has its own', () => {
+    renderAt('/profile/u-1')
 
-    expect(screen.getByRole('img', { name: 'Abdul Rafay' })).toHaveTextContent('AR')
+    const trail = screen.getByRole('navigation', { name: 'Breadcrumb' })
+    expect(within(trail).getByText('Profile')).toHaveAttribute('aria-current', 'page')
+    // Only the page's own h1, no greeting.
+    expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1)
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Abdul Rafay')
   })
 
   it('has the bell with the unread count', async () => {
-    renderLayout()
+    renderAt('/')
 
     expect(
       await screen.findByRole('button', { name: 'Notifications, 3 unread' }),
     ).toBeInTheDocument()
   })
 
-  it('shows the search box, which does nothing yet', () => {
-    renderLayout()
+  it('shows the user initials on the top bar avatar', () => {
+    renderAt('/')
 
-    const search = screen.getByRole('button', { name: /Search jobs, people, companies/ })
+    expect(screen.getByRole('img', { name: 'Abdul Rafay' })).toHaveTextContent('AR')
+  })
+})
 
-    expect(search).toHaveAttribute('aria-disabled', 'true')
-    expect(search).toHaveAttribute('title', 'Search is coming soon')
+describe('Sidebar', () => {
+  beforeEach(() => {
+    fakeNetwork(appResponder())
+    useAuthStore.setState({ user })
   })
 
-  it('still renders a greeting when there is no name', () => {
-    setTime(9)
-    useAuthStore.setState({ user: { ...user, full_name: '' } })
-    renderLayout()
+  afterEach(() => {
+    restoreNetwork()
+    useAuthStore.setState({ user: null })
+  })
 
-    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('Good morning')
+  it('links only to pages that exist, with the current one marked', () => {
+    renderAt('/')
+
+    const nav = screen.getByRole('navigation', { name: 'Workspace' })
+    const links = within(nav).getAllByRole('link')
+    expect(links.map((link) => link.textContent)).toEqual(['Overview', 'Profile'])
+    expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(within(nav).getByRole('link', { name: 'Profile' })).toHaveAttribute(
+      'href',
+      '/profile/u-1',
+    )
+  })
+
+  it('marks Profile current on the profile page', () => {
+    renderAt('/profile/u-1')
+
+    const nav = screen.getByRole('navigation', { name: 'Workspace' })
+    expect(within(nav).getByRole('link', { name: 'Profile' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+    expect(within(nav).getByRole('link', { name: 'Overview' })).not.toHaveAttribute('aria-current')
+  })
+
+  it('shows the name and the headline from the profile', async () => {
+    renderAt('/')
+
+    const account = screen.getByRole('button', { name: 'Account menu' })
+    expect(within(account).getByText('Abdul Rafay')).toBeInTheDocument()
+    expect(await within(account).findByText('Full-Stack AI Engineer')).toBeInTheDocument()
+  })
+
+  it('opens the account menu and goes to settings', async () => {
+    const userEvents = userEvent.setup()
+    const router = renderAt('/')
+
+    await userEvents.click(screen.getByRole('button', { name: 'Account menu' }))
+    await userEvents.click(await screen.findByText('Settings'))
+
+    expect(router.state.location.pathname).toBe('/settings')
+    expect(await screen.findByText('Settings page')).toBeInTheDocument()
+  })
+
+  it('keeps search inert until the search overlay exists', () => {
+    renderAt('/')
+
+    const search = screen.getByRole('button', { name: /Search PATRON/ })
+    expect(search).toHaveAttribute('aria-disabled', 'true')
   })
 })

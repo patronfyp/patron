@@ -1,11 +1,27 @@
+/* Sidebar, then the content column (Figma 10:2: a 252px sidebar and a 1188px main). */
+
 .shell {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
   background: var(--patron-bg-canvas);
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .main {
   flex: 1;
   min-height: 0;
+}
+
+/* Mobile layouts are on hold (#76): below this the sidebar steps aside so
+   the page itself stays usable. */
+@media (max-width: 960px) {
+  .shell > aside {
+    display: none;
+  }
 }

@@ -1,0 +1,35 @@
+/* Candidate · Overview, Figma 10:2: 28px under the top bar, 40px sides, 28px between rows. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1188px;
+  padding: 28px 40px 56px;
+}
+
+/* The stats on the left, Recent activity in a 360px column (10:448). */
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 24px;
+  align-items: start;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 1100px) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .page {
+    padding: 20px 16px 40px;
+  }
+}

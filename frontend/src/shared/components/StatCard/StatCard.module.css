@@ -1,0 +1,65 @@
+/* Cards / Stat, Figma 10:163. --patron-* variables from config/theme.js. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-card);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-button);
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.label {
+  margin: 0;
+  font: var(--patron-type-body-s-medium);
+  letter-spacing: var(--patron-type-body-s-medium-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.tile {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--patron-radius-md);
+}
+
+.accent {
+  background: var(--patron-status-success-tile);
+  color: var(--patron-accent-primary);
+}
+
+.warning {
+  background: var(--patron-status-warning-tile);
+  color: var(--patron-status-warning-text);
+}
+
+.neutral {
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+}
+
+.value {
+  margin: 0;
+  font: var(--patron-type-number-l);
+  letter-spacing: var(--patron-type-number-l-tracking);
+  color: var(--patron-text-primary);
+}
+
+.caption {
+  margin: 0;
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
