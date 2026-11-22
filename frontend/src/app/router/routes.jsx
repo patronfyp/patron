@@ -9,10 +9,10 @@ import {
   SelectRolePage,
   SettingsPage,
 } from '@/features/auth'
+import { HomePage } from '@/features/home'
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 import { EditProfilePage, ProfilePage } from '@/features/profile'
 
-import App from '../App'
 import AppLayout from '../layouts/AppLayout'
 
 import ProtectedRoute from './ProtectedRoute'
@@ -27,20 +27,34 @@ export const router = createBrowserRouter([
     path: '/',
     element: <ProtectedRoute />,
     children: [
+      // Inside the app shell: sidebar + top navigation. Each `handle` sets the
+      // top bar's breadcrumb and heading (see AppLayout).
       {
-        index: true,
-        element: (
-          <AppLayout>
-            <App />
-          </AppLayout>
-        ),
+        element: <AppLayout />,
+        children: [
+          { index: true, element: <HomePage />, handle: { breadcrumb: ['Home', 'Overview'] } },
+          // Pages with a heading of their own leave the top bar's out (title: null).
+          {
+            path: 'profile/edit',
+            element: <EditProfilePage />,
+            handle: { breadcrumb: ['Home', 'Profile', 'Edit'], title: null },
+          },
+          {
+            path: 'profile/:userId',
+            element: <ProfilePage />,
+            handle: { breadcrumb: ['Home', 'Profile'], title: null },
+          },
+          {
+            path: 'settings',
+            element: <SettingsPage />,
+            handle: { breadcrumb: ['Home', 'Settings'], title: null },
+          },
+        ],
       },
+      // Full-screen flows, outside the shell.
       { path: 'select-role', element: <SelectRolePage /> },
       { path: 'onboarding', element: <OnboardingPage /> },
       { path: 'onboarding/done', element: <AllSetPage /> },
-      { path: 'settings', element: <SettingsPage /> },
-      { path: 'profile/edit', element: <EditProfilePage /> },
-      { path: 'profile/:userId', element: <ProfilePage /> },
       // Where sign-in and sign-up land; decides between onboarding and home.
       { path: 'start', element: <ResumeOnboardingRedirect /> },
     ],

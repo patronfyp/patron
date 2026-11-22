@@ -7,7 +7,8 @@
   justify-content: space-between;
   gap: 24px;
   height: 72px;
-  padding: 0 40px;
+  /* Margin, not padding: the hairline stops 40px short of each side (10:447). */
+  margin: 0 40px;
   border-bottom: 1px solid var(--patron-border-subtle);
 }
 
@@ -114,7 +115,7 @@
 /* The search box is the first thing to go when the bar gets tight. */
 @media (max-width: 860px) {
   .bar {
-    padding: 0 16px;
+    margin: 0 16px;
   }
 
   .search {

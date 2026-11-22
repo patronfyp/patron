@@ -1,5 +1,6 @@
 import checkCircleIcon from '@/assets/icons/check-circle-15.svg'
 import shieldIcon from '@/assets/icons/shield-15.svg'
+import usersIcon from '@/assets/icons/users-16.svg'
 
 /**
  * The panel's tabs (Figma 14:914). `categories` is which notification
@@ -18,6 +19,9 @@ export const TABS = [
 const TYPE_META = {
   email_verified: { icon: checkCircleIcon, tone: 'success', category: 'verification' },
   document_uploaded: { icon: shieldIcon, tone: 'warning', category: 'verification' },
+  // Connections (#119): no tab of their own yet, so they show under All.
+  connection_request: { icon: usersIcon, tone: 'neutral', category: 'connections' },
+  connection_accepted: { icon: usersIcon, tone: 'success', category: 'connections' },
 }
 
 const FALLBACK_META = { icon: null, tone: 'neutral', category: 'other' }

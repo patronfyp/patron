@@ -1,0 +1,181 @@
+/* The Readiness card, Figma 10:141. Its literal fills come from theme.js
+   `readiness` (set as --readiness-* by the component); text styles are
+   --patron-* variables. */
+
+.card {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 32px;
+  overflow: hidden;
+  border-radius: var(--patron-radius-sheet);
+  background: var(--readiness-bg);
+}
+
+.ring {
+  position: relative;
+  flex: none;
+  width: 132px;
+  height: 132px;
+}
+
+/* Drawn from the top, clockwise. */
+.ring svg {
+  transform: rotate(-90deg);
+}
+
+.track,
+.progress {
+  fill: none;
+  stroke-width: 11;
+}
+
+.track {
+  stroke: var(--readiness-track);
+}
+
+.percent,
+.ready {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.percent {
+  top: 35px;
+  font: var(--patron-type-readiness-percent);
+  letter-spacing: var(--patron-type-readiness-percent-tracking);
+  color: var(--readiness-on-dark);
+}
+
+.ready {
+  top: 79px;
+  font: var(--patron-type-readiness-caption);
+  letter-spacing: var(--patron-type-readiness-caption-tracking);
+  text-transform: uppercase;
+  color: var(--patron-text-tertiary);
+}
+
+.text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0;
+  font: var(--patron-type-label);
+  letter-spacing: var(--patron-type-label-tracking);
+  text-transform: uppercase;
+  color: var(--readiness-label);
+}
+
+.title {
+  margin: 0;
+  font: var(--patron-type-readiness-title);
+  letter-spacing: var(--patron-type-readiness-title-tracking);
+  color: var(--readiness-on-dark);
+}
+
+.body {
+  max-width: 520px;
+  margin: 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  color: var(--readiness-on-dark-soft);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 0 0;
+  list-style: none;
+}
+
+/* Chip/dark. */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid var(--readiness-chip-border);
+  border-radius: var(--patron-radius-sm);
+  background: var(--readiness-chip-bg);
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-text-inverse);
+}
+
+.verified {
+  color: var(--readiness-icon-verified);
+}
+
+.pending {
+  color: var(--readiness-icon-pending);
+}
+
+.todo {
+  color: var(--readiness-on-dark-soft);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.ivory,
+.glass {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: var(--patron-radius-md);
+  font: var(--patron-type-body-semibold);
+  letter-spacing: var(--patron-type-body-semibold-tracking);
+  text-decoration: none;
+}
+
+/* Button/ivory. */
+.ivory {
+  background: var(--readiness-on-dark);
+  color: var(--patron-text-primary);
+}
+
+/* Button/glass. */
+.glass {
+  border: 1px solid var(--readiness-glass-border);
+  background: var(--readiness-glass-bg);
+  color: var(--patron-text-inverse);
+}
+
+.ivory:hover,
+.glass:hover {
+  opacity: 0.9;
+}
+
+.ivory:focus-visible,
+.glass:focus-visible {
+  outline: 2px solid var(--readiness-label);
+  outline-offset: 2px;
+}
+
+@media (max-width: 1100px) {
+  .card {
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    flex-direction: row;
+  }
+}

@@ -1,0 +1,201 @@
+/* The left sidebar, from Figma "Sidebar / Candidate" (7:647).
+   Colours, text styles, radii and shadows are --patron-* variables from config/theme.js. */
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 252px;
+  height: 100vh;
+  padding: 22px 14px 18px;
+  border-right: 1px solid var(--patron-border-default);
+  background: var(--patron-bg-subtle);
+  overflow-y: auto;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 8px 18px;
+}
+
+.wordmark {
+  font: var(--patron-type-logo-small);
+  letter-spacing: var(--patron-type-logo-small-tracking);
+  color: var(--patron-text-primary);
+}
+
+/* Inert until the search overlay (#123): default cursor, no hover. */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-md);
+  background: var(--patron-bg-surface);
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  text-align: left;
+  color: var(--patron-text-tertiary);
+  cursor: default;
+}
+
+.searchText {
+  flex: 1;
+  min-width: 0;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-key);
+  background: var(--patron-bg-surface);
+  font: var(--patron-type-mono);
+  letter-spacing: var(--patron-type-mono-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+.section {
+  margin: 0;
+  padding: 18px 10px 6px;
+  font: var(--patron-type-label);
+  letter-spacing: var(--patron-type-label-tracking);
+  text-transform: uppercase;
+  color: var(--patron-text-tertiary);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: var(--patron-radius-md);
+  font: var(--patron-type-body-medium);
+  letter-spacing: var(--patron-type-body-medium-tracking);
+  color: var(--patron-text-secondary);
+  text-decoration: none;
+}
+
+.link:hover {
+  background: var(--patron-bg-muted);
+  color: var(--patron-text-primary);
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 1px;
+}
+
+/* The current page: a white card with a hairline, the icon in emerald (Nav/Overview). */
+.linkActive,
+.linkActive:hover {
+  border-color: var(--patron-border-default);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-button);
+  color: var(--patron-text-primary);
+}
+
+.linkIcon {
+  flex: none;
+}
+
+.linkActive .linkIcon {
+  color: var(--patron-accent-primary);
+}
+
+.linkLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Pushed to the bottom; the whole row opens the account menu. */
+.account {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: auto;
+  padding: 12px 8px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.account:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-md);
+}
+
+.avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--patron-avatar-gradient-accent);
+  font: var(--patron-type-avatar-s);
+  letter-spacing: var(--patron-type-avatar-s-tracking);
+  color: var(--patron-text-on-accent);
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name,
+.subline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  font: var(--patron-type-body-s-semibold);
+  letter-spacing: var(--patron-type-body-s-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.subline {
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+.chevron {
+  flex: none;
+  color: var(--patron-text-tertiary);
+}

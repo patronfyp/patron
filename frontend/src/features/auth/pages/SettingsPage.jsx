@@ -1,5 +1,4 @@
 import { App, Button, Card, Flex, Form, Input, Typography } from 'antd'
-import { Link } from 'react-router-dom'
 
 import { getApiErrorMessage } from '@/shared/api/getApiErrorMessage'
 
@@ -80,9 +79,7 @@ function SettingsPage() {
   return (
     <Flex justify="center" style={{ padding: 24 }}>
       <Card style={{ width: '100%', maxWidth: 480 }}>
-        <Link to="/">&larr; Back</Link>
-
-        <Title level={3} style={{ marginTop: 16, marginBottom: 4 }}>
+        <Title level={3} style={{ marginTop: 0, marginBottom: 4 }}>
           Account settings
         </Title>
         <Paragraph type="secondary" style={{ marginBottom: 22 }}>

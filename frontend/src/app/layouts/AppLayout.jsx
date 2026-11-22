@@ -1,20 +1,33 @@
+import { Outlet, useMatches } from 'react-router-dom'
+
 import styles from './AppLayout.module.css'
+import Sidebar from './Sidebar'
 import TopNavigation from './TopNavigation'
 
+const DEFAULT_PAGE = { breadcrumb: ['Home', 'Overview'] }
+
 /**
- * The frame around a signed-in page: top navigation, then the page.
- * Figma's left sidebar isn't built yet.
+ * The frame around every signed-in page: sidebar on the left, then the top
+ * navigation and the page (Figma Candidate · Overview, 10:2). A layout route -
+ * pages render into the <Outlet>.
  *
- * @param {object} props
- * @param {import('react').ReactNode} props.children - the page
- * @param {string[]} [props.breadcrumb] - the trail shown above the heading
- * @param {string} [props.title] - overrides the greeting as the heading
+ * Each route says what the top bar shows in its `handle`:
+ * `{ breadcrumb: ['Home', 'Profile'], title: null }`. `title` undefined means
+ * the greeting; `null` means no heading (the page has its own).
  */
-function AppLayout({ children, breadcrumb = ['Home', 'Overview'], title }) {
+function AppLayout() {
+  const matches = useMatches()
+  const page = [...matches].reverse().find((match) => match.handle)?.handle ?? DEFAULT_PAGE
+
   return (
     <div className={styles.shell}>
-      <TopNavigation breadcrumb={breadcrumb} title={title} />
-      <main className={styles.main}>{children}</main>
+      <Sidebar />
+      <div className={styles.content}>
+        <TopNavigation breadcrumb={page.breadcrumb} title={page.title} />
+        <main className={styles.main}>
+          <Outlet />
+        </main>
+      </div>
     </div>
   )
 }
