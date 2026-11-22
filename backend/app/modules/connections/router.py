@@ -1,4 +1,5 @@
-"""Connection endpoints: requests, my connections, and where I stand with someone."""
+"""Connection endpoints: requests, my connections, where I stand with someone,
+and finding people to connect with (`/people`)."""
 
 import uuid
 from typing import Annotated, Literal
@@ -6,21 +7,56 @@ from typing import Annotated, Literal
 from fastapi import APIRouter, Query, Response, status
 
 from app.api.deps import CurrentUser, LimiterDep, SessionDep
-from app.core.rate_limit import CONNECTION_REQUESTS_PER_USER
+from app.core.rate_limit import CONNECTION_REQUESTS_PER_USER, PEOPLE_SEARCH_PER_USER
 
 from . import service
 from .schemas import (
     ConnectionPage,
     ConnectionRequestCreate,
     ConnectionRequestRead,
+    PersonResult,
     Relationship,
     RelationshipRead,
 )
 
 router = APIRouter(prefix="/connections", tags=["connections"])
+# Search lives here because it exists to find people to connect with.
+people_router = APIRouter(prefix="/people", tags=["connections"])
 
 _UNAUTHORIZED = {401: {"description": "Missing, invalid or expired access token"}}
 _NO_REQUEST = {404: {"description": "No such request for you"}}
+
+
+@people_router.get(
+    "",
+    response_model=list[PersonResult],
+    summary="Find people",
+    responses={
+        **_UNAUTHORIZED,
+        422: {"description": "Fewer than 2 or more than 100 characters"},
+        429: {"description": "More than 60 searches a minute"},
+    },
+)
+async def search_people(
+    current_user: CurrentUser,
+    session: SessionDep,
+    limiter: LimiterDep,
+    q: Annotated[
+        str,
+        Query(
+            min_length=2,
+            max_length=100,
+            description="Part of a name, job title, company or university",
+        ),
+    ],
+) -> list[PersonResult]:
+    """At most 20 people, names starting with `q` first, each with where you
+    stand with them. Never emails."""
+    query = q.strip()
+    if len(query) < 2:
+        return []
+    await limiter.hit(PEOPLE_SEARCH_PER_USER, str(current_user.id))
+    return await service.search_people(session, current_user, query)
 
 
 @router.post(

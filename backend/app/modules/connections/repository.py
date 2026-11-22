@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Select, case, func, or_, select
+from sqlalchemy import Select, and_, case, func, or_, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.models import User
@@ -201,6 +201,87 @@ async def verified_emails(
         )
     )
     return [(row.user_id, row.kind, row.email) for row in rows]
+
+
+def _contains(query: str) -> str:
+    """An ILIKE pattern for "contains `query`", with its own % and _ escaped."""
+    escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+async def search_people(
+    session: AsyncSession, me: uuid.UUID, query: str, *, limit: int
+) -> list[Person]:
+    """Active users whose name, job title, company or university contains
+    `query`, names starting with it first.
+
+    ILIKE on the raw columns, so the trigram indexes are used. Each table is
+    searched on its own and the ids combined (UNION): an OR across a join
+    would make Postgres scan instead.
+    """
+    pattern = _contains(query)
+    by_name = select(User.id).where(User.full_name.ilike(pattern, escape="\\"))
+    by_profile = select(Profile.user_id).where(
+        or_(
+            Profile.job_title.ilike(pattern, escape="\\"),
+            Profile.employer_name.ilike(pattern, escape="\\"),
+            Profile.university.ilike(pattern, escape="\\"),
+        )
+    )
+    matches = union(by_name, by_profile).subquery()
+    name_starts = User.full_name.ilike(f"{pattern[1:]}", escape="\\")
+    rows = await session.execute(
+        _people()
+        .where(User.id.in_(select(matches.c[0])), User.id != me)
+        .order_by(case((name_starts, 0), else_=1), User.full_name, User.id)
+        .limit(limit)
+    )
+    return [_person(row) for row in rows]
+
+
+async def relationships(
+    session: AsyncSession, me: uuid.UUID, others: list[uuid.UUID]
+) -> tuple[set[uuid.UUID], dict[uuid.UUID, ConnectionRequest], dict[uuid.UUID, ConnectionRequest]]:
+    """For many users at once: who I'm connected to, my requests to them that
+    still show as pending (pending or declined), and their pending ones to me.
+    Two queries however many users."""
+    if not others:
+        return set(), {}, {}
+    other = case((Connection.user_a_id == me, Connection.user_b_id), else_=Connection.user_a_id)
+    connected = set(
+        await session.scalars(
+            select(other).where(
+                or_(
+                    and_(Connection.user_a_id == me, Connection.user_b_id.in_(others)),
+                    and_(Connection.user_b_id == me, Connection.user_a_id.in_(others)),
+                )
+            )
+        )
+    )
+    requests = await session.scalars(
+        select(ConnectionRequest).where(
+            or_(
+                and_(
+                    ConnectionRequest.sender_id == me,
+                    ConnectionRequest.receiver_id.in_(others),
+                    ConnectionRequest.status.in_([RequestStatus.PENDING, RequestStatus.DECLINED]),
+                ),
+                and_(
+                    ConnectionRequest.receiver_id == me,
+                    ConnectionRequest.sender_id.in_(others),
+                    ConnectionRequest.status == RequestStatus.PENDING,
+                ),
+            )
+        )
+    )
+    sent: dict[uuid.UUID, ConnectionRequest] = {}
+    received: dict[uuid.UUID, ConnectionRequest] = {}
+    for request in requests:
+        if request.sender_id == me:
+            sent[request.receiver_id] = request
+        else:
+            received[request.sender_id] = request
+    return connected, sent, received
 
 
 async def get_person(session: AsyncSession, user_id: uuid.UUID) -> Person | None:

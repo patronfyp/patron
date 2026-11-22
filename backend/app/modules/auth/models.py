@@ -11,6 +11,7 @@ from enum import StrEnum
 from sqlalchemy import (
     DateTime,
     ForeignKey,
+    Index,
     String,
     Text,
     UniqueConstraint,
@@ -53,6 +54,16 @@ class User(Base):
     no roles - the role is asked for on first sign-in."""
 
     __tablename__ = "users"
+    __table_args__ = (
+        # People search (#120): a trigram index lets "name contains ..." use an
+        # index instead of reading every row. Needs the pg_trgm extension.
+        Index(
+            "ix_users_full_name_trgm",
+            "full_name",
+            postgresql_using="gin",
+            postgresql_ops={"full_name": "gin_trgm_ops"},
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
 
