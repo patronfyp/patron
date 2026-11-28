@@ -9,6 +9,7 @@ import checkIcon from '@/assets/icons/check-14.svg'
 import clock12Icon from '@/assets/icons/clock-12.svg'
 import penIcon from '@/assets/icons/pen-16.svg'
 import shareIcon from '@/assets/icons/share-16.svg'
+import { ConnectButton, useRelationship } from '@/features/connections'
 import Icon from '@/shared/components/Icon/Icon'
 
 import {
@@ -65,6 +66,8 @@ function ProfileHeader({ profile, isOwn = false }) {
   const navigate = useNavigate()
   const photo = profilePhoto(profile)
   const isVerified = profile.university_verified || profile.employer_verified
+  // Someone else's profile: where I stand with them, for the Connect button.
+  const { data: relationship } = useRelationship(profile.user_id, { enabled: !isOwn })
 
   const handleShare = async () => {
     try {
@@ -101,6 +104,12 @@ function ProfileHeader({ profile, isOwn = false }) {
                 <Icon src={penIcon} size={16} />
                 Edit profile
               </Button>
+            ) : relationship ? (
+              <ConnectButton
+                userId={profile.user_id}
+                status={relationship.status}
+                requestId={relationship.request_id}
+              />
             ) : null}
           </div>
         </div>
@@ -116,6 +125,12 @@ function ProfileHeader({ profile, isOwn = false }) {
           </div>
           {headlineLine(profile) ? (
             <p className={styles.headline}>{headlineLine(profile)}</p>
+          ) : null}
+          {relationship?.mutual_count ? (
+            <p className={styles.mutual}>
+              {relationship.mutual_count} mutual{' '}
+              {relationship.mutual_count === 1 ? 'connection' : 'connections'}
+            </p>
           ) : null}
           <TrustChips profile={profile} />
         </div>

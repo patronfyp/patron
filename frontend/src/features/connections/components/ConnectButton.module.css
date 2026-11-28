@@ -1,0 +1,9 @@
+/* "Connected" is a state, not an action: shown as a quiet secondary button. */
+.connected,
+.connected:disabled {
+  gap: 6px;
+  border-color: var(--patron-border-default);
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+  cursor: default;
+}

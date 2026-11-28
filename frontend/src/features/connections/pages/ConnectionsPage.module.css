@@ -1,0 +1,63 @@
+/* Candidate · Connections, Figma 14:370: 28px under the top bar, 40px sides,
+   28px between the stats, the toolbar and the cards. */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 1188px;
+  padding: 28px 40px 56px;
+}
+
+/* Four 262px stats in Figma; with fewer, each keeps that width. */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Input/text, 320 x 40 (14:812). */
+.search {
+  width: 320px;
+  max-width: 100%;
+  height: 40px;
+}
+
+.searchIcon {
+  color: var(--patron-text-tertiary);
+}
+
+/* Three 356px cards a row, 20px apart (14:593). */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+}
+
+.empty {
+  margin: 0;
+  padding: 40px 0;
+  font: var(--patron-type-body);
+  letter-spacing: var(--patron-type-body-tracking);
+  text-align: center;
+  color: var(--patron-text-tertiary);
+}
+
+@media (max-width: 860px) {
+  .page {
+    padding: 20px 16px 40px;
+  }
+}

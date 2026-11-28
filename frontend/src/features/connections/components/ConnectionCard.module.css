@@ -1,0 +1,126 @@
+/* Connection Card, Figma 14:513. --patron-* variables from config/theme.js. */
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-card);
+  background: var(--patron-bg-surface);
+  box-shadow: var(--patron-elevation-button);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.who {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name,
+.subline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  font: var(--patron-type-title);
+  letter-spacing: var(--patron-type-title-tracking);
+  color: var(--patron-text-primary);
+  text-decoration: none;
+}
+
+.name:hover {
+  text-decoration: underline;
+}
+
+.subline {
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  color: var(--patron-text-secondary);
+}
+
+.more {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--patron-radius-md);
+  background: none;
+  color: var(--patron-text-tertiary);
+  cursor: pointer;
+}
+
+.more:hover {
+  background: var(--patron-bg-subtle);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid transparent;
+  border-radius: var(--patron-radius-sm);
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+}
+
+/* Chip/neutral. */
+.neutral {
+  border-color: var(--patron-border-default);
+  background: var(--patron-bg-subtle);
+  color: var(--patron-text-secondary);
+}
+
+/* Chip/alum. */
+.alum {
+  background: var(--patron-trust-alum-subtle);
+  color: var(--patron-trust-alum-text);
+}
+
+/* Chip/dv. */
+.dv {
+  background: var(--patron-trust-dv-subtle);
+  color: var(--patron-trust-dv-text);
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.mutual {
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
+
+/* Button/secondary, 32px (14:507). */
+.view {
+  height: 32px;
+  font: var(--patron-type-body-s-semibold);
+  letter-spacing: var(--patron-type-body-s-semibold-tracking);
+}

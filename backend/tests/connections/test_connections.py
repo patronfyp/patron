@@ -265,3 +265,22 @@ async def test_listing_runs_the_same_queries_for_3_or_6_connections(
     with_six = await count_queries(client, URL, me[0])
 
     assert with_three == with_six
+
+
+async def test_the_list_shows_mutual_counts(client: AsyncClient, clean_users_table: None) -> None:
+    me, bilal, sara = (
+        await user(client, "me"),
+        await user(client, "bilal"),
+        await user(client, "sara"),
+    )
+    zara, omar = await user(client, "zara"), await user(client, "omar")
+    for friend in (bilal, sara, zara, omar):
+        await connect(client, me, friend)
+    # Bilal knows Sara and Zara; Sara knows Bilal; Omar knows none of mine.
+    await connect(client, bilal, sara)
+    await connect(client, bilal, zara)
+
+    items = (await client.get(URL, headers=me[0])).json()["items"]
+    counts = {item["person"]["full_name"]: item["mutual_count"] for item in items}
+
+    assert counts == {"Bilal": 2, "Sara": 1, "Zara": 1, "Omar": 0}

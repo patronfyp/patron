@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Select, and_, case, func, or_, select, union
+from sqlalchemy import Select, and_, case, func, or_, select, union, union_all
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.auth.models import User
@@ -187,6 +187,29 @@ async def mutual(
         )
     ).all()
     return count or 0, [_person(row) for row in first]
+
+
+async def mutual_counts(
+    session: AsyncSession, me: uuid.UUID, others: list[uuid.UUID]
+) -> dict[uuid.UUID, int]:
+    """For each of `others`, how many of my connections they are connected to
+    too - one grouped query for a whole page, not one per person."""
+    if not others:
+        return {}
+    my_ids = select(_connected_ids(me).subquery().c[0])
+    # A connection is stored once, so look at both sides: `person` is one of
+    # `others`, `friend` the other end, which must be one of mine.
+    side_a = select(
+        Connection.user_a_id.label("person"), Connection.user_b_id.label("friend")
+    ).where(Connection.user_a_id.in_(others), Connection.user_b_id.in_(my_ids))
+    side_b = select(
+        Connection.user_b_id.label("person"), Connection.user_a_id.label("friend")
+    ).where(Connection.user_b_id.in_(others), Connection.user_a_id.in_(my_ids))
+    both = union_all(side_a, side_b).subquery()
+    rows = await session.execute(
+        select(both.c.person, func.count().label("count")).group_by(both.c.person)
+    )
+    return {row.person: row.count for row in rows}
 
 
 async def verified_emails(

@@ -1,0 +1,112 @@
+/* The people-search overlay. No Figma frame for it, so it reuses the app's
+   own tokens and shapes: a card, hairlines, the Connection Card's text styles. */
+
+.box {
+  border-bottom: 1px solid var(--patron-border-subtle);
+}
+
+/* The title is for screen readers only. */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.input {
+  padding: 12px 20px;
+}
+
+.icon {
+  margin-right: 4px;
+  color: var(--patron-text-tertiary);
+}
+
+.results {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.hint {
+  margin: 0;
+  padding: 28px 20px;
+  font: var(--patron-type-body-s);
+  letter-spacing: var(--patron-type-body-s-tracking);
+  text-align: center;
+  color: var(--patron-text-tertiary);
+}
+
+.list {
+  margin: 0;
+  padding: 8px;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: var(--patron-radius-md);
+}
+
+.active {
+  background: var(--patron-bg-subtle);
+}
+
+.person {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+}
+
+.person:focus-visible {
+  outline: 2px solid var(--patron-accent-primary);
+  outline-offset: 2px;
+  border-radius: var(--patron-radius-md);
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name,
+.subline {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: var(--patron-type-body-s-semibold);
+  letter-spacing: var(--patron-type-body-s-semibold-tracking);
+  color: var(--patron-text-primary);
+}
+
+.verified {
+  flex: none;
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-accent-text);
+}
+
+.subline {
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-secondary);
+}
