@@ -16,7 +16,7 @@ import styles from './TopNavigation.module.css'
  * @param {string | null} [props.title] - the heading; defaults to "Good morning, <first name>";
  *   `null` leaves it out, for a page with a heading of its own (Profile, 14:2)
  */
-function TopNavigation({ breadcrumb, title }) {
+function TopNavigation({ breadcrumb, title, onSearch }) {
   const user = useAuthStore((state) => state.user)
 
   const firstName = getFirstName(user?.full_name)
@@ -47,13 +47,7 @@ function TopNavigation({ breadcrumb, title }) {
       </div>
 
       <div className={styles.actions}>
-        {/* Search is not built yet: it looks as Figma draws it and does nothing. */}
-        <button
-          type="button"
-          className={styles.search}
-          aria-disabled="true"
-          title="Search is coming soon"
-        >
+        <button type="button" className={styles.search} onClick={onSearch}>
           <Icon src={searchIcon} size={15} />
           <span className={styles.placeholder}>Search jobs, people, companies</span>
           <kbd className={styles.key}>⌘K</kbd>

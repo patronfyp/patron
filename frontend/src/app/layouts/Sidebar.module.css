@@ -28,7 +28,7 @@
   color: var(--patron-text-primary);
 }
 
-/* Inert until the search overlay (#123): default cursor, no hover. */
+/* Opens the people-search overlay. */
 .search {
   display: flex;
   align-items: center;
@@ -43,7 +43,7 @@
   letter-spacing: var(--patron-type-body-s-tracking);
   text-align: left;
   color: var(--patron-text-tertiary);
-  cursor: default;
+  cursor: pointer;
 }
 
 .searchText {
@@ -126,6 +126,20 @@
 .linkLabel {
   flex: 1;
   min-width: 0;
+}
+
+/* Chip/neutral (7:521): a count beside a link. */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 6px;
+  border: 1px solid var(--patron-border-default);
+  border-radius: var(--patron-radius-sm);
+  background: var(--patron-bg-subtle);
+  font: var(--patron-type-caption-medium);
+  letter-spacing: var(--patron-type-caption-medium-tracking);
+  color: var(--patron-text-secondary);
 }
 
 /* Pushed to the bottom; the whole row opens the account menu. */

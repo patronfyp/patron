@@ -133,7 +133,7 @@ describe('Sidebar', () => {
 
     const nav = screen.getByRole('navigation', { name: 'Workspace' })
     const links = within(nav).getAllByRole('link')
-    expect(links.map((link) => link.textContent)).toEqual(['Overview', 'Profile'])
+    expect(links.map((link) => link.textContent)).toEqual(['Overview', 'Connections', 'Profile'])
     expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -174,10 +174,36 @@ describe('Sidebar', () => {
     expect(await screen.findByText('Settings page')).toBeInTheDocument()
   })
 
-  it('keeps search inert until the search overlay exists', () => {
+  // Each way in opens the same overlay. (Closing it is covered in PeopleSearch's
+  // own tests: antd's fade-out doesn't finish under jsdom.)
+  it.each([
+    [
+      'the sidebar search box',
+      async (user) => user.click(screen.getByRole('button', { name: /Search PATRON/ })),
+    ],
+    [
+      'the top bar search box',
+      async (user) =>
+        user.click(screen.getByRole('button', { name: /Search jobs, people, companies/ })),
+    ],
+    ['Ctrl+K', async (user) => user.keyboard('{Control>}k{/Control}')],
+  ])('opens the people search from %s', async (_way, open) => {
     renderAt('/')
 
-    const search = screen.getByRole('button', { name: /Search PATRON/ })
-    expect(search).toHaveAttribute('aria-disabled', 'true')
+    await open(userEvent.setup())
+
+    expect(await screen.findByRole('dialog', { name: 'Search people' })).toBeInTheDocument()
+  })
+  it('shows how many requests are waiting beside Connections', async () => {
+    fakeNetwork(
+      appResponder({
+        requests: [
+          { id: 'r-1', direction: 'received', person: { user_id: 'u-9', full_name: 'Sara' } },
+        ],
+      }),
+    )
+    renderAt('/')
+
+    expect(await screen.findByLabelText('1 waiting')).toBeInTheDocument()
   })
 })

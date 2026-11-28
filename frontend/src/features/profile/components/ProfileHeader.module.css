@@ -132,6 +132,13 @@
   color: var(--patron-text-inverse);
 }
 
+.mutual {
+  margin: 0;
+  font: var(--patron-type-caption);
+  letter-spacing: var(--patron-type-caption-tracking);
+  color: var(--patron-text-tertiary);
+}
+
 .headline {
   margin: 0;
   font: var(--patron-type-body-l);

@@ -66,6 +66,8 @@ class ConnectionRequestRead(BaseModel):
 class ConnectionRead(BaseModel):
     person: PersonSummary
     connection_type: ConnectionType
+    # Connections we have in common.
+    mutual_count: int
     connected_at: datetime
 
 

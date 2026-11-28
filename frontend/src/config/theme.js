@@ -244,6 +244,16 @@ export const brand = {
   avatarMType: { size: 13, lineHeight: 16, weight: 600, tracking: -1 },
   // Initials in the 34px sidebar avatar (Sidebar / Candidate, 7:571).
   avatarSType: { size: 12, lineHeight: 16, weight: 600, tracking: -1 },
+  // Initials in the 48px Connection Card avatar (14:473).
+  avatarCardType: { size: 17, lineHeight: 22, weight: 600, tracking: -1 },
+  // Other people's avatars without a photo (Connection Card, 14:473 and
+  // 14:502): one gradient each, picked by their id so it never changes.
+  avatarPalette: [
+    `linear-gradient(135deg, ${tokens.accent.brand} 0%, ${tokens.accent.text} 100%)`,
+    'linear-gradient(135deg, rgb(47, 107, 191) 0%, rgb(96, 151, 221) 100%)',
+    'linear-gradient(135deg, rgb(138, 71, 171) 0%, rgb(183, 132, 207) 100%)',
+    'linear-gradient(135deg, rgb(180, 70, 106) 0%, rgb(217, 122, 152) 100%)',
+  ],
   // The letter in a 44px company logo tile (frame 9:337).
   logoInitialType: { size: 22, lineHeight: 28, weight: 700, tracking: -4 },
   // The letter in a 32px company logo tile, in the referrer's company field (67:425).
@@ -332,6 +342,7 @@ export function cssVariables() {
   addType('avatarL', brand.avatarLType)
   addType('avatarM', brand.avatarMType)
   addType('avatarS', brand.avatarSType)
+  addType('avatarCard', brand.avatarCardType)
   addType('readinessTitle', readiness.titleType)
   addType('readinessPercent', readiness.percentType)
   addType('readinessCaption', readiness.captionType)

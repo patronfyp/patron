@@ -1,0 +1,22 @@
+/* The 48px avatar on the Connection Card, Figma 14:473. */
+
+.avatar {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: var(--patron-bg-muted);
+  font: var(--patron-type-avatar-card);
+  letter-spacing: var(--patron-type-avatar-card-tracking);
+  color: var(--patron-text-on-accent);
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

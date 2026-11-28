@@ -135,7 +135,7 @@ async def send_request(session: AsyncSession, user: User, other_id: uuid.UUID) -
         other_id,
         NotificationType.CONNECTION_REQUEST,
         f"{user.full_name} wants to connect",
-        link="/connections",
+        link="/connections?tab=requests",
     )
     return await relationship(session, user, other_id)
 
@@ -218,12 +218,16 @@ async def list_connections(
     rows, total = await repository.list_connections(
         session, user.id, query=query, limit=limit, offset=offset
     )
-    types = await _types(session, user.id, [person["id"] for person, _ in rows])
+    ids = [person["id"] for person, _ in rows]
+    # Two fixed queries for the whole page, however many rows it has.
+    types = await _types(session, user.id, ids)
+    mutual = await repository.mutual_counts(session, user.id, ids)
     return ConnectionPage(
         items=[
             ConnectionRead(
                 person=_summary(person),
                 connection_type=types[person["id"]],
+                mutual_count=mutual.get(person["id"], 0),
                 connected_at=connected_at,
             )
             for person, connected_at in rows

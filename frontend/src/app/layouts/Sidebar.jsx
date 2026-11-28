@@ -6,7 +6,9 @@ import chevronDownIcon from '@/assets/icons/chevron-down.svg'
 import homeIcon from '@/assets/icons/home-16.svg'
 import searchIcon from '@/assets/icons/search-15.svg'
 import userIcon from '@/assets/icons/user-16.svg'
+import usersIcon from '@/assets/icons/users-16.svg'
 import { useAuthStore, useLogout } from '@/features/auth'
+import { useConnectionRequests } from '@/features/connections'
 import { useProfile } from '@/features/onboarding'
 import { fileUrl } from '@/shared/api/fileUrl'
 import Icon from '@/shared/components/Icon/Icon'
@@ -30,6 +32,7 @@ const ROLE_LABELS = {
 function navItems(userId) {
   return [
     { to: '/', label: 'Overview', icon: homeIcon, end: true },
+    { to: '/connections', label: 'Connections', icon: usersIcon, badge: true },
     { to: `/profile/${userId}`, label: 'Profile', icon: userIcon },
   ]
 }
@@ -47,11 +50,13 @@ function Avatar({ name, photoUrl }) {
  * The left sidebar of every signed-in page (Figma Sidebar / Candidate, 7:647):
  * logo, search, the workspace links, and the account menu at the bottom.
  */
-function Sidebar() {
+function Sidebar({ onSearch }) {
   const navigate = useNavigate()
   const logout = useLogout()
   const user = useAuthStore((state) => state.user)
   const { data: profile } = useProfile()
+  // The Connections link's chip: how many people are waiting for an answer.
+  const { data: waiting } = useConnectionRequests('received')
 
   // The headline under the name, as Figma shows it; the role until one is written.
   const subline = profile?.headline || ROLE_LABELS[user?.roles?.[0]] || ''
@@ -79,14 +84,7 @@ function Sidebar() {
         <span className={styles.wordmark}>PATRON</span>
       </div>
 
-      {/* Search opens with the search overlay (#123); until then it looks as
-          Figma draws it and does nothing, like the one in the top bar. */}
-      <button
-        type="button"
-        className={styles.search}
-        aria-disabled="true"
-        title="Search is coming soon"
-      >
+      <button type="button" className={styles.search} onClick={onSearch}>
         <Icon src={searchIcon} size={15} />
         <span className={styles.searchText}>Search PATRON</span>
         <kbd className={styles.key}>⌘K</kbd>
@@ -107,6 +105,11 @@ function Sidebar() {
               >
                 <Icon src={item.icon} className={styles.linkIcon} />
                 <span className={styles.linkLabel}>{item.label}</span>
+                {item.badge && waiting?.length ? (
+                  <span className={styles.badge} aria-label={`${waiting.length} waiting`}>
+                    {waiting.length}
+                  </span>
+                ) : null}
               </NavLink>
             </li>
           ))}

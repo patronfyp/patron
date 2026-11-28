@@ -9,6 +9,7 @@ import {
   SelectRolePage,
   SettingsPage,
 } from '@/features/auth'
+import { ConnectionsPage } from '@/features/connections'
 import { HomePage } from '@/features/home'
 import { AllSetPage, OnboardingPage, ResumeOnboardingRedirect } from '@/features/onboarding'
 import { EditProfilePage, ProfilePage } from '@/features/profile'
@@ -33,6 +34,11 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { index: true, element: <HomePage />, handle: { breadcrumb: ['Home', 'Overview'] } },
+          {
+            path: 'connections',
+            element: <ConnectionsPage />,
+            handle: { breadcrumb: ['Home', 'Connections'], title: 'Your network' },
+          },
           // Pages with a heading of their own leave the top bar's out (title: null).
           {
             path: 'profile/edit',
