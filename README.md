@@ -265,6 +265,9 @@ installation step:
 DATABASE_URL=postgresql+asyncpg://postgres:YOUR_PASSWORD@localhost:5432/patron
 ```
 
+> `SECRET_KEY` must be at least 32 characters, and the app also refuses the
+> `replace-me...` placeholder from `.env.example`, so generate a real one as above.
+>
 > `SECRET_KEY` and `DATABASE_URL` have **no defaults** on purpose — the app
 > refuses to start without them, rather than silently signing tokens with a
 > well-known key or pointing at the wrong database.

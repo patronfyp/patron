@@ -83,7 +83,7 @@ def test_the_code_is_in_both_versions() -> None:
 def test_production_refuses_the_console_backend() -> None:
     with pytest.raises(ValidationError, match="EMAIL_BACKEND=console"):
         Settings(
-            secret_key="x",
+            secret_key="x" * 32,
             database_url="postgresql+asyncpg://u:p@localhost/db",
             app_env="production",
             email_backend="console",

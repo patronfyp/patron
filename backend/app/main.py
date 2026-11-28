@@ -18,6 +18,7 @@ from app.core.config import get_settings
 from app.core.exceptions import AppError
 from app.core.logging import add_request_logging, setup_logging
 from app.core.redis import close_redis
+from app.core.security_headers import SecurityHeadersMiddleware
 from app.modules.auth.router import router as auth_router
 from app.modules.companies.router import router as companies_router
 from app.modules.connections.router import people_router
@@ -47,12 +48,14 @@ app = FastAPI(
 # Added before CORS so CORS wraps it: even a 500 carries CORS headers, and the
 # browser shows the real error instead of a CORS one.
 add_request_logging(app)
+app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origin_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # Only what the frontend uses, not "*".
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["Authorization", "Content-Type"],
     # Lets the frontend read how long a 429 asks it to wait.
     expose_headers=["Retry-After"],
 )

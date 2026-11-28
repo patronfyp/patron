@@ -6,6 +6,11 @@ from typing import Literal
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# 32 characters is 192 bits when generated with token_urlsafe(32).
+MIN_SECRET_KEY_LENGTH = 32
+# What .env.example ships with; copying it unchanged must not start the app.
+PLACEHOLDER_SECRET_KEY = "replace-me-with-a-generated-secret"  # noqa: S105 - the value we refuse
+
 
 class Settings(BaseSettings):
     """From env vars, then `.env`. Case-insensitive: `APP_NAME` fills `app_name`."""
@@ -49,6 +54,19 @@ class Settings(BaseSettings):
 
     # Rate-limit counters (ADR 0021). Empty turns rate limiting off.
     redis_url: str = "redis://localhost:6379/0"
+
+    @model_validator(mode="after")
+    def _strong_secret_key(self) -> "Settings":
+        # Every login token is signed with this key: a short or copied one lets
+        # anyone mint tokens. Fail at startup, in every environment.
+        if len(self.secret_key) < MIN_SECRET_KEY_LENGTH:
+            raise ValueError(
+                f"SECRET_KEY must be at least {MIN_SECRET_KEY_LENGTH} characters. Generate one "
+                'with: python -c "import secrets; print(secrets.token_urlsafe(32))"'
+            )
+        if self.secret_key == PLACEHOLDER_SECRET_KEY:
+            raise ValueError("SECRET_KEY is still the placeholder from .env.example")
+        return self
 
     @model_validator(mode="after")
     def _real_email_in_production(self) -> "Settings":
