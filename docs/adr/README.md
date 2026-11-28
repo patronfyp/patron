@@ -33,3 +33,4 @@ Numbers are never reused — see the numbering note on ADR 0010 for why 0010,
 | [0022](0022-resend-for-transactional-email.md) | Resend for transactional email | Rafay |
 | [0023](0023-connection-type-from-verified-emails.md) | Connections, and their type worked out from verified emails | Rafay |
 | [0024](0024-trigram-indexes-for-people-search.md) | Trigram indexes for people search | Rafay |
+| [0025](0025-job-lifecycle-draft-open-closed.md) | Job lifecycle - draft, open, closed, with read-time expiry | Rafay |

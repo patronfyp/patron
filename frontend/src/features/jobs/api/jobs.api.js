@@ -16,8 +16,10 @@ import { api } from '@/shared/api/client'
 
 /** GET /api/v1/companies/me/jobs - capped at 200, this company's only. */
 export async function getJobs() {
-  const response = await api.get('/api/v1/companies/me/jobs')
-  return response.data
+  // The list is paged (`{ items, total }`, newest first); onboarding shows
+  // the first page, which holds every draft a new company could have.
+  const response = await api.get('/api/v1/companies/me/jobs', { params: { limit: 100 } })
+  return response.data.items
 }
 
 /** POST /api/v1/companies/me/jobs - always created as a draft. */
