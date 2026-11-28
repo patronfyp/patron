@@ -43,12 +43,21 @@ async def get_latest_verified(
     return await session.scalar(stmt)
 
 
+# Per-user lists are capped like every other list (STANDARDS); no real user has this many.
+MAX_PER_USER = 50
+
+
 async def list_verified_emails(session: AsyncSession, user_id: uuid.UUID, kind: str) -> list[str]:
-    """Every address of this kind the user has verified."""
-    stmt = select(EmailVerification.email).where(
-        EmailVerification.user_id == user_id,
-        EmailVerification.kind == kind,
-        EmailVerification.verified_at.is_not(None),
+    """The addresses of this kind the user has verified (each once, at most 50)."""
+    stmt = (
+        select(EmailVerification.email)
+        .where(
+            EmailVerification.user_id == user_id,
+            EmailVerification.kind == kind,
+            EmailVerification.verified_at.is_not(None),
+        )
+        .distinct()
+        .limit(MAX_PER_USER)
     )
     return list(await session.scalars(stmt))
 
@@ -85,11 +94,12 @@ async def save(session: AsyncSession, row: EmailVerification) -> EmailVerificati
 
 
 async def list_documents(session: AsyncSession, user_id: uuid.UUID) -> list[VerificationDocument]:
-    """The user's documents, newest first."""
+    """The user's documents, newest first (at most 50)."""
     stmt = (
         select(VerificationDocument)
         .where(VerificationDocument.user_id == user_id)
         .order_by(VerificationDocument.created_at.desc())
+        .limit(MAX_PER_USER)
     )
     return list((await session.scalars(stmt)).all())
 

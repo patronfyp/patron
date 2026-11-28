@@ -81,7 +81,7 @@ class Company(Base):
 
     verified_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     created_by: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), default=None
+        ForeignKey("users.id", ondelete="SET NULL"), index=True, default=None
     )
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -139,7 +139,7 @@ class CompanyInvite(Base):
     # SHA-256 of the token in the link.
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     invited_by: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("users.id", ondelete="SET NULL"), default=None
+        ForeignKey("users.id", ondelete="SET NULL"), index=True, default=None
     )
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     accepted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
