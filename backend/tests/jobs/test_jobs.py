@@ -37,7 +37,7 @@ async def test_a_new_job_is_a_draft_and_is_listed(
     assert body["title"] == "Senior Backend Engineer"
     assert body["status"] == "draft"
     assert body["openings"] == 2
-    assert [job["id"] for job in listed.json()] == [body["id"]]
+    assert [job["id"] for job in listed.json()["items"]] == [body["id"]]
 
 
 async def test_clients_cannot_set_the_status(
@@ -98,7 +98,7 @@ async def test_deleting_a_job(
 
     assert deleted.status_code == 204
     assert again.status_code == 404
-    assert (await client.get(JOBS_URL, headers=owner)).json() == []
+    assert (await client.get(JOBS_URL, headers=owner)).json()["items"] == []
 
 
 async def test_a_hiring_manager_can_add_jobs(
@@ -126,7 +126,7 @@ async def test_an_interviewer_can_read_but_not_change_jobs(
     )
     deleted = await client.delete(f"{JOBS_URL}/{job['id']}", headers=interviewer)
 
-    assert len(listed.json()) == 1
+    assert listed.json()["total"] == 1
     assert created.status_code == 403
     assert updated.status_code == 403
     assert deleted.status_code == 403
@@ -156,4 +156,4 @@ async def test_another_company_cannot_touch_my_jobs(
 
     assert updated.status_code == 404
     assert deleted.status_code == 404
-    assert listed.json() == []
+    assert listed.json()["items"] == []
